@@ -1,0 +1,46 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    {%tailwind_css%}
+    <title>Client Dash</title>
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <header>
+    <h2>
+        Bienvenue,
+        {% if client.genre == "masculin" %}Mr
+        {% elif client.genre == "féminin" %}Mme
+        {% endif %}
+        <em>{{ client.nom_complet }}</em>
+    </h2>
+    
+    <h4>
+        Votre commercial : 
+        <em>{{ client.assigned_commercial.nom_complet }}</em>
+        
+        <!-- ✅ Pas besoin de client_id pour le client -->
+        <a href="{% url 'chat_app:chat' %}">
+            💬 Envoyer un message
+        </a>
+    </h4>
+</header>
+    <main>
+
+    </main>
+    <footer>
+
+    </footer>
+    
+   
+    
+</body>
+</html>

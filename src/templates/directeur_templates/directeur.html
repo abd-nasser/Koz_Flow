@@ -1,0 +1,107 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <link rel="stylesheet" href="{% static 'css/directeur_style.css' %}">
+    <title>Dashboard {{ role }} - KOZ Services</title>
+    
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen">
+        <!-- Navbar -->
+        <nav class="bg-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold">K</span>
+                    </div>
+                    <span class="font-semibold text-gray-800">KOZ Services - {{ role }}</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">{{ user.email }}</span>
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                        Déconnexion
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Contenu principal -->
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h1 class="text-2xl font-bold text-gray-800 mb-4">
+                    Dashboard {{ role }}
+                </h1>
+                
+                <div class="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-6">
+                    ✅ Connexion réussie ! Vous êtes connecté en tant que <strong>{{ role }}</strong>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <h2 class="font-semibold text-gray-700 mb-2">Informations utilisateur :</h2>
+                    <ul class="text-gray-600 space-y-1">
+                        <li>📧 Email : {{ user.email }}</li>
+                        <li>👤 Nom : {{ user.nom_complet }}</li>
+                        <li>🎭 Rôle : {{ user.role }}</li>
+                        <li>🆔 ID : {{ user.id }}</li>
+                    </ul>
+                </div>
+               {% include 'modals/change_password.html' %}
+            <button class="btn" onclick="change_pass_modal.showModal()">Changer Identifiants</button>
+
+            {% include 'modals/userregister.html' %}
+            <button class="btn" onclick="userregister_modal.showModal()">Ajouter Utilisateur</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    <script>
+        // Gestion de la déconnexion
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const refresh = localStorage.getItem('refresh_token');
+            if (refresh) {
+                console.log('Refresh token found');
+                console.log('Refresh token:', refresh);
+            };
+
+            await fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify({refresh: refresh})
+            });
+
+            localStorage.clear();  
+            window.location.href = 'http://127.0.0.1:8000/';
+
+        });
+
+        
+        // Vérifier que le token est toujours valide
+        setInterval(async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            const response = await fetch('/api/auth/me/', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            if (response.status === 401) {
+                // Token expiré, rediriger vers login
+                localStorage.clear();
+                window.location.href = 'http://127.0.0.1:8000/';
+            }
+        }, 60000); // Vérifier toutes les minutes
+    </script>
+</body>
+</html>

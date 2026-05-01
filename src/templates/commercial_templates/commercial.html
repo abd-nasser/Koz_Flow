@@ -1,0 +1,48 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <link rel="stylesheet" href="{% static 'css/commercial_style.css' %}">
+    {% tailwind_css %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commercial Dashboard</title>
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <header>
+        {% include 'modals/change_password.html' %}
+    <button class="btn" onclick="my_modal_1.showModal()">Changer Identifiants</button>
+     {% include 'modals/userregister.html' %}
+    <button class="btn" onclick="userregister_modal.showModal()">Ajouter Un client</button>
+    </header>
+    <main>
+        
+        {% for client in clients %}
+            <tr>
+                <td>
+                    {{client.nom_complet}}
+                    
+                    {% if client.nb_message_non_lus > 0 %}
+                        <span class="badge">{{ client.nb_message_non_lus }}</span>    
+                    {% endif %}
+                        
+                </td>
+                <td>{{ client.dernier_message.contenu|default:"—" }}</td>
+                <td>{{ client.dernier_message.date_envoi|timesince|default:"—" }}</td>
+                <a href="{% url 'chat_app:chat-view' client.id %}">💬 Discuter</a>
+            </tr>
+        {% endfor %}
+            
+    </main>
+    <footer>
+
+    </footer>
+
+   
+</body>
+</html>
