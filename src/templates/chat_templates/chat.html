@@ -2,6 +2,7 @@
 {% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,7 +53,8 @@
         container.scrollTop = container.scrollHeight;
 
         // Ecouter les nouveaux messages pour //scroll
-        document.body.addEvenListener('htmx:afterSwap', ()=> container.scrollTop = container.scrollHeight;)
+        document.body.addEventListener('htmx:afterSwap', ()=> container.scrollTop = container.scrollHeight;)
+        // Ecouter les nouveaux messages pour scroll
         </script>
 
 </html>
