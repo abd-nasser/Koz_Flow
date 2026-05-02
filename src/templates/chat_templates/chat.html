@@ -2,19 +2,20 @@
 {% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% tailwind_css %}
-    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
-    <link rel="stylesheet" href="{% staic 'css/chat_style.css' %}">
+    
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/chat_style.css' %}">
     <title>Discussion</title>
+    {% tailwind_css %}
 </head>
-<body>
+<body >
+
     <h1>💬 Discussion</h1>
     <div class="message-container" id="messages-container">
-        {% for msg in messages %}
+        {% for message in messages %}
             {% include 'partials/chat/message.html' %}
         {% empty %}
             <p>Aucun message pour le moment</p>
@@ -23,38 +24,42 @@
 
     
     {% if user.role == "client" %}
-    <form   class="chat-form"
-            hx-post="{% url 'chat_app:envoyer-message' client_id=user.id %}"
-            hx-target="#messages-container"
-            hx-swap="beforend"
-            hx-on::after-request="this.reset()">
-            {% csrf_token %}
-            <input type="text" name="contenu" placeholder="Votre message...", autocomplete="off">
-            <button type="submit">Envoyer</button>
-    </form>
-
-    {% else %}
     <form class="chat-form"
-            hx-post="{% url 'chat_app:envoyer_message' client_id=client.id %}"
-            hx-target="#messages-container"
-            hx-swap="beforend"
-            hx-on::after-request="this.reset()"
-            >
-            {% csrf_token %}
-            <input type="text" name="contenu"placeholder="Répondre à {{ message.client.nom_complet }}", autocomplete="off">
+          method="post"
+          hx-post="{% url 'chat_app:client_envoyer_message' %}"
+          hx-target="#messages-container"
+          hx-swap="beforeend"
+          hx-on::after-request='this.reset()'
+          >
+        {% csrf_token %}
+        <input type="text" name="contenu" placeholder="Votre message..." autocomplete="off">
+        <button type="submit">Envoyer</button>
     </form>
-        
-    {% endif %}
-        
-</body>
-    <script>
-        //scroll automatique
-        const container = document.getElementById('messages-container');
-        container.scrollTop = container.scrollHeight;
 
-        // Ecouter les nouveaux messages pour //scroll
-        document.body.addEventListener('htmx:afterSwap', ()=> container.scrollTop = container.scrollHeight;)
-        // Ecouter les nouveaux messages pour scroll
-        </script>
+{% else %}
+    <form class="chat-form"
+          method="post"
+          hx-post="{% url 'chat_app:commercial_envoyer_message' client_id=client.id %}"
+          hx-target="#messages-container"
+          hx-swap="beforeend"
+          hx-on::after-request='this.reset()'
+          >
+        {% csrf_token %}
+        <input type="text" name="contenu" placeholder="Répondre à {{ client.nom_complet }}" autocomplete="off">
+        <button type="submit">Envoyer</button>
+    </form>
+{% endif %}
+       
+</body>
+<script>
+    const container = document.getElementById('messages-container');
+    container.scrollTop = container.scrollHeight;
+    
+    // Écoute l'événement après échange HTMX
+    document.body.addEventListener('htmx:after-request', function(evt) {
+        // Scroll auto
+        container.scrollTop = container.scrollHeight;
+    });
+</script>
 
 </html>

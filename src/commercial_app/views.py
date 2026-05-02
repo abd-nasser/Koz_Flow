@@ -16,7 +16,7 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs) 
         context["commercial"] = self.request.user
-        context["register_form"] = UserRegisterForm()
+        context["user_register_form"] = UserRegisterForm()
         
         if 'change_pass_form' not in context:
             context["change_pass_form"] = ChangePasswordForm()
@@ -24,6 +24,7 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         #liste des clients assigné à ce commercial
         context['clients'] = self.request.user.clients_assignes.all()
         context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
+        
         return context
         
 

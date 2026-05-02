@@ -191,13 +191,13 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
     @property
     def dernier_message(self):
         if self.role == "client":
-            return  self.message_envoyes.last() 
+            return  self.messages_envoyes.last() 
         return None
     
     @property
-    def nb_message_non_lus(self):
+    def nb_messages_non_lus(self):
         if self.role == "client":
-            return self.message_envoyes.filter(lu=False, est_client=True).count()
+            return self.messages_envoyes.filter(lu=False, est_client=True).count()
         return 0
   
     

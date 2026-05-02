@@ -9,12 +9,9 @@ from auth_app.models import kozUser
 from .models import Message
 
 @login_required
-@require_http_methods(["POST"])
-def envoyer_message(request, client_id):
-   if request.method == "POST":
-      
-      contenu = request.POST.get("contenu")
-      
+def envoyer_message(request, client_id=None):
+   if request.method == "POST":   
+      contenu = request.POST.get("contenu")  
       if not contenu or not contenu.strip():
          return HttpResponse('')
       
@@ -38,12 +35,9 @@ def envoyer_message(request, client_id):
             contenu=contenu,
             est_client=False
          )
-         
-   html = render_to_string("partials/chat/message.html", {
-      "message": message,
-      "user_role":request.user.role
-      })
-   return HttpResponse(html)
+    
+   return render(request, "partials/chat/message.html", {'message': message,
+                                                               'client': client,})
 
 
 @login_required

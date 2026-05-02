@@ -15,9 +15,9 @@
 
     </nav>
     <header>
-        {% include 'modals/change_password.html' %}
-    <button class="btn" onclick="my_modal_1.showModal()">Changer Identifiants</button>
-     {% include 'modals/userregister.html' %}
+        
+    <button class="btn" onclick="change_pass_modal.showModal()">Changer Identifiants</button>
+    
     <button class="btn" onclick="userregister_modal.showModal()">Ajouter Un client</button>
     </header>
     <main>
@@ -37,7 +37,8 @@
                 <a href="{% url 'chat_app:chat-view' client.id %}">💬 Discuter</a>
             </tr>
         {% endfor %}
-            
+             {% include 'modals/userregister.html' %}
+             {% include 'modals/change_password.html' %}
     </main>
     <footer>
 

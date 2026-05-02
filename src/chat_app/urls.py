@@ -4,7 +4,11 @@ from . import views
 app_name = "chat_app"
 
 urlpatterns = [
-   path('chat/<int:client_id>/', views.chat_view, name="chat-view"), #Commercial
-   path('chat/', views.chat_view, name="chat-view"), #pour client
-   path("chat/envoyer/<int:client_id>/", views.envoyer_message, name="envoyer-message")
+    # Vue pour afficher la discussion
+    path('', views.chat_view, name="chat-view"),                        # Client
+    path('<int:client_id>/', views.chat_view, name="chat-view"),        # Commercial
+
+    # Vue pour envoyer un message (POST)
+    path('envoyer/', views.envoyer_message, name="client_envoyer_message"),                      # Client
+    path('envoyer/<int:client_id>/', views.envoyer_message, name="commercial_envoyer_message"),      # Commercial
 ]

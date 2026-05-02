@@ -1,12 +1,12 @@
 <div class="message {% if message.est_client %}client-message{% else %}commercial-message {% endif %}" >
     <strong>
         {% if message.est_client %}
-        {{ message.client.nom_complet}}
+            {{ message.client.nom_complet}}
         {% else %}
-        {{ message.commercial.nom_complet }}
+            {{ message.commercial.nom_complet }}
         {% endif %}
         
     </strong>
-    <p>{{ message.contenu }}</p>
+            <p >{{ message.contenu }}</p>
      <small>{{ message.date_envoi|date:"d/m/Y H:i" }}</small>
 </div>
