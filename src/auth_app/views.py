@@ -78,9 +78,12 @@ class LoginView(APIView):
             email = request.data.get("email")
             password = request.data.get("password")
 
+            print(f"Email: {email}, Password: {password}")  # Debug: Affiche les données reçues
             
             user = authenticate(request, email=email, password=password) 
-            
+
+            print(f"User: {user}")  # Debug: Affiche l'utilisateur trouvé
+
             if user is not None:
                 
                 django_login(request, user)

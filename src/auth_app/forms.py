@@ -82,8 +82,6 @@ class UserRegisterForm(forms.ModelForm):
             user.is_staff = True
 
         print(f"Mot de passe généré pour {user.email} : {password}")  # Affiche le mot de passe dans la console (pour les tests)
-        # mdp commer   #NvD1XuXy4A  
-        # mdp client 5s0jbCWF5g
         user.set_password(password)    
         
         if user.role == "client" and self.created_by and self.created_by.role == "commercial":
