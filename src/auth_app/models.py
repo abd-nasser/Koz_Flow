@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.models import AbstractUser
-from vehicul_app.models import Vehicle
+from vehicul_app.models import Vehicul
 
 # ---------- GESTIONNAIRE PERSONNALISÉ ----------
 # C'est le chef d'orchestre qui va créer et gérer nos kozUsers

@@ -5,13 +5,12 @@ class Marque(models.Model):
     logo =  models.ImageField(upload_to="marques/",null= True, blank=True)
     
     def __str__(self):
-        return self.nom
+        return self.nom if self.nom else "Marque sans nom"  # ← Fallback
     
 
-class Vehicle(models.Model):
+class Vehicul(models.Model):
     
-    
-    marque = models.ForeignKey(Marque, on_delete=models.CASCADE, related_name='vehicule')
+    marque = models.ForeignKey(Marque, on_delete=models.CASCADE, related_name='vehicul')
     
     # CharField = texte court pour le nom du modèle (ex: "Clio", "208", "Camry")
     modele = models.CharField(max_length=100)
@@ -35,9 +34,8 @@ class Vehicle(models.Model):
     date_ajout = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.marque.nom} {self.modele} ({self.annee})"
-    
-    
-    
+        marque_nom = self.marque.nom if self.marque else "?"
+        modele_nom = self.modele if self.modele else "?"
+        return f"{marque_nom} {modele_nom}"
     
  

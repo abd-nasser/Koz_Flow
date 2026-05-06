@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DeleteView, DetailView, CreateView, TemplateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin #pour la connection requise et permission selon le role
+
+
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
+from vehicul_app.forms import MarqueForm, VehiculForm
 
 class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView ):
     
@@ -17,10 +20,21 @@ class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView
     # avec cette method depuis directeur.htlm on peut acceder au info User qui connecter 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         context["directeur"] = self.request.user
-        context["user_register_form"] = UserRegisterForm()
+        
+        if "user_register_form" not in context:
+            context["user_register_form"] = UserRegisterForm()
+        
         if 'change_pass_form' not in context:
             context["change_pass_form"] = ChangePasswordForm()
+            
+        if 'marque_form' not in context:
+            context["marque_form"] = MarqueForm()
+        
+        if "vehicul_form" not in context:
+            context["vehicul_form"] = VehiculForm()
+            
         return context 
        
     

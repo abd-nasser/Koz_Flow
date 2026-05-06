@@ -1,0 +1,45 @@
+<dialog id="userregister_modal" class="modal">
+  <div class="modal-box">
+    <form method="post" action="{% url 'auth_app:user-register' %}">
+      {% csrf_token %}
+      
+      {{ user_register_form.non_field_errors }}
+      
+      {% for field in user_register_form %}
+        <div class="form-group">
+          {{ field.label_tag }}
+          {{ field }}
+          
+          {% if field.errors %}
+            <div class="error">
+              {% for error in field.errors %}
+                <p class="text-red-500">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn" onclick="document.getElementById('userregister_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+
+{% if open_user_register_modal %}
+<script>
+  document.getElementById('userregister_modal').showModal();
+</script>
+  
+{% endif %}
+  
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('userregister_modal').close();
+  }
+</script>

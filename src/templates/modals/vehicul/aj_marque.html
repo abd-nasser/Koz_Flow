@@ -1,11 +1,13 @@
-<dialog id="userregister_modal" class="modal">
+<dialog id="marque_modal" class="modal">
   <div class="modal-box">
-    <form method="post" action="{% url 'auth_app:user-register' %}">
+    <form 
+    encrytype="multipart/form-data"
+    method="post" 
+    action="{% url 'vehicul_app:ajout-marque' %}">
       {% csrf_token %}
+      {{ marque_form.non_field_errors }}
       
-      {{ user_register_form.non_field_errors }}
-      
-      {% for field in user_register_form %}
+      {% for field in marque_form %}
         <div class="form-group">
           {{ field.label_tag }}
           {{ field }}
@@ -22,16 +24,16 @@
       
       <div class="modal-action">
         <button type="submit" class="btn btn-primary">Enregistrer</button>
-        <button type="button" class="btn" onclick="document.getElementById('userregister_modal').close()">Annuler</button>
+        <button type="button" class="btn" onclick="document.getElementById('marque_modal').close()">Annuler</button>
       </div>
     </form>
   </div>
 </dialog>
 
 
-{% if reopen_modal %}
+{% if open_marque_modal %}
 <script>
-  document.getElementById('userregister_modal').showModal();
+  document.getElementById('marque_modal').showModal();
 </script>
   
 {% endif %}
@@ -40,6 +42,6 @@
 <script>
   // Fonction pour fermer la modale après soumission (optionnel)
   function closeModal() {
-    document.getElementById('userregister_modal').close();
+    document.getElementById('marque_modal').close();
   }
 </script>

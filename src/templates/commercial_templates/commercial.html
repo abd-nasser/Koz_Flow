@@ -37,8 +37,8 @@
                 <a href="{% url 'chat_app:chat-view' client.id %}">💬 Discuter</a>
             </tr>
         {% endfor %}
-             {% include 'modals/userregister.html' %}
-             {% include 'modals/change_password.html' %}
+             {% include 'modals/auth/userregister.html' %}
+             {% include 'modals/auth/change_password.html' %}
     </main>
     <footer>
 

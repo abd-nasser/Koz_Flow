@@ -27,6 +27,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializers, UserSerializer
 from .forms import UserRegisterForm, ChangePasswordForm
 from .models import kozUser
+from directeur_app.views import DirecteurDashboardView
+from commercial_app.views import CommercialDashboardView
 
 import logging
 
@@ -78,12 +80,9 @@ class LoginView(APIView):
             email = request.data.get("email")
             password = request.data.get("password")
 
-            print(f"Email: {email}, Password: {password}")  # Debug: Affiche les données reçues
             
             user = authenticate(request, email=email, password=password) 
-
-            print(f"User: {user}")  # Debug: Affiche l'utilisateur trouvé
-
+            
             if user is not None:
                 
                 django_login(request, user)
@@ -196,12 +195,17 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_invalid(self, form):
         #Quand le formulaire est invalide, on reste sur la meme page
         #on passe le formulaire invalide au context
-        context = self.get_context_data()
+        if self.request.user.is_superuser or self.request.user.role =="directeur":
+            dashboard = DirecteurDashboardView()
+        
+        else:
+            dashboard = CommercialDashboardView()
+            
+        context = dashboard.get_context_data()
         context["user_register_form"] = form
-        context["reopen_modal"] = True # variable pour réouvrir le modal avec les erreurs
+        context["open_user_register_modal"] = True # variable pour réouvrir le modal avec les erreurs
         return self.render_to_response(context)
-      
-      
+        
       
 class ChangePasswordView(LoginRequiredMixin, FormView):
     form_class = ChangePasswordForm
@@ -247,9 +251,16 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
     def form_invalid(self, form):
         #Quand le formulaire est invalide, on reste sur la meme page
         # on passe le formulaire invalide au context
-        context = self.get_context_data()
+        if self.request.user.is_superuser or self.request.user.role =="directeur":
+            dashboard = DirecteurDashboardView()
+            dashboard.request = self.request
+        
+        else:
+            dashboard = CommercialDashboardView()
+            dashboard.request = self.request
+        context = dashboard.get_context_data()
         context["change_pass_form"] = form
-        context["reopen_modal"] = True # variable pour réouvrir le modal avec les erreurs
+        context["open_change_pass_modal"] = True # variable pour réouvrir le modal avec les erreurs
         return self.render_to_response(context)
         
     

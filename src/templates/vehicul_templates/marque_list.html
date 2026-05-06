@@ -1,0 +1,26 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/vehicul/marque_list_styles.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <title>Liste de marques</title>
+</head>
+<body>
+    <h1>Liste des marques</h1>
+    <ul>
+        {% for marque in marque_list %}
+            <li><a href="{% url 'vehicul_app:detail-marque' marque.pk %}">{{ marque.nom }}</a></li>
+            <li><img src="{{ marque.image.url }}" alt="{{ marque.nom }}"></li>
+        {% empty %}
+            <li>Aucune marque disponible.</li>
+        {% endfor %}
+    </ul>
+    
+    <a href="{% url 'vehicul_app:list-vehicul' %}">🔙🔙🔙🔙🔙</a>
+</body>
+</html>

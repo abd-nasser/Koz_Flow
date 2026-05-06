@@ -1,0 +1,31 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/vehicul/vehicul_list_style.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <title>Liste des voitures</title>
+</head>
+<body>
+    <ul>
+
+    
+    {% for vehicul in vehicul_list  %}
+        <li>{{ vehicul.marque }}</li>
+        <li>{{ vehicul.modele }}</li>
+        <li><img width="150" height="150" src="{{ vehicul.image_principale.url }}" alt="{{ vehicul.nom }}"></li>
+        <li><a href="{% url 'vehicul_app:detail-vehicul' vehicul.pk %}">Voir les détails</a></li>
+    {% empty %}
+        <li>Aucune voiture disponible.</li>
+    {% endfor %}
+    </ul>
+    {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
+        <a class="btn" href="{% url 'directeur_app:directeur-view' %}">retour au dashboard</a>
+    {% endif %}
+    <a href="{}"></a>
+</body>
+</html>

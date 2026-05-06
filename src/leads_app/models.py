@@ -1,5 +1,5 @@
 from django.db import models
-from vehicul_app.models import Vehicle
+from vehicul_app.models import Vehicul
 from auth_app.models import kozUser
 
 class DevisLeads(models.Model):
@@ -14,9 +14,9 @@ class DevisLeads(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=30)
     
-    #---vehicle Infos---
-    Vehicle_interested_in_catalogue = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, related_name="Vehicle_interested", null=True)
-    other_vehicle_interested = models.CharField(null=True,blank=True )
+    #---Vehicul Infos---
+    Vehicul_interested_in_catalogue = models.ForeignKey(Vehicul, on_delete=models.SET_NULL, related_name="Vehicul_interested", null=True)
+    other_Vehicul_interested = models.CharField(null=True,blank=True )
     
     traited = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -64,15 +64,15 @@ class demande_financement(models.Model):
     
     #-----2. THE CAR WANTS(link to the catalogue)
 
-    Vehicle_interested = models.ForeignKey(
-        Vehicle, 
+    Vehicul_interested = models.ForeignKey(
+        Vehicul, 
         on_delete=models.SET_NULL,
         null=True,
         related_name='demande_financement',
         verbose_name="Véhicule d'intérêt"
         )
     
-    other_vehicle_interested = models.CharField(null=True, blank=True )
+    other_Vehicul_interested = models.CharField(null=True, blank=True )
     
     #------3.Financement SIMULATOR()--------------------
     apport = models.DecimalField(max_digits=12, decimal_places=0, default=0)

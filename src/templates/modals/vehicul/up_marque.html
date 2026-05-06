@@ -1,0 +1,44 @@
+<dialog id="marque_modal" class="modal">
+  <div class="modal-box">
+    <form method="post" action="{% url 'vehicul_app:update-marque' marque.pk %}">
+      {% csrf_token %}
+      {{ marque_form.non_field_errors }}
+      
+      {% for field in marque_form %}
+        <div class="form-group">
+          {{ field.label_tag }}
+          {{ field }}
+          
+          {% if field.errors %}
+            <div class="error">
+              {% for error in field.errors %}
+                <p class="text-red-500">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn" onclick="document.getElementById('marque_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+
+{% if open_marque_modal %}
+<script>
+  document.getElementById('marque_modal').showModal();
+</script>
+  
+{% endif %}
+  
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('marque_modal').close();
+  }
+</script>

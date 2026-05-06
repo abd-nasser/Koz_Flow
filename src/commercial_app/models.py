@@ -5,7 +5,7 @@ class Offre(models.Model):
     client = models.OneToOneField("auth_app.kozUser", on_delete=models.CASCADE, related_name="offre")
     
     #La voiture proposée(peut etre différente de celle demandée initialement)
-    vehicule_propose =  models.ForeignKey("vehicul_app.vehicle", related_name="offre", on_delete=models.CASCADE)
+    vehicule_propose =  models.ForeignKey("vehicul_app.vehicul", related_name="offre", on_delete=models.CASCADE)
     
     #Détails du crédit proposé
     prix_vehicule = models.DecimalField(max_digits=12, decimal_places=0)

@@ -1,0 +1,29 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/vehicul/vehicul_detail_style.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <title>Détails de la voiture</title>
+</head>
+<body>
+    <h1>{{ vehicul.marque }} {{ vehicul.modele }}</h1>
+    <img width="150" height="150" src="{{ vehicul.image_principale.url }}" alt="{{ vehicul.nom }}">
+    <p>Année: {{ vehicul.annee }}</p>
+    <p>Prix: {{ vehicul.prix }} FCFA</p>
+    <p>Description: {{ vehicul.description }}</p>
+    <a  class="btn btn_dmd_financement" href="#">Demander un Financement</a>
+    <a href="{% url 'vehicul_app:list-vehicul' %}">🔙🔙🔙🔙🔙</a>
+    
+    {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
+        {% include 'modals/vehicul/up_vehicul.html' %}
+            <button class="btn" onclick="vehicul_modal.showModal()">Modifier la voiture</button>
+        {% include 'modals/vehicul/vehicul_confirm_delete.html' %}
+            <button class="btn btn-danger" onclick="delete_vehicul_modal.showModal()">Supprimer la voiture</button>
+    {% endif %}
+        
+</body>

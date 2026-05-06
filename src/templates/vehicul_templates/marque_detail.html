@@ -1,0 +1,28 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/vehicul/marque_detail_style.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <title>Détails de la marque</title>
+</head>
+<body>
+    <h1>Détails de la marque</h1>
+    <p><strong>Nom:</strong> {{ marque.nom }}</p>
+    <p><strong>Description:</strong> {{ marque.description }}</p>
+    <img src="{{ marque.image.url }}" alt="{{ marque.nom }}">
+    <a href="{% url 'vehicul_app:list-marque' %}">🔙🔙🔙🔙🔙</a>
+
+ {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
+        {% include 'modals/vehicul/up_marque.html' %}
+            <button class="btn" onclick="marque_modal.showModal()">Modifier la marque</button>
+        {% include 'modals/vehicul/marque_confirm_delete.html' %}
+            <button class="btn btn-danger" onclick="delete_marque_modal.showModal()">Supprimer la marque</button>
+    {% endif %}
+        
+</body>
+</html>

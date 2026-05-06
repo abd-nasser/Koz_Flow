@@ -51,13 +51,23 @@
                         <li>🆔 ID : {{ user.id }}</li>
                     </ul>
                 </div>
-               {% include 'modals/change_password.html' %}
+            {% include 'modals/auth/change_password.html' %}
             <button class="btn" onclick="change_pass_modal.showModal()">Changer Identifiants</button>
 
-            {% include 'modals/userregister.html' %}
+            {% include 'modals/auth/userregister.html' %}
             <button class="btn" onclick="userregister_modal.showModal()">Ajouter Utilisateur</button>
+
+            {% include 'modals/vehicul/aj_marque.html' %}
+            <button class="btn" onclick="marque_modal.showModal()">Ajouter une marque de voiture</button>
+
+            {% include 'modals/vehicul/aj_vehicul.html' %}
+            <button class="btn" onclick="vehicul_modal.showModal()">Ajouter une voiture</button>
+
+             <a class="btn" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
+            <a class="btn" href="{% url 'vehicul_app:list-marque' %}">Voir les marques</a>
+
             </div>
-        </div>
+        </div>""
     </div>
     
     
