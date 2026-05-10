@@ -12,7 +12,17 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen flex items-center justify-center">
-    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <!-- Logo -->
         <div class="text-center mb-8">

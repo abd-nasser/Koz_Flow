@@ -32,35 +32,45 @@ class demande_financement(models.Model):
         TABLE WHO STOCK REQUEST Financement
     """
     ETAPES = [
-        ("nouveau_dossier", 'Nouveau dossier'),
-        ("en_attente", "en attente de document client"),
-        ("dossier_complet", "Dossier complet"),
-        ("dossier_accepte", "Dossier Accepté"),
-        ('dossier_rejete', "Dossier Refusé")
+        ("nouvelle", "Nouvelle demande"),
+        ("en_attente", "en attente de document"),
+        ("demande_accordee", "Demande accordée"),
+        ('demand_refusee', "Demande Refusé")
     ]
+    
+    FINANCEMENT_TYPE_CHOISE = [
+        ("maison", "Maison"),
+        ("externe", "Externe")
+    ]
+    
+    ENTREPRISE_FINANCE = [
+                            ("fidelis,", "Fidelis"),
+                            ('alios', "Alios")
+                                    ]
     
     # Le client qui a fait la demande
     client = models.ForeignKey(
         kozUser, 
         on_delete=models.SET_NULL, 
-        related_name="demande_fin",
+        related_name="demande_financement",
         limit_choices_to={"role": "client"},
         null=True,
         blank=True
         )
     
     
+    financement_type = models.CharField(
+        max_length=50, 
+        choices=FINANCEMENT_TYPE_CHOISE, 
+        null=True, 
+        blank=True)
+    
     # L'entrepise qui finance la demande
-    financement_par = models.CharField(max_length=50, 
-                                      choices=[
-                                                ("fidelis,", "Fidelis"),
-                                                ('Alios', "Alios")
-                                                        ],
-                                      null=True, blank=True
+    financement_par = models.CharField(
+        max_length=50, 
+        choices=ENTREPRISE_FINANCE,
+        null=True, blank=True
                                       )
-    
-    
-    
     
     #-----2. THE CAR WANTS(link to the catalogue)
 
@@ -72,7 +82,7 @@ class demande_financement(models.Model):
         verbose_name="Véhicule d'intérêt"
         )
     
-    other_Vehicul_interested = models.CharField(null=True, blank=True )
+    other_Vehicul_interested = models.CharField(null=True, blank=True)
     
     #------3.Financement SIMULATOR()--------------------
     apport = models.DecimalField(max_digits=12, decimal_places=0, default=0)
@@ -84,31 +94,12 @@ class demande_financement(models.Model):
     revenus_mensuel = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
     #------5.WORKFLOW(where is the dir ?)-------
-    etape = models.CharField(max_length=20, choices=ETAPES, default="nouveau")
+    etape = models.CharField(max_length=20, choices=ETAPES, default="nouvelle")
     
-     # À quel utilisateur (commercial) est assigné ?
-    assigned_to = models.ForeignKey(
-        kozUser, 
-        on_delete=models.SET_NULL,
-        null=True,
-        blank= True,
-        related_name='assigned_leads',
-        limit_choices_to={'role':'commercial'}
-    )
-    
-    # Qui a fait l'assignation (directeur)
-    assigned_by = models.ForeignKey(
-        kozUser,  # Changement ici
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_leads_as_manager',
-        limit_choices_to={'role': 'directeur'}
-    )
     
     notes_commercial = models.TextField(blank=True)
     
     date_creation = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        pass
+        return f"{self.client}"

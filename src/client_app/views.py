@@ -1,13 +1,18 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
+from django.contrib import messages
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from auth_app.forms import  ChangePasswordForm
 
+
+from auth_app.forms import  ChangePasswordForm
+from .models import Documents
 from auth_app.models import kozUser
+
+from leads_app.models import demande_financement
 
 class ClientDashboardView(LoginRequiredMixin, TemplateView):
    
@@ -20,4 +25,7 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
       if 'change_pass_form' not in context:
          context["change_pass_form"] = ChangePasswordForm()
       return context
+
+
+
 

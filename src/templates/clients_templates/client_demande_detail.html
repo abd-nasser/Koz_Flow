@@ -1,0 +1,36 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <link rel="stylesheet" href="{% static 'css/client/client_demande_detail_style.css' %}">
+    {% tailwind_css %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes demandes </title>
+</head>
+<body>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>votre demande de financement pour == {{ demande.Vehicul_interested }}</h2>
+    <h4> Elovution de votre requete == {{ demande.get_etape_display }}</h4>
+
+    
+    {% if demande.etape == "en_attente" %}
+    <button class="btn btn_upload" onclick="upload_doc_modal.showModal()">Télecharger document</button>
+    {% include 'modals/leads/upload_doc.html' %}
+    {% endif %}
+    
+        
+        
+</body>

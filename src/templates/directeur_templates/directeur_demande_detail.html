@@ -1,0 +1,46 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <link rel="stylesheet" href="{% static 'css/directeur/directeur_demande_detail_style.css' %}">
+    <title>Dashboard {{ role }} - KOZ Services</title>
+    
+</head>
+<body class="bg-gray-100">
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+      
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>demande de Mr/Mme : {{ demande.client.nom_complet }}</h2>
+    <h3>status de la demande : {{ demande.get_etape_display }}</h3>
+    <h3>Type de financement : {{ demande.get_financement_type_display }}</h3>
+    <h3>Financement par : {{ demande.get_financement_par_display }}</h3>
+
+    <button class="btn btn_gestion_demande" onclick="gestion_dmd_modal.showModal()">Gérer les etape dela demande</button>
+    {% include 'modals/leads/gestion_demande.html' %}
+
+    <button class="btn btn_gestion_fin" onclick="gestion_fin_modal.showModal()">Gestion de type de financement</button>
+    {% include 'modals/leads/gestion_type_financement.html' %}
+
+</body>

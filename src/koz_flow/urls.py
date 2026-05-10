@@ -11,6 +11,7 @@ urlpatterns = [
     path('client/', include("client_app.urls")),
     path('chat/', include("chat_app.urls")),
     path('vehicule/', include("vehicul_app.urls")),
+    path("leads/", include("leads_app.urls")),
     
     path('admin/', admin.site.urls),
 ]

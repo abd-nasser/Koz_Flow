@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from .models import Vehicul, Marque
 from .forms import VehiculForm, MarqueForm
 from directeur_app.views import DirecteurDashboardView
+from leads_app.forms import DemandeFinancementForm
 
 
 class CreateMarqueView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -128,6 +129,9 @@ class VehiculDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         if "vehicul_form" not in context:
             context["vehicul_form"] = VehiculForm(instance=self.object)
+        
+        initial = {"duree_mois": 36, "apport": 0}
+        context["dmd_fin_form"] = DemandeFinancementForm(initial=initial)
         return context
 
 

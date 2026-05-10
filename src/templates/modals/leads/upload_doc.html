@@ -1,0 +1,35 @@
+<dialog id="upload_doc_modal" class="modal">
+  <div class="modal-box">
+    
+    <form 
+    enctype="multipart/form-data"
+    method="post" 
+    action="{% url 'leads_app:upload-document' demande.pk %}">
+      {% csrf_token %}
+       <h3>📄 Documents obligatoires</h3>
+    {{ upload_doc_form.cni_passeport.label_tag }} {{ upload_doc_form.cni_passeport }}
+    {{ upload_doc_form.justificatif_domicile.label_tag }} {{ upload_doc_form.justificatif_domicile }}
+    {{ upload_doc_form.quittance_salaire.label_tag }} {{ upload_doc_form.quittance_salaire }}
+    {{ upload_doc_form.relevé_bancaire.label_tag }} {{ upload_doc_form.relevé_bancaire }}
+    
+    <h3>📎 Documents supplémentaires (selon votre situation)</h3>
+    {{ upload_doc_form.contrat_travail.label_tag }} {{ upload_doc_form.contrat_travail }}
+    {{ upload_doc_form.avis_imposition.label_tag }} {{ upload_doc_form.avis_imposition }}
+    {{ upload_doc_form.autres.label_tag }} {{ upload_doc_form.autres }}
+      
+     
+        
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">envoyer</button>
+        <button type="button" class="btn" onclick="document.getElementById('upload_doc_modal').close()">Annuler</button>
+      </div>
+  </div>
+</dialog>
+
+
+{% if open_upload_doc_modal %}
+<script>
+  document.getElementById('upload_doc_modal').showModal();
+</script>
+  
+{% endif %}

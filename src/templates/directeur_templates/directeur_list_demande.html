@@ -1,0 +1,35 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <link rel="stylesheet" href="{% static 'css/directeur/directeur_list_demande_style.css' %}">
+    <title>List des demandes</title>
+    
+</head>
+<body class="bg-gray-100">
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% for demande in list_demande_financement %}
+     <h3>Demandeur ======<a href="{% url 'leads_app:detail-demande' demande.pk %}">{{ demande.client.nom_complet }}</a></h3>
+     <h5> status =={{demande.etape}} </h5>
+        
+    {% endfor %}
+        
+
+    
+</body>
+        
+</body>

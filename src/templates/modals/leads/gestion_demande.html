@@ -1,0 +1,38 @@
+<dialog id="gestion_dmd_modal" class="modal">
+  <div class="modal-box">
+    <div>
+        <a href="{% url 'leads_app:attente-document' demande.pk %}">Demande de document</a>
+    </div>
+    <div>
+        <a href="{% url 'leads_app:refuser-demande' demande.pk %}">Refuser la demande </a>
+    </div>
+    <div>
+        <a href="{% url 'leads_app:accorder-demande' demande.pk %}">Accorder la demande</a>
+    </div>
+    
+    
+    
+
+        
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">envoyer</button>
+        <button type="button" class="btn" onclick="document.getElementById('gestion_dmd_modal').close()">Annuler</button>
+      </div>
+  </div>
+</dialog>
+
+
+{% if open_gestion_dmd_modal %}
+<script>
+  document.getElementById('gestion_dmd_modal').showModal();
+</script>
+  
+{% endif %}
+
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('gestion_dmd_modal').close();
+  }
+</script>

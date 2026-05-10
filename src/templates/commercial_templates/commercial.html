@@ -11,6 +11,16 @@
     <title>Commercial Dashboard</title>
 </head>
 <body>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
     <nav>
 
     </nav>
@@ -19,6 +29,8 @@
     <button class="btn" onclick="change_pass_modal.showModal()">Changer Identifiants</button>
     
     <button class="btn" onclick="userregister_modal.showModal()">Ajouter Un client</button>
+
+    <a class="btn btn_dmd_financement" href="{% url 'leads_app:list-demande-financement' %}">Liste des demandes</a>
     </header>
     <main>
         

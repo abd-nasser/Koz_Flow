@@ -123,16 +123,7 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
     profession = models.CharField(max_length=100, null=True, blank=True)
     
     
-    #Une demande de financement appartient à un seul kozUser, mais un kozUser peut faire plusieurs demandes de financement au fil du temps
-    demande_financement = models.OneToOneField(
-        "leads_app.demande_financement",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='client_demande',
-        verbose_name="Demande de financement associée"
-    )
-    
+    #Une demande de financement appartient à un seul kozUser, mais un kozUser peut faire plusieurs demandes de financement au fil du temp
     #----- CHAMPS DE GESTION -----
     
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='client')

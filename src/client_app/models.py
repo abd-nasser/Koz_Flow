@@ -3,8 +3,6 @@ from django.db import models
 from auth_app.models import kozUser
 
 
-# client_app/models.py
-
 class Maintenance(models.Model):
     
     # ----- TYPES DE MAINTENANCE -----
@@ -102,54 +100,42 @@ class Maintenance(models.Model):
 
 
 class Documents(models.Model):
-    TYPES_DOCUMENTS = [
-        ("cni", "Carte d'identité"),
-        ("passeport", 'Passeport'),
-        ('justificatif_domicile', 'Justificatif de domicile'),
-        ('quittance de salaire', "Quittance de salaire"),
-        ("releve_bancaire", "Relevé bancaire"),
-        ("contrat_travail", "Contrat de travail"),
-        ("autre", "Autre document")
+    client = models.ForeignKey(kozUser, on_delete=models.CASCADE, related_name="documents")
+    demande_financement = models.ForeignKey('leads_app.demande_financement', on_delete=models.CASCADE, related_name="documents")
+    
+    # 📌 Documents obligatoires (pour toute demande)
+    cni_passeport = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="CNI ou Passeport",)
+    justificatif_domicile = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Justificatif de domicile")
+    quittance_salaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Quittance de salaire")
+    relevé_bancaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Relevé bancaire")
+    
+    # 📌 Documents supplémentaires (optionnels, selon profil)
+    contrat_travail = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Contrat de travail")
+    avis_imposition = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Avis d'imposition")
+    autres = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Autres documents")
+    
+    # Statut global du dossier de documents
+    STATUT_DOCS = [
+        ("envoye", "envoyés"),
+        ('incomplet', 'Dossier incomplet'),
+        ('complet', 'Dossier complet'),
+        ('verification', 'En cours de vérification'),
+        ('valide', 'Documents validés'),
+        ('rejete', 'Documents rejetés'),
     ]
+    statut_dossier = models.CharField(max_length=20, choices=STATUT_DOCS, default='envoye')
     
-    STATUS = [
-        ("en_attente", 'En attente de téléchargement'),
-        ("telecharge", "Téléchargé - En cours de verification"),
-        ('valide', 'Validé par le commercial'),
-        ("rejete", "Rejeté"),
-    ]
-    
-    # Quel koz_user a envoyé ce document ?
-    client = models.ForeignKey(kozUser, on_delete=models.CASCADE, related_name="documents", limit_choices_to={'role': 'client'})
-    
-    # A quelle demande de financement ce document est-il associé ? (peut être null si le client a juste upload un document sans l'associer à une demande)
-    demande_financement = models.ForeignKey(
-        'leads_app.demande_financement', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True
-    )
-    
-    # Type de document (parmi la liste TYPES_DOCUMENTS)
-    type_document = models.CharField(max_length=50, choices=TYPES_DOCUMENTS,)
-    
-    #Le fichier lui-meme (PDF, image, etc)
-    #upload_to='documents/kozUser_id{id}'= dossier organisé par kozUser
-    fichier = models.FileField(upload_to='documents/%Y/%m/%d/')
-    
-    #statut du document
-    statut = models.CharField(max_length=30, choices=STATUS, default="en_attente")
-    
-    #commentaire du commercial
-    commentaire_rejet = models.TextField(blank=True, null=True)
-    
-    #Date d'envoi
     date_upload = models.DateTimeField(auto_now_add=True)
-    
-    #date de validation
-    date_validation = models.DateTimeField(blank=True, null=True)
+    date_validation = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
-        return f'{self.client.email}-{self.get_type_document_display()}'
+        return f"Dossier {self.client.nom_complet} - {self.statut_dossier}"
     
-    
+    def verifier_completude(self):
+        """Vérifie si tous les documents obligatoires sont présents"""
+        requis = [self.cni_passeport, self.justificatif_domicile, self.quittance_salaire, self.relevé_bancaire]
+        if all(requis):
+            self.statut_dossier = 'complet'
+            self.save()
+            return True
+        return False

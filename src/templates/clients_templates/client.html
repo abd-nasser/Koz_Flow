@@ -11,6 +11,16 @@
     <title>Client Dash</title>
 </head>
 <body>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
     <nav>
 
     </nav>
@@ -31,7 +41,11 @@
         <a href="{% url 'chat_app:chat-view' %}">
             💬 Envoyer un message
         </a>
+
+        
     </h4>
+    <a class="btn" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
+    <a  class='btn btn_list_demande_fin' href="{% url 'leads_app:list-demande-financement' %}">Mes demande de financement</a>
 </header>
     <main>
 

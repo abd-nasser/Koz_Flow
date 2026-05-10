@@ -1,0 +1,46 @@
+<dialog id="dmd_fin_modal" class="modal">
+  <div class="modal-box">
+    <form 
+    method="post" 
+    action="{% url 'leads_app:demande-financement' vehicul.id %}">
+      {% csrf_token %}
+      {{ dmd_fin_form.non_field_errors }}
+      
+      {% for field in dmd_fin_form %}
+        <div class="form-group">
+          {{ field.label_tag }}
+          {{ field }}
+          
+          {% if field.errors %}
+            <div class="error">
+              {% for error in field.errors %}
+                <p class="text-red-500">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">envoyer</button>
+        <button type="button" class="btn" onclick="document.getElementById('dmd_fin_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+
+{% if open_dmd_fin_modal %}
+<script>
+  document.getElementById('dmd_fin_modal').showModal();
+</script>
+  
+{% endif %}
+
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('dmd_fin_modal').close();
+  }
+</script>

@@ -11,12 +11,20 @@
     <title>Détails de la voiture</title>
 </head>
 <body>
+  {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
     <h1>{{ vehicul.marque }} {{ vehicul.modele }}</h1>
     <img width="150" height="150" src="{{ vehicul.image_principale.url }}" alt="{{ vehicul.nom }}">
     <p>Année: {{ vehicul.annee }}</p>
     <p>Prix: {{ vehicul.prix }} FCFA</p>
     <p>Description: {{ vehicul.description }}</p>
-    <a  class="btn btn_dmd_financement" href="#">Demander un Financement</a>
     <a href="{% url 'vehicul_app:list-vehicul' %}">🔙🔙🔙🔙🔙</a>
     
     {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
@@ -24,6 +32,58 @@
             <button class="btn" onclick="vehicul_modal.showModal()">Modifier la voiture</button>
         {% include 'modals/vehicul/vehicul_confirm_delete.html' %}
             <button class="btn btn-danger" onclick="delete_vehicul_modal.showModal()">Supprimer la voiture</button>
+    {% endif %}
+    
+    {% if user.is_authenticated and not user.is_superuser or not user.is_staff %}
+
+    
+      <button class="btn btn_dmd_fin" onclick="dmd_fin_modal.showModal()">demander un financement</button>
+      <dialog id="dmd_fin_modal" class="modal">
+  <div class="modal-box">
+    <form 
+    method="post" 
+    action="{% url 'leads_app:demande-financement' vehicul.id %}">
+      {% csrf_token %}
+      {{ dmd_fin_form.non_field_errors }}
+      
+      {% for field in dmd_fin_form %}
+        <div class="form-group">
+          {{ field.label_tag }}
+          {{ field }}
+          
+          {% if field.errors %}
+            <div class="error">
+              {% for error in field.errors %}
+                <p class="text-red-500">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">envoyer</button>
+        <button type="button" class="btn" onclick="document.getElementById('dmd_fin_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+
+{% if open_dmd_fin_modal %}
+<script>
+  document.getElementById('dmd_fin_modal').showModal();
+</script>
+  
+{% endif %}
+
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('dmd_fin_modal').close();
+  }
+</script>
     {% endif %}
         
 </body>
