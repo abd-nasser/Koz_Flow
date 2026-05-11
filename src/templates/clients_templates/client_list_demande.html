@@ -24,8 +24,15 @@
 
  <h1>Mes demande</h1>
  {% for demande in list_demande_financement  %}
-    <a href="{% url 'leads_app:detail-demande' demande.pk %}"> demande de fin pour =====> <em>{{ demande.Vehicul_interested }}</em></a>
-    <h4>status : ==> {{ demande.etape }}</h4>
+    <h2><em>{{ demande.Vehicul_interested }}</em></h2>
+    <a class="btn btn_detail_dmd "href="{% url 'leads_app:detail-demande' demande.pk %}"> Tout sur votre demande </a>
+    <h4>status : ==> {{ demande.get_etape_display }}</h4>
+    
+    {% if demande.etape == "en_attente" %}
+    <button class="btn btn_upload" onclick="upload_doc_modal.showModal()">Télecharger document</button>
+    {% include 'modals/leads/upload_doc.html' %}
+    {% endif %}
+        
     
  {% endfor %}
     

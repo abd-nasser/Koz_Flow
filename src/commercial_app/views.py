@@ -24,7 +24,9 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
             context["change_pass_form"] = ChangePasswordForm()
             
         #liste des clients assigné à ce commercial
-        context['clients'] = self.request.user.clients_assignes.all()
+        client = self.request.user.clients_assignes.all()
+        context['clients'] = client 
+        context['documents_client'] = client.documents.all()
         context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
         
         return context

@@ -25,12 +25,26 @@
     <h2>demande de Mr/Mme : {{ demande.client.nom_complet }}</h2>
     <h3>status de la demande : {{ demande.get_etape_display }}</h3>
     <h3>Type de financement : {{ demande.get_financement_type_display }}</h3>
-    <h3>Financement par : {{ demande.get_financement_par_display }}</h3>
+    
+    {% if demande.financement_type == "externe" %}
+        <h3>Financement par : {{ demande.get_financement_par_display }}</h3>
+    {% endif %}
+        
 
     <button class="btn btn_gestion_demande" onclick="gestion_dmd_modal.showModal()">Gérer les etape dela demande</button>
     {% include 'modals/leads/gestion_demande.html' %}
 
     <button class="btn btn_gestion_fin" onclick="gestion_fin_modal.showModal()">Gestion de type de financement</button>
     {% include 'modals/leads/gestion_type_financement.html' %}
+
+    <h3>Documents du client</h3>
+<ul>
+    <li>CNI : {% if documents.cni_passeport %}✅{% else %}❌{% endif %}</li>
+    <li>Justificatif domicile : {% if documents.justificatif_domicile %}✅{% else %}❌{% endif %}</li>
+    <li>Quittance salaire : {% if documents.quittance_salaire %}✅{% else %}❌{% endif %}</li>
+    <li>Relevé bancaire : {% if documents.relevé_bancaire %}✅{% else %}❌{% endif %}</li>
+</ul>
+
+<a href="{{ documents.cni_passeport.url }}" target="_blank">Voir CNI</a>
 
 </body>

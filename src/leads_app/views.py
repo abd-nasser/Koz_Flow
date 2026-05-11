@@ -62,13 +62,13 @@ def upload_multiple_documents(request, demande_id):
         if form.is_valid():
             dossier = form.save()
             if dossier.verifier_completude():
-                # Option : notifier le commercial
                 messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
             else:
                 messages.warning(request, "Veuillez uploader tous les documents obligatoires.")
-            return redirect('leads_app:detail-demande', demande_id=demande.pk)
-    else:  
-        return redirect('leads_app:detail-demande', demande_id=demande.pk)
+        else:
+            messages.error(request, "Erreur dans l'upload des fichiers.")
+    
+    return redirect('leads_app:detail-demande', demande.pk)
 
 @login_required
 def attente_document(request, demande_id):
@@ -183,6 +183,7 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
             context["upload_doc_form"] = DocumentsUploadForm(instance=dossier)
         
         context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
+        context["documents"] = dossier
         return context
        
 
