@@ -13,6 +13,13 @@ urlpatterns = [
     path("details/demande/financement/<int:pk>/",views.DemandeDetailView.as_view(), name="detail-demande"),
     path("gestion/type/financement/<int:pk>/", views.GestionTypeFinancementView.as_view(), name="gestion-type-financement"),
     
+    ##############################_____DOCUMENT_URLS_______############################################
+    
+    path("liste/documents/", views.DocumentListView.as_view(), name="documents-list"),
+    path("document/<int:pk>/detail/", views.DocumentDetailView.as_view(), name="document-detail"),
+    path("modifer/<int:pk>/document/", views.DocumentUpdateView.as_view(), name="document-update"),
+    
+    
     
    
 ]

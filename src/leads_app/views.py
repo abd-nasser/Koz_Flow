@@ -11,6 +11,8 @@ from .models import DevisLeads, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 
+
+##################################################___Demande et Gestion de Financemen_______###########################################
 @login_required
 def demande_financement_view(request, vehicul_id):
     
@@ -50,7 +52,6 @@ def demande_financement_view(request, vehicul_id):
         return render(request, 'vehicul_templates/vehicul_detail.html', context)
    
     return redirect("vehicul_app:detail-vehicul")
-
 
 @login_required
 def upload_multiple_documents(request, demande_id):
@@ -133,8 +134,6 @@ def accorder_demande(request, demande_id):
     return redirect("leads_app:detail-demande", demande_id=demande.pk)
 
 
-
-
 class DemandeFinView(LoginRequiredMixin, ListView):
     model = demande_financement
     context_object_name = "list_demande_financement"
@@ -158,7 +157,6 @@ class DemandeFinView(LoginRequiredMixin, ListView):
         
         # Directeur ou superuser : voit toutes les demandes
         return demande_financement.objects.all()
-    
     
 class DemandeDetailView(LoginRequiredMixin, DetailView):
     model = demande_financement
@@ -186,7 +184,6 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
         context["documents"] = dossier
         return context
        
-
 class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = demande_financement
     form_class = GestionFinancementForm
@@ -203,8 +200,88 @@ class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, Update
     def get_success_url(self):
         return reverse_lazy("leads_app:detail-demande", kwargs={"pk": self.object.pk})
         
-        
 
+################################################### DOCUMENTS VIEWS #####################################################################
+
+class DocumentListView(LoginRequiredMixin, ListView):
+    model = Documents
+    context_object_name = "documents"
+    def get_template_names(self):
+        is_htmx = self.request.headers.get("HX-request") == "true"
+        
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            return ["partials/dir_list_doc.html" if is_htmx else "directeur_templates/directeur_list_doc.html"]
+        
+        if self.request.user.is_staff or self.request.user.role == "commercial":
+            return ["partials/com_list_doc.html" if is_htmx else "commercial_templates/commercial_list_doc.html"]
+        
+        return ["clients_templates/client_list_doc.html"]
+    
+    def get_queryset(self):
+        if self.request.user.is_superuser or self.request.user.role =="directeur": 
+            queryset = Documents.objects.all().order_by("-date_upload")
+            return queryset
+        
+        if self.request.user.is_staff or self.request.user.role == "commercial":
+            queryset = Documents.objects.filter(client__in = self.request.user.clients_assignes.all()
+                                                ).order_by("-date_upload")
+            return queryset
+        
+        if self.request.user.role == "client":
+            queryset = Documents.objects.filter(client=self.request.user).order_by("-date_upload")
+            return queryset
+        return Documents.objects.none()
+            
+class DocumentDetailView(LoginRequiredMixin, DetailView):
+    model = Documents
+    context_object_name = "document"
+    def get_template_names(self):
+        if self.request.user.is_superuser or self.request.user.role =="directeur":
+            return ["directeur_templates/directeur_detail_doc.html"]
+        if self.request.user.role == "commercial" or self.request.user.is_staff:
+            return ["commercial_templates/commercial_detail_doc.html"]
+        
+        return ["clients_templates/client_detail_doc.html"]
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.role == "client": 
+            if "update_doc_form" not in context:
+                context["update_doc_form"] = DocumentsUploadForm(instance=self.object)
+        return context
+    
+class DocumentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Documents
+    form_class = DocumentsUploadForm
+    template_name = "clients_templates/client_detail_doc.html"
+    def get_success_url(self):
+        return reverse_lazy("leads_app:document-detail", kwargs={"pk": self.object.pk})  
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Vos documents on on été mise à jour")
+        return response
+     
+    def form_invalid(self, form):
+        doc_detail_view = DocumentDetailView()
+        doc_detail_view.request = self.request
+        doc_detail_view.kwargs = self.kwargs
+        context = doc_detail_view.get_context_data()
+        context["open_update_doc_modal"]= True
+        context["update_doc_form"] = form
+        return self.render_to_response(context)
+    
+class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
+    def test_func(self):
+        return self.object.statut_dossier == "rejete"
+    model = Documents
+    template_name = "clients_templates/client_detail.doc.html"
+    success_url = reverse_lazy("leads_app:documents-list")
+    
+        
+    
+    
+    
     
     
     

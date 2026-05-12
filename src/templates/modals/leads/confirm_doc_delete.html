@@ -1,0 +1,13 @@
+<dialog id="delete_doc_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Confirmer la suppression</h3>
+        <p class="py-4">Êtes-vous sûr de vouloir supprimer ce dossier ? Cette action est irréversible.</p>
+        <div class="modal-action">
+        <form method="post" action="{% url 'leads_app:document-delete' doc.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <button type="button" class="btn" onclick="delete_doc_modal.close()">Annuler</button>
+        </form>
+        </div>
+    </div>
+</dialog>

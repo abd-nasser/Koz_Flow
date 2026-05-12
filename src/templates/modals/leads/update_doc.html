@@ -1,0 +1,54 @@
+<dialog id="update_doc_modal" class="modal">
+  <div class="modal-box">
+    
+    <form 
+    enctype="multipart/form-data"
+    method="post" 
+    action="{% url 'leads_app:document-update' document.pk %}">
+      {% csrf_token %}
+    <!-- AFFICHAGE DES ERREURS GLOBALES -->
+    {% if update_doc_form.non_field_errors %}
+      <div class="alert alert-error">
+        {% for error in update_doc_form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- CHAMPS DU FORMULAIRE -->
+    {% for field in update_doc_form %}
+      <div class="form-group">
+        {{ field.label_tag }}
+        {{ field }}
+        
+        <!-- AFFICHAGE DES ERREURS PAR CHAMP -->
+        {% if field.errors %}
+          <div class="error">
+            {% for error in field.errors %}
+              <p class="text-red-500">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn" onclick="document.getElementById('update_doc_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{% if open_update_doc_modal %}
+  <script>
+    document.getElementById('update_doc_modal').showModal();
+  </script>
+{% endif %}
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('update_doc_modal').close();
+  }
+</script>

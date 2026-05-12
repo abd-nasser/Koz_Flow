@@ -26,7 +26,6 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         #liste des clients assigné à ce commercial
         client = self.request.user.clients_assignes.all()
         context['clients'] = client 
-        context['documents_client'] = client.documents.all()
         context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
         
         return context

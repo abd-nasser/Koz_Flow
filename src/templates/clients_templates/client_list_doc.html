@@ -1,0 +1,49 @@
+{%load static%}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'client_list_doc_style.css' %}">
+    {% tailwind_css %}
+    <title>Liste Document</title>
+</head>
+<body>
+    
+
+    <!-- clients_templates/client_list_doc.html -->
+<h1>📄 Mes documents</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Document ID</th>
+            <th>Statut</th>
+            <th>Date upload</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in documents %}
+        <tr>
+            <td>{{ doc.pk }}</td>
+            <td>{{ doc.get_statut_dossier_display }}</td>
+            <td>{{ doc.date_upload|date:"d/m/Y H:i" }}</td>
+            <td>
+                {% if doc.statut_dossier == "rejete" %}
+                    <span>({{ doc.commentaire_rejet }})</span>
+                {% endif %}
+                <a href="{% url 'leads_app:document-detail' doc.pk %}">details</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">Aucun document uploadé.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+        
+</body>

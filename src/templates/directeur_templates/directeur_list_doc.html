@@ -1,0 +1,44 @@
+{%load static%}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'directeur/directeur_list_doc_style.css' %}">
+    {% tailwind_css %}
+    <title>Liste Document</title>
+</head>
+<body>
+
+<h1>📄 Gestion des documents (Directeur)</h1>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Client</th>
+            <th>Demande ID</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for doc in documents %}
+        <tr>
+            <td>{{ doc.client.nom_complet }}</td>
+            <td>{{ doc.demande_financement.id }}</td>
+            <td>{{ doc.get_statut_dossier_display }}</td>
+            <td>
+                <a href="{% url 'leads_app:document-detail' doc.id %}">Voir details</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Aucun document trouvé.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

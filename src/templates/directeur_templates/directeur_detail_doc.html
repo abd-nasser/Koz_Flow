@@ -1,0 +1,55 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src= "{% static 'js/htmx.min.js' %}"></script>
+    <title>Document</title>
+    {%tailwind_css%}
+</head>
+<body>
+    
+ {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- directeur_templates/directeur_detail_doc.html -->
+<h1>📁 Dossier de {{ document.client.nom_complet }}</h1>
+
+<p><strong>Client :</strong> {{ document.client.nom_complet }}</p>
+<p><strong>Email :</strong> {{ document.client.email }}</p>
+<p><strong>Téléphone :</strong> {{ document.client.telephone }}</p>
+<p><strong>Demande n° :</strong> {{ document.demande_financement.id }}</p>
+<p><strong>Statut dossier :</strong> {{ document.get_statut_dossier_display }}</p>
+<p><strong>Date création :</strong> {{ document.date_upload|date:"d/m/Y H:i" }}</p>
+
+<h3>📄 Documents obligatoires</h3>
+<ul>
+    <li>CNI/Passeport : {% if document.cni_passeport %}<a href="{{ document.cni_passeport.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
+    <li>Justificatif domicile : {% if document.justificatif_domicile %}<a href="{{ document.justificatif_domicile.url }}" target="_blank">Voir</a>{% else %}❌ Manquant{% endif %}</li>
+    <li>Quittance salaire : {% if document.quittance_salaire %}<a href="{{ document.quittance_salaire.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
+    <li>Relevé bancaire : {% if document.relevé_bancaire %}<a href="{{ document.relevé_bancaire.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
+</ul>
+
+<h3>📎 Documents supplémentaires</h3>
+<ul>
+    <li>Contrat travail : {% if document.contrat_travail %}<a href="{{ document.contrat_travail.url }}" target="_blank">Voir</a>{% else %}Non fourni{% endif %}</li>
+    <li>Avis imposition : {% if document.avis_imposition %}<a href="{{ document.avis_imposition.url }}" target="_blank">Voir</a>{% else %}Non fourni{% endif %}</li>
+    <li>Autres : {% if document.autres %}<a href="{{ document.autres.url }}" target="_blank">Voir</a>{% else %}Non fourni{% endif %}</li>
+</ul>
+
+<div>
+    
+    <a href="{% url 'leads_app:documents-list' %}">◀ Retour</a>
+</div>
+    
+</body>
+</html>
