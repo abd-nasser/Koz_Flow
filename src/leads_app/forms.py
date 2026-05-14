@@ -3,6 +3,8 @@ from django import forms
 from .models import demande_financement
 from client_app.models import Documents
 
+
+##POUR LE CLIENT
 class DemandeFinancementForm(forms.ModelForm):
     class Meta:
         model = demande_financement
@@ -49,6 +51,8 @@ class DemandeFinancementForm(forms.ModelForm):
             raise forms.ValidationError("Les revenus ne peuvent pas être négatifs")
         return cleaned_data
 
+
+#POUR LE COMMERCIAL
 class GestionFinancementForm(forms.ModelForm):
     class Meta:
         model = demande_financement

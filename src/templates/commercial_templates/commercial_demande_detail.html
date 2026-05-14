@@ -37,14 +37,32 @@
     <button class="btn btn_gestion_fin" onclick="gestion_fin_modal.showModal()">Gestion de type de financement</button>
     {% include 'modals/leads/gestion_type_financement.html' %}
 
+    
     <h3>Documents du client</h3>
-<ul>
-    <li>CNI : {% if documents.cni_passeport %}✅{% else %}❌{% endif %}</li>
-    <li>Justificatif domicile : {% if documents.justificatif_domicile %}✅{% else %}❌{% endif %}</li>
-    <li>Quittance salaire : {% if documents.quittance_salaire %}✅{% else %}❌{% endif %}</li>
-    <li>Relevé bancaire : {% if documents.relevé_bancaire %}✅{% else %}❌{% endif %}</li>
-</ul>
+    
+    {% if demande.documents.all %}
+        {% for document in demande.documents.all %}
+        
+        {% if document.statut_dossier != "vide" %}
+        <hr>
+            <h4>Document {{ forloop.counter }}</h4>
+             <ul>
+                <li>CNI : {% if document.cni_passeport %}✅{% else %}❌{% endif %}</li>
+                <li>Justificatif domicile : {% if document.justificatif_domicile %}✅{% else %}❌{% endif %}</li>
+                <li>Quittance salaire : {% if document.quittance_salaire %}✅{% else %}❌{% endif %}</li>
+                <li>Relevé bancaire : {% if document.relevé_bancaire %}✅{% else %}❌{% endif %}</li>
+                <li>Statut : {{ document.get_statut_dossier_display }}</li>
+                <a href="{% url 'leads_app:document-detail' document.pk %}">Voir les détails</a>
+            </ul>
+        <hr>
+            
+        {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>Aucun document disponible pour ce client lié à cette demande.</p>  
+    {% endif %}
+        
 
-<a href="{{ documents.cni_passeport.url }}" target="_blank">Voir CNI</a>
+
 
 </body>

@@ -34,7 +34,9 @@ class demande_financement(models.Model):
     ETAPES = [
         ("nouvelle", "Nouvelle demande"),
         ("en_attente", "en attente de document"),
-        ("demande_accordee", "Demande accordée"),
+        ("en_cours", "En cours de traitement"),
+        ("demande_accordee_fidelis", "Demande accordée chez Fidelis"),
+        ("demande_accordee_alios", "Demande accordée chez Alios"),
         ('demand_refusee', "Demande Refusé")
     ]
     
@@ -44,7 +46,7 @@ class demande_financement(models.Model):
     ]
     
     ENTREPRISE_FINANCE = [
-                            ("fidelis,", "Fidelis"),
+                            ("fidelis", "Fidelis"),
                             ('alios', "Alios")
                                     ]
     
@@ -94,7 +96,7 @@ class demande_financement(models.Model):
     revenus_mensuel = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
     #------5.WORKFLOW(where is the dir ?)-------
-    etape = models.CharField(max_length=20, choices=ETAPES, default="nouvelle")
+    etape = models.CharField(max_length=70, choices=ETAPES, default="nouvelle")
     
     
     notes_commercial = models.TextField(blank=True)

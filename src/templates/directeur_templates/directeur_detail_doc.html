@@ -47,7 +47,8 @@
 </ul>
 
 <div>
-    
+    <button class="btn btn_gestion_doc" onclick="gestion_doc_modal.showModal()">Gestion du document</button>
+    {% include 'modals/leads/gestion_doc.html' %}
     <a href="{% url 'leads_app:documents-list' %}">◀ Retour</a>
 </div>
     

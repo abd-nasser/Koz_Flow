@@ -98,10 +98,9 @@ class Maintenance(models.Model):
         ]
 
 
-
 class Documents(models.Model):
     client = models.ForeignKey(kozUser, on_delete=models.CASCADE, related_name="documents")
-    demande_financement = models.ForeignKey('leads_app.demande_financement', on_delete=models.CASCADE, related_name="documents")
+    demande_financement = models.OneToOneField('leads_app.demande_financement', on_delete=models.CASCADE, related_name="documents")
     
     # 📌 Documents obligatoires (pour toute demande)
     cni_passeport = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="CNI ou Passeport",)
@@ -116,14 +115,20 @@ class Documents(models.Model):
     
     # Statut global du dossier de documents
     STATUT_DOCS = [
-        ("envoye", "envoyés"),
+        ('vide', 'Dossier vide'),
         ('incomplet', 'Dossier incomplet'),
         ('complet', 'Dossier complet'),
         ('verification', 'En cours de vérification'),
+        ('modification', 'Des changements ou modifications sont nécessaires'),
         ('valide', 'Documents validés'),
         ('rejete', 'Documents rejetés'),
     ]
-    statut_dossier = models.CharField(max_length=20, choices=STATUT_DOCS, default='envoye')
+    statut_dossier = models.CharField(max_length=70, choices=STATUT_DOCS, default='vide')
+    
+    # commentaires = models.TextField(blank=True, 
+    #                                 verbose_name="Commentaires du commercial ou de l'analyste",
+    #                                 limit_choices_to={'role': 'commercial'}
+    #                                 )
     
     date_upload = models.DateTimeField(auto_now_add=True)
     date_validation = models.DateTimeField(null=True, blank=True)

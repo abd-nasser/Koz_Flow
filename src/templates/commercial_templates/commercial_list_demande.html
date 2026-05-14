@@ -24,9 +24,11 @@
 
     
     {% for demande in list_demande_financement %}
-     <h3>Demandeur ======<a href="{% url 'leads_app:detail-demande' demande.pk %}">{{ demande.client.nom_complet }}</a></h3>
-     <h5> status =={{demande.etape}} </h5>
-        
+        <h3>Demandeur : {{ demande.client.nom_complet }}</h3>
+        <h5> status : {{demande.etape}} </h5>
+        <br>
+        <a href="{% url 'leads_app:detail-demande' demande.pk %}">Voir les détails</a>
+        <hr>
     {% endfor %}
         
 

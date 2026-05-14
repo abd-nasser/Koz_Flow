@@ -54,24 +54,6 @@ def demande_financement_view(request, vehicul_id):
     return redirect("vehicul_app:detail-vehicul")
 
 @login_required
-def upload_multiple_documents(request, demande_id):
-    demande = get_object_or_404(demande_financement, id=demande_id, client=request.user)
-    dossier, created = Documents.objects.get_or_create(client=request.user, demande_financement=demande)
-    
-    if request.method == 'POST':
-        form = DocumentsUploadForm(request.POST, request.FILES, instance=dossier)
-        if form.is_valid():
-            dossier = form.save()
-            if dossier.verifier_completude():
-                messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
-            else:
-                messages.warning(request, "Veuillez uploader tous les documents obligatoires.")
-        else:
-            messages.error(request, "Erreur dans l'upload des fichiers.")
-    
-    return redirect('leads_app:detail-demande', demande.pk)
-
-@login_required
 def attente_document(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id)
     if demande.etape == "en_attente":
@@ -174,14 +156,11 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
         
         # Seul le client peut uploader des documents pour sa propre demande
         if self.request.user.role == "client":
-            dossier, created = Documents.objects.get_or_create(
-                client=self.request.user, 
-                demande_financement=self.object
-            )
+            dossier, created = Documents.objects.get_or_create(client=self.request.user, demande_financement=self.object)
             context["upload_doc_form"] = DocumentsUploadForm(instance=dossier)
         
         context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
-        context["documents"] = dossier
+         
         return context
        
 class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -202,6 +181,100 @@ class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, Update
         
 
 ################################################### DOCUMENTS VIEWS #####################################################################
+
+@login_required
+def upload_multiple_documents(request, demande_id):
+    demande = get_object_or_404(demande_financement, id=demande_id, client=request.user)
+    dossier, created = Documents.objects.get_or_create(client=request.user, demande_financement=demande)
+    
+    if request.method == 'POST':
+        form = DocumentsUploadForm(request.POST, request.FILES, instance=dossier)
+        if form.is_valid():
+            dossier = form.save()
+            if dossier.verifier_completude():
+                messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
+                dossier.demande_financement.etape = "en_cours"
+                dossier.demande_financement.save()
+            else:
+                dossier.statut_dossier = "incomplet"
+                dossier.save()
+                messages.warning(request, "Veuillez uploader tous les documents obligatoires.")
+        else:
+            messages.error(request, "Erreur dans l'upload des fichiers.")
+    
+    return redirect('leads_app:detail-demande', demande.pk)
+
+@login_required
+def valide_dossier(request, dossier_id):
+    dossier = get_object_or_404(Documents, id=dossier_id)
+    
+    if dossier.statut_dossier == "incomplet":
+        messages.error(request, "Ce dossier ne peut pas être validé pour le moment : documents obligatoires incomplets.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    if dossier.statut_dossier == "rejete":
+        messages.warning(request, "Ce dossier a été rejeté et ne peut pas être validé.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Validation
+    dossier.statut_dossier = "valide"
+    dossier.save()
+    
+    # Mise à jour de l'étape de la demande si financement externe
+    demande = dossier.demande_financement
+    if demande.financement_type == "externe":
+        if demande.financement_par == "fidelis":
+            demande.etape = "demande_accordee_fidelis"
+        elif demande.financement_par == "alios":
+            demande.etape = "demande_accordee_alios"
+        demande.save()
+    
+    messages.success(request, "Ce dossier est désormais validé.")
+    return redirect("leads_app:document-detail", dossier.pk)
+
+@login_required
+def modifier_dossier (request, dossier_id):
+    dossier = get_object_or_404(Documents, id=dossier_id, client=request.user)
+    if dossier.statut_dossier == "valide":
+        messages.warning(request, "ce dossier a été validé, vous ne pouvez plus le modifier")
+    elif dossier.statut_dossier == "rejete":
+        messages.warning(request, "ce dossier a été rejeté, vous ne pouvez plus le modifier, veuillez faire une nouvelle demande de financement")
+    else:
+        dossier.statut_dossier = "modification"
+        dossier.save()
+        messages.info(request, "les documents de ce dossier sont en attente de modification")
+    return redirect("leads_app:document-detail", dossier.pk)
+       
+@login_required
+def rejete_dossier(request, dossier_id):
+    dossier = get_object_or_404(Documents, id=dossier_id)
+    if dossier.statut_dossier == "rejete":
+        messages.info(request, "ce dossier est déjà rejeté")
+    elif dossier.statut_dossier == "valide":
+        messages.warning(request, "ce dossier a été validé, vous ne pouvez pas le rejeter")
+    else:
+        dossier.statut_dossier = "rejete"
+        dossier.save()
+        messages.success(request, "ce dossier est désormais rejeté")
+    
+    return redirect("leads_app:document-detail", dossier.pk)
+
+@login_required
+def verifier_dossier(request, dossier_id):
+    dossier = get_object_or_404(Documents, id=dossier_id)
+    if dossier.statut_dossier == "verification":
+        messages.info(request, "ce dossier est déjà en cours de vérification")
+    elif dossier.statut_dossier == "valide":
+        messages.warning(request, "ce dossier a été validé, vous ne pouvez pas le mettre en vérification")
+    elif dossier.statut_dossier == "rejete":
+        messages.warning(request, "ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification")
+    else:
+        dossier.statut_dossier = "verification"
+        dossier.save()
+        messages.success(request, "ce dossier est désormais en cours de vérification")
+    
+    return redirect("leads_app:document-detail", dossier.pk)    
+
 
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
@@ -273,7 +346,8 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     
 class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
     def test_func(self):
-        return self.object.statut_dossier == "rejete"
+        doc = self.get_object()
+        return doc.statut_dossier == "rejete"
     model = Documents
     template_name = "clients_templates/client_detail.doc.html"
     success_url = reverse_lazy("leads_app:documents-list")

@@ -44,22 +44,22 @@
 
 <div>
     
-    {% if document.statut_dossier ="modification_required" %}
+   
+   {% if document.statut_dossier == "modification" %}
      <button class="btn btn_mdf_doc" onclick="update_doc_modal.showModal()">📤 Ajouter/remplacer un document</button>
     {% include 'modals/leads/update_doc.html' %}
-
-    {% elif document.statut_dossier =="rejete" %}
-    <button class= "btn btn_supp" onclick="delete_doc_modal.showModal()">Supprimer</button>
-    {% endif %}
-        
+   {% endif %}
+    
    
     <a href="{% url 'leads_app:documents-list'%}">◀ Retour</a>
 </div>
 
 {% if document.statut_dossier == 'rejete' %}
     <p>❌ Votre dossier a été rejeté. Contactez votre commercial.</p>
-     <a href="{% url 'chat_app:chat-view' %}">💬 Envoyer un message</a>
-    <a href="#">Suppression du dossier</a>
+    <a href="{% url 'chat_app:chat-view' %}">💬 Envoyer un message</a>
+
+    <button class= "btn btn_supp" onclick="delete_doc_modal.showModal()">Supprimer</button>
+  {% include 'modals/leads/confirm_doc_delete.html' %}
 
 {% elif document.statut_dossier == 'valide' %}
     <p>✅ Votre dossier est validé !</p>

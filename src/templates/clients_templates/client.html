@@ -46,7 +46,14 @@
     </h4>
     <a class="btn" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
     <a  class='btn btn_list_demande_fin' href="{% url 'leads_app:list-demande-financement' %}">Mes demande de financement</a>
-    <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir tout les dossiers</a>
+    
+    {% for doc in client.documents.all %} 
+        {% if doc.statut_dossier != "vide" %}
+             <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir tout les dossiers</a>
+        {% endif %}
+    {% endfor %}
+        
+   
 </header>
     <main>
 

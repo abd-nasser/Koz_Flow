@@ -17,9 +17,13 @@ urlpatterns = [
     
     path("liste/documents/", views.DocumentListView.as_view(), name="documents-list"),
     path("document/<int:pk>/detail/", views.DocumentDetailView.as_view(), name="document-detail"),
-    path("modifer/<int:pk>/document/", views.DocumentUpdateView.as_view(), name="document-update"),
+    path("modifier/<int:pk>/document/", views.DocumentUpdateView.as_view(), name="document-update"),
+    path("document/<int:pk>/supprimer/", views.DocumentDeleteView.as_view(), name="document-delete"),
     
-    
-    
+    ###############################GESTION STATUTS DOCUMENTS##############################
+    path("document/<int:dossier_id>/valider/", views.valide_dossier, name="valider-document"),
+    path("document/<int:dossier_id>/rejeter/", views.rejete_dossier, name="rejeter-document"),
+    path("document/<int:dossier_id>/verifier/", views.verifier_dossier, name="verifier-document"),
+    path("document/<int:dossier_id>/modifier/", views.modifier_dossier, name="modifier-document"),
    
 ]
