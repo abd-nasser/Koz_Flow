@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -10,7 +11,6 @@ from .forms import DemandeFinancementForm, GestionFinancementForm, DocumentsUplo
 from .models import DevisLeads, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
-
 
 ##################################################___Demande et Gestion de Financemen_______###########################################
 @login_required
@@ -115,6 +115,37 @@ def accorder_demande(request, demande_id):
     
     return redirect("leads_app:detail-demande", demande_id=demande.pk)
 
+
+# leads_app/views.py
+
+def estimer_prix_vehicule(request):
+    # 1. On récupère les données GET (envoyées par HTMX)
+    mensualite = float(request.GET.get('mensualite_souhaitee', 0)) 
+    taux_annuel = float(request.GET.get('taux_interet', 8)) / 100  # 8% → 0.08
+    duree_mois = int(request.GET.get('duree_mois', 36))
+    apport = float(request.GET.get('apport', 0))
+
+    # 2. Si pas de mensualité, on ne calcule rien
+    if mensualite <= 0:
+        return JsonResponse({'prix_estime': 0})
+
+    # 3. Calcul du capital empruntable
+    taux_mensuel = taux_annuel / 12  # ex: 0.08 / 12 = 0.006666
+    # Math : C = M * (1 - (1 + t)^(-n)) / t
+    try:
+        capital = mensualite * (1 - (1 + taux_mensuel) ** -duree_mois) / taux_mensuel
+    except:
+        capital = 0
+
+    # 4. Prix du véhicule = capital + apport
+    prix_vehicule = capital + apport
+
+    # 5. On renvoie le résultat en JSON (HTMX l'affichera)
+    return JsonResponse({
+        'prix_estime': round(prix_vehicule)
+    })
+    
+    
 
 class DemandeFinView(LoginRequiredMixin, ListView):
     model = demande_financement

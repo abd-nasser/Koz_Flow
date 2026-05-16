@@ -1,0 +1,90 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/client/client_detail_style.css' %}">
+        
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    {% tailwind_css %}
+    <title>Détail du client</title>
+</head>
+<body>
+    
+<!-- clients_templates/client_detail.html -->
+<h1 class="text-2xl font-bold mb-4">👤 Détail du client</h1>
+
+<!-- Infos générales -->
+<div class="bg-white shadow rounded p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-2">{{ client.nom_complet }}</h2>
+    <p><strong>Email :</strong> {{ client.email }}</p>
+    <p><strong>Téléphone :</strong> {{ client.telephone }}</p>
+    <p><strong>Adresse :</strong> {{ client.adresse|default:"Non renseignée" }}</p>
+    <p><strong>Commercial assigné :</strong> {{ client.assigned_commercial.nom_complet|default:"Aucun" }}</p>
+</div>
+
+<!-- Demandes de financement -->
+<div class="bg-white shadow rounded p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-2">📋 Demandes de financement</h3>
+    {% if client.demande_financement.all %}
+        <ul class="list-disc list-inside">
+            {% for demande in client.demande_financement.all %}
+                <li>
+                    Demande #{{ demande.id }} - Véhicule : {{ demande.Vehicul_interested|default:demande.other_Vehicul_interested }}
+                    - Statut : {{ demande.get_etape_display }}
+                    <a href="{% url 'leads_app:detail-demande' demande.id %}" class="text-blue-500 text-sm ml-2">Voir</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-500">Aucune demande de financement.</p>
+    {% endif %}
+</div>
+
+<!-- Dossier documentaire -->
+<div class="bg-white shadow rounded p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-2">📄 Dossier documentaire</h3>
+    {% if client.documents.all %}
+        <ul class="list-disc list-inside">
+            {% for doc in client.documents.all %}
+                <li>
+                    {{ doc.get_type_document_display }} - 
+                    {% if doc.fichier %}
+                        <a href="{{ doc.fichier.url }}" target="_blank" class="text-blue-500">Voir</a>
+                    {% else %}
+                        ❌ Non fourni
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-gray-500">Aucun document uploadé.</p>
+    {% endif %}
+</div>
+
+<!-- Offre de financement -->
+<div class="bg-white shadow rounded p-6 mb-6">
+    <h3 class="text-lg font-semibold mb-2">💰 Offre de financement</h3>
+    {% if client.offre %}
+        <p><strong>Véhicule proposé :</strong> {{ client.offre.vehicule_propose }}</p>
+        <p><strong>Mensualité :</strong> {{ client.offre.mensualite }} FCFA</p>
+        <p><strong>Durée :</strong> {{ client.offre.duree_mois }} mois</p>
+        <p><strong>Statut offre :</strong> {{ client.offre.get_statut_display }}</p>
+        <a href="#" class="text-blue-500">Voir l'offre</a> 
+    {% else %}
+        <p class="text-gray-500">Aucune offre générée pour ce client.</p>
+        {% if client.demande_financement.all %}
+            {% with demande=client.demande_financement.last %}
+                <a href="#" class="btn btn-primary mt-2">
+                    ✨ Générer une offre
+                </a> 
+            {% endwith %}
+        {% endif %}
+    {% endif %}
+</div>
+
+</body>
+</html>
+

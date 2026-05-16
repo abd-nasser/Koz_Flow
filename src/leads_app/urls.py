@@ -25,5 +25,7 @@ urlpatterns = [
     path("document/<int:dossier_id>/rejeter/", views.rejete_dossier, name="rejeter-document"),
     path("document/<int:dossier_id>/verifier/", views.verifier_dossier, name="verifier-document"),
     path("document/<int:dossier_id>/modifier/", views.modifier_dossier, name="modifier-document"),
-   
+    
+    ################################SIMULATEUR DE CREDIT##############################
+    path('estimer-prix/', views.estimer_prix_vehicule, name='simulateur-credit'),
 ]

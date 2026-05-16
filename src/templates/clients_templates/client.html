@@ -53,7 +53,14 @@
         {% endif %}
     {% endfor %}
         
+      <div class="flex items-center space-x-4">
+                    <span class="text-gray-600">{{ user.email }}</span>
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                        Déconnexion
+                    </button>
+        </div>
    
+    
 </header>
     <main>
 
@@ -63,6 +70,45 @@
     </footer>
     
    
-    
+       <script>
+        // Gestion de la déconnexion
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const refresh = localStorage.getItem('refresh_token');
+            if (refresh) {
+                console.log('Refresh token found');
+                console.log('Refresh token:', refresh);
+            };
+
+            await fetch('/api/auth/logout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify({refresh: refresh})
+            });
+
+            localStorage.clear();  
+            window.location.href = 'http://127.0.0.1:8000/';
+
+        });
+
+        
+        // Vérifier que le token est toujours valide
+        setInterval(async () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            const response = await fetch('/api/auth/me/', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            if (response.status === 401) {
+                // Token expiré, rediriger vers login
+                localStorage.clear();
+                window.location.href = 'http://127.0.0.1:8000/';
+            }
+        }, 60000); // Vérifier toutes les minutes
+    </script>
 </body>
 </html>

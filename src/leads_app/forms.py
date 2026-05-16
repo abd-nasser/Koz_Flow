@@ -6,6 +6,37 @@ from client_app.models import Documents
 
 ##POUR LE CLIENT
 class DemandeFinancementForm(forms.ModelForm):
+    #champs pour simulateur de credit 
+    mensualite_souhaitee = forms.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        required=False,
+        label="💸 Mensualité souhaitée (FCFA)",
+        widget=forms.NumberInput(attrs={
+            "class": "input input-bordered w-full",
+            'placeholder': 'Entrez la mensualité souhaitée (FCFA)',
+            'hx-get':'/leads/estimer-prix/',                    #URL de la vue qui traite la simulation
+            'hx-target': '#resultat-simulation',                #ID de l'élément où afficher le résultat de la simulation
+            'hx-trigger': 'keyup changed delay:300ms',          #Déclenche la requête après 300ms de pause dans la saisie
+            'hx-include': "#simulation-fields" ,                 #Inclure les champs du formulaire dans la requête HTMX
+        })
+    )
+    
+    taux_interet = forms.ChoiceField(
+        choices = [(i, f"{i}%") for i in range(0, 18)],  # Taux d'intérêt de 0% à 17%
+        required=False,
+        initial=8,  # Taux d'intérêt par défaut (exemple : 8%)
+        label="📈 Taux d'intérêt annuel (%)",
+        widget=forms.Select(attrs={
+            "class": "select select-bordered w-full",
+            'hx-get':'/leads/estimer-prix/', #URL de la vue qui traite la simulation
+            'hx-target': '#resultat-simulation',                #ID de l'élément où afficher le résultat de la simulation
+            'hx-trigger': 'changed',                             #Déclenche la requête lors du changement de sélection
+            'hx-include': "#simulation-fields"                  #Inclure les champs du formulaire dans la requête HTMX
+        })
+    )
+    
+    
     class Meta:
         model = demande_financement
         fields = [

@@ -1,46 +1,75 @@
 <dialog id="dmd_fin_modal" class="modal">
   <div class="modal-box">
-    <form 
-    method="post" 
-    action="{% url 'leads_app:demande-financement' vehicul.id %}">
+    <form method="post" action="{% url 'leads_app:demande-financement' vehicul.id %}">
       {% csrf_token %}
       {{ dmd_fin_form.non_field_errors }}
-      
-      {% for field in dmd_fin_form %}
+
+      <!-- 1. Champs normaux du formulaire (pas de boucle manuelle) -->
+      <div id="simulation-fields">
         <div class="form-group">
-          {{ field.label_tag }}
-          {{ field }}
-          
-          {% if field.errors %}
-            <div class="error">
-              {% for error in field.errors %}
-                <p class="text-red-500">{{ error }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
+          {{ dmd_fin_form.apport.label_tag }}
+          {{ dmd_fin_form.apport }}
+          {{ dmd_fin_form.apport.errors }}
         </div>
-      {% endfor %}
-      
+
+        <div class="form-group">
+          {{ dmd_fin_form.duree_mois.label_tag }}
+          {{ dmd_fin_form.duree_mois }}
+          {{ dmd_fin_form.duree_mois.errors }}
+        </div>
+
+        <div class="form-group">
+          {{ dmd_fin_form.revenus_mensuel.label_tag }}
+          {{ dmd_fin_form.revenus_mensuel }}
+          {{ dmd_fin_form.revenus_mensuel.errors }}
+        </div>
+      </div>
+
+      <!-- 2. Champs du simulateur (ajoutés dynamiquement) -->
+      <div class="form-group">
+        {{ dmd_fin_form.mensualite_souhaitee.label_tag }}
+        {{ dmd_fin_form.mensualite_souhaitee }}
+        {{ dmd_fin_form.mensualite_souhaitee.errors }}
+      </div>
+
+      <div class="form-group">
+        {{ dmd_fin_form.taux_interet.label_tag }}
+        {{ dmd_fin_form.taux_interet }}
+        {{ dmd_fin_form.taux_interet.errors }}
+      </div>
+
+      <!-- 3. Résultat du simulateur -->
+      <div id="resultat-simulation" class="alert alert-info mt-4">
+        💡 Prix estimé du véhicule : <strong id="prix_estime">0</strong> FCFA
+      </div>
+
+      <!-- 4. Boutons d'action -->
       <div class="modal-action">
-        <button type="submit" class="btn btn-primary">envoyer</button>
+        <button type="submit" class="btn btn-primary">Envoyer</button>
         <button type="button" class="btn" onclick="document.getElementById('dmd_fin_modal').close()">Annuler</button>
       </div>
     </form>
   </div>
 </dialog>
 
-
+<!-- Script pour réouvrir la modale si erreur -->
 {% if open_dmd_fin_modal %}
 <script>
   document.getElementById('dmd_fin_modal').showModal();
 </script>
-  
 {% endif %}
 
-
+<!-- Petit script pour fermer (optionnel) -->
 <script>
-  // Fonction pour fermer la modale après soumission (optionnel)
   function closeModal() {
     document.getElementById('dmd_fin_modal').close();
   }
+
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.target.id === 'resultat-simulation') {
+        const data = JSON.parse(evt.detail.xhr.responseText);
+        document.getElementById('prix_estime').innerText = data.prix_estime;
+    }
+});
 </script>
+

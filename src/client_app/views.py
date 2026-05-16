@@ -4,7 +4,8 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 from django.http import HttpResponse
 from django.contrib import messages
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView, ListView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
@@ -27,5 +28,8 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
       return context
 
 
-
+class ClientDetailView(LoginRequiredMixin, DetailView):
+   model = kozUser
+   template_name = "clients_templates/client_detail.html"
+   context_object_name = "client"
 
