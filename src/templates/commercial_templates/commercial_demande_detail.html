@@ -63,6 +63,11 @@
     {% endif %}
         
 
-
+{% if not demande.client.offre %}
+    <button class="btn btn-primary mt-2" onclick="document.getElementById('offreModal').showModal()">
+        ✨ Générer une offre
+    </button>
+    {% include 'modals/leads/creer_offre.html' %}
+{% endif %}
 
 </body>

@@ -1,0 +1,23 @@
+{% load static %}
+{% load tailwind_tags %}    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste de mes offres</title>
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/clients/clients_offre_list_style.css' %}">
+    {% tailwind_css %}
+</head>
+<body>
+    <h1>Liste de mes offres</h1>
+    <hr>
+    {% for offre in offres %}
+        <h3>Offre de : {{ offre.client.nom_complet }}</h3>
+        <p>Description : {{ offre.vehicule_propose }}</p>
+        <a href="{% url 'commercial_app:offre-detail' offre.pk %}">Voir les détails</a>
+        <hr>
+    {% endfor %}
+</body>
+</html>

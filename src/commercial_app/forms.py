@@ -1,0 +1,31 @@
+from django import forms
+from .models import Offre
+
+class OffreForm(forms.ModelForm):
+    class Meta:
+        model = Offre
+        fields = [
+            'vehicule_propose',
+            'prix_vehicule',
+            'apport_demande',
+            'duree_mois',
+            'taux_interet',
+            'frais_dossier',
+            'frais_garantie',
+            'date_expiration'
+        ]
+        widgets = {
+            'vehicule_propose': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'prix_vehicule': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 10000}),
+            'apport_demande': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 10000}),
+            # 'duree_mois' PAS de widget ici → Django utilise le select par défaut avec les choices
+            'taux_interet': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 0.1}),
+            'frais_dossier': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 1000}),
+            'frais_garantie': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 1000}),
+            'date_expiration': forms.DateInput(attrs={'class': 'input input-bordered w-full', 'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['duree_mois'].choices = [(12, '12 mois'), (24, '24 mois'), (36, '36 mois'), (48, '48 mois'), (60, '60 mois')]
+        self.fields['duree_mois'].widget.attrs.update({'class': 'select select-bordered w-full'})

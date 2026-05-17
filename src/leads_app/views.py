@@ -1,3 +1,6 @@
+from datetime import timedelta, timezone, datetime
+
+
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -8,6 +11,7 @@ from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .forms import DemandeFinancementForm, GestionFinancementForm, DocumentsUploadForm
+from commercial_app.forms import OffreForm
 from .models import DevisLeads, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
@@ -113,11 +117,9 @@ def accorder_demande(request, demande_id):
         
         # Option : notifier le client, générer contrat, etc.
     
-    return redirect("leads_app:detail-demande", demande_id=demande.pk)
+    return redirect("leads_app:detail-demande", demande.pk)
 
-
-# leads_app/views.py
-
+@login_required
 def estimer_prix_vehicule(request):
     # 1. On récupère les données GET (envoyées par HTMX)
     mensualite = float(request.GET.get('mensualite_souhaitee', 0)) 
@@ -189,8 +191,20 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
         if self.request.user.role == "client":
             dossier, created = Documents.objects.get_or_create(client=self.request.user, demande_financement=self.object)
             context["upload_doc_form"] = DocumentsUploadForm(instance=dossier)
-        
-        context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
+            
+        if self.request.user.role in ["directeur", "commercial"]:
+            initial = {
+            'vehicule_propose': self.object.Vehicul_interested,
+            'prix_vehicule': self.object.Vehicul_interested.prix if self.object.Vehicul_interested else 0,
+            'apport_demande': self.object.apport,
+            'duree_mois': self.object.duree_mois,
+            'taux_interet': 8.0,  # valeur par défaut
+            'frais_dossier': 50000,
+            'frais_garantie': 75000,
+            'date_expiration': datetime.now()+timedelta(days=30),
+             }   
+            context["offre_form"] = OffreForm(initial=initial)
+            context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
          
         return context
        

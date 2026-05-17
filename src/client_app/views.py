@@ -12,8 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from auth_app.forms import  ChangePasswordForm
 from .models import Documents
 from auth_app.models import kozUser
-
 from leads_app.models import demande_financement
+
 
 class ClientDashboardView(LoginRequiredMixin, TemplateView):
    
@@ -32,4 +32,6 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
    model = kozUser
    template_name = "clients_templates/client_detail.html"
    context_object_name = "client"
+
+
 

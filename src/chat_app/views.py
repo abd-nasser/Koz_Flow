@@ -53,7 +53,7 @@ def chat_view(request, client_id=None):
    
    else:
       client = get_object_or_404(kozUser, id=client_id, role="client")
-      messages = Message.objects.filter(client=client).order_by('date_envoi')
+      messages = Message.objects.filter(client=client).order_by('-date_envoi')
       context = {
             'messages': messages,
             'client': client,

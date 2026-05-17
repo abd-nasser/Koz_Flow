@@ -1,5 +1,5 @@
 from django.db import models
-
+from datetime import datetime
 class Offre(models.Model):
     #Lien vers client
     client = models.OneToOneField("auth_app.kozUser", on_delete=models.CASCADE, related_name="offre")
@@ -41,8 +41,11 @@ class Offre(models.Model):
     def save(self,  *args, **kwargs):
         #avant d'enregistrer, on calcule automatiquement le total dû
         self.total_du = (self.mensualite * self.duree_mois) + self.frais_dossier + self.frais_garantie
+        # Vérifier si l'offre a expiré
+        if self.date_expiration == datetime.now():
+            self.statut = 'expiree'
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"offre pour {self.client.email}-{self.statut}"
+        return f"offre pour {self.client.nom_complet}-{self.statut}"
     

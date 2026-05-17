@@ -1,0 +1,35 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/commercial/commercial_offre_detail_style.css' %}">
+    {% tailwind_css %}
+    <title>Détail de l'offre</title>
+</head>
+<body>
+    <h1>Offre Details</h1>
+    <p><strong>Véhicule proposé:</strong> {{ offre.vehicule_propose }}</p>
+    <p><strong>Prix du véhicule:</strong> {{ offre.prix_vehicule }}</p>
+    <p><strong>Apport demandé:</strong> {{ offre.apport_demande }}</p>
+    <p><strong>Durée (mois):</strong> {{ offre.duree_mois }}</p>
+    <p><strong>Taux d'intérêt:</strong> {{ offre.taux_interet }}</p>
+    <p><strong>Frais de dossier:</strong> {{ offre.frais_dossier }}</p>
+    <p><strong>Frais de garantie:</strong> {{ offre.frais_garantie }}</p>
+    <p><strong>Date d'expiration:</strong> {{ offre.date_expiration }}</p>
+    <p class="{% if offre.statut == 'acceptee' %} text-green-500 {% elif offre.statut == 'refusee' %} text-orange-300-500 {% elif offre.statut == 'expiree' %} text-red-800 {% endif %}">
+        <strong>Statut:</strong> {{ offre.get_statut_display }}
+    </p>
+
+    {% if user.role == "client" and offre.statut != "expiree" %}
+        <a class="btn btn-success" href="{% url 'commercial_app:accepter-offre' offre.id %}">Accepter</a>
+        <a class="btn btn-error" href="{% url 'commercial_app:refuser-offre' offre.id %}">Refuser</a>
+        <a class="btn btn-info" href="{% url 'chat_app:chat-view' %}">Discuter avec votre commercial</a>
+    
+    {% endif %}
+        
+</body>
+</html>

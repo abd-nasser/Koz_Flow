@@ -1,0 +1,25 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>liste des offres</title>
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/commercial/commercial_offre_list_style.css' %}">
+    {% tailwind_css %}
+</head>
+<body>
+    Liste des offres de financement générées :
+    <hr>
+
+    {% for offre in offres %}
+        <h3> offre de : {{ offre.client.nom_complet }}</h3>
+        <p> description : {{ offre.vehicule_propose }}</p>
+        <a href="{% url 'commercial_app:offre-detail' offre.pk %}">Voir les détails</a>
+        <hr>
+    {% endfor %}
+        
+</body>
+</html>
