@@ -1,6 +1,8 @@
 # Django a déjà des classes pour gérer les utilisateurs, on va les personnaliser
 from django.db import models
 from auth_app.models import kozUser
+from vehicul_app.models import Vehicul
+from datetime import timezone, timedelta, datetime
 
 
 class Maintenance(models.Model):
@@ -45,6 +47,7 @@ class Maintenance(models.Model):
     client = models.ForeignKey(kozUser, on_delete=models.CASCADE, related_name='maintenances', limit_choices_to={'role': 'client'})
     
     # Infos véhicule
+    vehicul = models.ForeignKey("vehicul_app.vehicul", on_delete=models.SET_NULL, related_name="maintenance", null=True, blank=True)
     marque = models.CharField(max_length=50)
     modele = models.CharField(max_length=100)
     annee = models.IntegerField()
@@ -88,6 +91,17 @@ class Maintenance(models.Model):
     
     def __str__(self):
         return f"{self.client.nom_complet} - {self.marque} {self.modele} - {self.get_type_maintenance_display()}"
+    
+    @property
+    def est_en_retard(self):
+        """True si la date de la maintenance est dépassée"""
+        return self.date_prochaine < datetime.now().date() and self.statut not in ["effectuee", "annulee"]
+    
+    @property
+    def km_restant(self):
+        """Kilometre restant avant la prochaine maintenance"""
+        return max(0, self.kilometrage_prochain - self.kilometrage_actuel)
+    
     
     class Meta:
         ordering = ['date_prochaine']

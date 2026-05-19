@@ -1,0 +1,37 @@
+
+
+<!-- Modal -->
+<dialog id="maintenanceModal" class="modal">
+    <div class="modal-box w-11/12 max-w-2xl">
+        <form method="post" action="{% url 'commercial_app:maintenance-create' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h3 class="font-bold text-lg mb-4">🔧 Nouvelle maintenance</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for field in maintenance_form %}
+                    <div class="form-group {% if field.name == 'notes_client' %}col-span-2{% endif %}">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-red-500 text-sm mt-1">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="modal-action mt-6">
+                <button type="submit" class="btn btn-primary">✅ Enregistrer</button>
+                <button type="button" class="btn" onclick="document.getElementById('maintenanceModal').close()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    // Reopen modal if form was invalid
+    {% if open_maintenance_modal %}
+        document.getElementById('maintenanceModal').showModal();
+    {% endif %}
+</script>

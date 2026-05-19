@@ -1,0 +1,79 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/commercial/maintenance_list_style.css' %}">
+    {%tailwind_css%}
+    <title>Liste des maintenance</title>
+</head>
+<body>
+    
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">🔧 Suivi des maintenances</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('maintenanceModal').showModal()">
+          🔧 Planifier une maintenance
+        </button>
+    </div>
+    <!-- Include modal for creating maintenance -->
+    {% include 'modals/maintenance/create_maintenance.html' %}
+
+
+    <!-- Tableau des maintenances -->
+    <div class="bg-white shadow rounded overflow-hidden">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left">Client</th>
+                    <th class="px-6 py-3 text-left">Véhicule</th>
+                    <th class="px-6 py-3 text-left">Type</th>
+                    <th class="px-6 py-3 text-left">Prochaine date</th>
+                    <th class="px-6 py-3 text-left">Statut</th>
+                    <th class="px-6 py-3 text-left">Priorité</th>
+                    <th class="px-6 py-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for maintenance in maintenances %}
+                <tr class="border-t hover:bg-gray-50">
+                    <td class="px-6 py-4">{{ maintenance.client.nom_complet }}</td>
+                    <td class="px-6 py-4">{{ maintenance.marque }} {{ maintenance.modele }}</td>
+                    <td class="px-6 py-4">{{ maintenance.get_type_maintenance_display }}</td>
+                    <td class="px-6 py-4">{{ maintenance.date_prochaine|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4">
+                        <span class="badge {% if maintenance.statut == 'effectuee' %}badge-success{% elif maintenance.statut == 'depassee' %}badge-error{% else %}badge-warning{% endif %}">
+                            {{ maintenance.get_statut_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="badge {% if maintenance.priorite == 'urgente' %}badge-error{% elif maintenance.priorite == 'haute' %}badge-warning{% else %}badge-info{% endif %}">
+                            {{ maintenance.get_priorite_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <a href="{% url 'commercial_app:maintenance-detail' maintenance.id %}" class="text-blue-500 hover:underline mr-2">👁️</a>
+                        <a href="{% url 'commercial_app:maintenance-update' maintenance.id %}" class="text-green-500 hover:underline mr-2">✏️</a>
+                        <a href="{% url 'commercial_app:maintenance-delete' maintenance.id %}" class="text-red-500 hover:underline">🗑️</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        Aucune maintenance planifiée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+</body>
+</html>

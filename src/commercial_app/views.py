@@ -1,16 +1,23 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 from django.contrib import messages
-from django.views.generic import TemplateView, ListView, DetailView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from leads_app.forms import GestionFinancementForm
+
 from leads_app.models import demande_financement
-from chat_app.models import Message
+from client_app.models import Maintenance
 from commercial_app.models import Offre
+from chat_app.models import Message
+
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
+from leads_app.forms import GestionFinancementForm
+from client_app.forms import MaintenanceForm
 from .forms import OffreForm
+
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -97,7 +104,34 @@ def refuser_offre(request, offre_id):
 
     return redirect('commercial_app:offre-detail', offre.pk)
 
+class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    
+    template_name = "commercial_templates/commercial.html"
+    
+    #avec la methode test_func de la class UserPassTestMixin seul un commercial peut acceder à la view 
+    def test_func(self):
+        return self.request.user.is_staff or self.request.user.role =="commercial"
+        #self.request.user designe l'utilisateur qui est connecté
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs) 
+        context["commercial"] = self.request.user
+        
+        if "user_register_form" not in context:
+            context["user_register_form"] = UserRegisterForm()
+        
+        if 'change_pass_form' not in context:
+            context["change_pass_form"] = ChangePasswordForm()
+            
+        #liste des clients assigné à ce commercial
+        client = self.request.user.clients_assignes.all()
+        context['clients'] = client 
+        context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
+        
+        return context
 
+
+##########################################________________OFFRE_VIEW_________________####################################################
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
@@ -125,29 +159,95 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
     template_name = "commercial_templates/offre_detail.html"
     
 
-class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+#######################################__________________MAINTENANCE_VIEW_______________##################################################
+class MaintenanceListView(LoginRequiredMixin, ListView):
+    model = Maintenance
+    context_object_name = "maintenances"
     
-    template_name = "commercial_templates/commercial.html"
     
-    #avec la methode test_func de la class UserPassTestMixin seul un commercial peut acceder à la view 
-    def test_func(self):
-        return self.request.user.is_staff or self.request.user.role =="commercial"
-        #self.request.user designe l'utilisateur qui est connecté
+    def get_template_names(self):
+        if self.request.user.role == "commercial" or self.request.user.role == "directeur":
+            return ["commercial_templates/maintenance_list.html"]
+        return['clients_templates/client_maintenance_list.html']
         
+    
+    def get_queryset(self):
+        #Si commercial : Voir maintenances des ses clients
+        if self.request.user.role == "commercial":
+            return Maintenance.objects.filter(client__assigned_commercial=self.request.user)
+        #Si client: Voir ses maintenance 
+        elif self.request.user.role == "client":
+            return Maintenance.objects.filter(client=self.request.user)
+        
+        return Maintenance.objects.all()
+    
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs) 
-        context["commercial"] = self.request.user
-        
-        if "user_register_form" not in context:
-            context["user_register_form"] = UserRegisterForm()
-        
-        if 'change_pass_form' not in context:
-            context["change_pass_form"] = ChangePasswordForm()
-            
-        #liste des clients assigné à ce commercial
-        client = self.request.user.clients_assignes.all()
-        context['clients'] = client 
-        context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
-        
+        context =  super().get_context_data(**kwargs)
+        context["maintenance_form"] = MaintenanceForm()
+        return context
+    
+class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Maintenance
+    form_class = MaintenanceForm
+    template_name = "commercial_templates/maintenance_list.html"
+    success_url = reverse_lazy("commercial_app:maintenance-list")
+
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+
+    def form_valid(self, form):
+        messages.success(self.request, "Maintenance ajoutée avec succès.")
+        return super().form_valid(form)
+
+class MaintenanceDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    model = Maintenance
+    template_name = "commercial_templates/maintenance_detail.html"
+    context_object_name = "maintenance"
+
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if  "up_maint_form" not in context:
+            context["update_maintenance_form"] = MaintenanceForm(instance=self.object)
         return context
 
+class MaintenanceUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
+    model= Maintenance
+    template_name = "commercial_templates/maintenance_detail.html"
+    form_class = MaintenanceForm
+    def get_success_url(self):
+        return reverse_lazy ("commercial_app:maintenance-detail", kwargs={"pk":self.object.pk})
+    
+    
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+
+    def form_valid(self, form):
+        messages.success(self.request, "Maintenance MAJ avec succès.")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        detail_view = MaintenanceDetailView()
+        detail_view.request = self.request
+        detail_view.kwargs = self.kwargs
+        context = detail_view.get_context_data()
+        context["update_maintenance_form"] = form
+        context["open_update_maintenance_form"] = True
+        return self.render_to_response(context)
+      
+class MaintenanceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Maintenance
+    template_name = "commercial_templates/maintenance_detail.html"
+    success_url = reverse_lazy("commercial_app:maintenance-list")
+
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Maintenance supprimée.")
+        return super().delete(request, *args, **kwargs)
+
+############################################# GESTION_MAINTENANCE_VIEW ###################################################################
