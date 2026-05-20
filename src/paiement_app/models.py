@@ -26,7 +26,7 @@ class Paiement(models.Model):
     montant = models.DecimalField(max_digits=10, decimal_places=2)
 
     # 6. Ou en est-on ?
-    statu = models.CharField(max_length=20,choices=STATUS, default="en_attente")
+    statut = models.CharField(max_length=20,choices=STATUS, default="en_attente")
     
     # 7 Quand est-ce que le paiement à été crée ?
     date_creation = models.DateTimeField(auto_now_add=True)

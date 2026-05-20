@@ -13,6 +13,10 @@ class Panier(models.Model):
     def total_panier(self):
         return sum(article.sous_total for article in self.articlepanier_set.all())
 
+     # 👇 AJOUTER CETTE MÉTHODE
+    def nb_articles(self):
+        """Retourne le nombre total d'articles (en comptant les quantités)"""
+        return sum(article.quantite for article in self.articles.all())
 
 class ArticlePanier(models.Model):
     """plusieur article ou un article dans le panier"""
@@ -28,7 +32,7 @@ class ArticlePanier(models.Model):
 class Commande(models.Model):
     STATUT_COMMANDE = [
         ("Chargement","Chargement"),
-        ("validée", "Validée"),
+        ("validee", "Validée"),
         ("payee", "Payée"),
         ("livraison", "En livraison"),
         ("terminée", "terminée"),
