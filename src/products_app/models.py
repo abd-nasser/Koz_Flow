@@ -3,6 +3,8 @@ from django.db import models
 class CategorieProducts(models.Model):
     nom = models.CharField(max_length=100)
     date_creation = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return self.nom if self.nom else "Catégorie sans nom"
 
 class Products(models.Model):
     categorie = models.ForeignKey(CategorieProducts, on_delete=models.CASCADE, related_name="produits")
@@ -11,3 +13,5 @@ class Products(models.Model):
     stock = models.IntegerField(default=0)
     image = models.ImageField(upload_to='produits/')
     compatible_avec = models.CharField(max_length=100, blank=True)
+    def __str__(self):
+        return self.nom if self.nom else "Produit sans nom"

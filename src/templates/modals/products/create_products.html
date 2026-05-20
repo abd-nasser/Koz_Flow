@@ -1,0 +1,53 @@
+<dialog id="create_product_modal" class="modal">
+  <div class="modal-box">
+    <form 
+    enctype='multipart/form-data'
+    method="post" 
+    action="{% url 'products_app:products-create' %}">
+      {% csrf_token %}
+    <!-- AFFICHAGE DES ERREURS GLOBALES -->
+    {% if create_product_form.non_field_errors %}
+      <div class="alert alert-error">
+        {% for error in create_product_form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <!-- CHAMPS DU FORMULAIRE -->
+    {% for field in create_product_form %}
+      <div class="form-group">
+        {{ field.label_tag }}
+        {{ field }}
+        
+        <!-- AFFICHAGE DES ERREURS PAR CHAMP -->
+        {% if field.errors %}
+          <div class="error">
+            {% for error in field.errors %}
+              <p class="text-red-500">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+      
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn" onclick="document.getElementById('create_product_modal').close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+{% if open_create_product_modal %}
+  <script>
+    document.getElementById('create_product_modal').showModal();
+  </script>
+{% endif %}
+
+<script>
+  // Fonction pour fermer la modale après soumission (optionnel)
+  function closeModal() {
+    document.getElementById('create_product_modal').close();
+  }
+</script>

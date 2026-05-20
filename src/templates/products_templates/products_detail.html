@@ -1,0 +1,38 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js'%}"></script>
+    <link rel="stylesheet" href="{% static 'css/products/products_detail_style.css' %}">
+    <title>Détail du produit</title>
+    {% tailwind_css %}
+</head>
+<body>
+    <div class="container mx-auto px-4 py-6 max-w-2xl">
+    <h1 class="text-2xl font-bold mb-4">{{ product.nom }}</h1>
+
+    <div class="bg-white shadow rounded p-6">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" class="w-full max-h-80 object-cover rounded mb-4">
+        {% endif %}
+        <p><strong>Catégorie :</strong> {{ product.categorie.nom }}</p>
+        <p><strong>Prix :</strong> {{ product.prix }} FCFA</p>
+        <p><strong>Stock :</strong> {{ product.stock }}</p>
+        <p><strong>Compatible :</strong> {{ product.compatible_avec|default:"Tous véhicules" }}</p>
+        <div class="mt-4 flex gap-2">
+            <button type="button" class="btn btn-secondary" onclick="update_product_modal.showModal()">✏️ Modifier</button>
+                {% include 'modals/products/update_product.html' %}
+                
+                <button type="button" class="btn btn-danger" onclick="delete_product_modal.showModal()">🗑️ Supprimer</button>
+                {% include 'modals/products/confirm_products_delete.html' %}
+           
+        </div>
+    </div>
+</div>
+ <a href="{% url 'products_app:products-list' %}" class="btn btn-outline">◀ Retour</a>
+</body>
+
+

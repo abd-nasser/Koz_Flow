@@ -1,0 +1,42 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js'%}"></script>
+    <link rel="stylesheet" href="{% static 'css/products/categorie_products_list_style.css' %}">
+    <title>Liste des catégories de produits</title>
+    {% tailwind_css %}
+</head>
+<body>
+    <div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">📁 Gestion des catégories</h1>
+    <!-- Bouton pour ouvrir la modale de création -->
+    <button class="btn mb-4" onclick="document.getElementById('create_categorie_modal').showModal()">➕ Ajouter une catégorie de produits</button>
+    {% include 'modals/products/create_categorie_product.html' %}
+
+    <!-- Liste des catégories -->
+    <div class="bg-white shadow rounded overflow-hidden">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr><th class="px-4 py-2">Nom</th><th class="px-4 py-2">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr class="border-t">
+                    <td class="px-4 py-2">{{ cat.nom }}</td>
+                    <td class="px-4 py-2">
+                        <button class="text-red-500" onclick="document.getElementById('delete_categorie_modal').showModal()">🗑️</button>
+                        {% include 'modals/products/confirm_cat_delete.html' %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<a class="btn" href="{% url 'products_app:products-list' %}">Retour à la liste des produits</a>
+</body>
+</html>
