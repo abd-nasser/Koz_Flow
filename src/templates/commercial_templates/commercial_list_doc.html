@@ -12,35 +12,98 @@
 </head>
 <body>
 
-<h1>📄 Documents des clients</h1>
+    <nav>
 
-<table border="1">
-    <thead>
-        <tr>
-            <th>Client</th>
-            <th>Statut</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for doc in documents %}
-        <tr>
-            <td>{{ doc.client.nom_complet }}</td>
-            <td>{{ doc.get_statut_dossier_display }}</td>
-            <td>
-                <a href="{% url 'leads_app:document-detail' doc.pk %}">Voir détails</a>
-            </td>
-            
-        </tr>
+    </nav>
+    <header>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </header>
 
-        {% empty %}
-        <tr>
-            <td colspan="5">Aucun document trouvé pour vos clients.</td>
-        </tr>
-        {% endfor %}
+    <main>
+        <div class="filters-container max-w-4xl mx-auto mb-6 p-4 bg-white rounded shadow space-y-4">
 
-        
-    </tbody>
-</table>
+            <!-- Filtre recherche -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Recherche</span>
+                </label>
+                <input 
+                    hx-get="{% url 'leads_app:documents-list' %}"
+                    hx-swap="innerHTML"
+                    hx-trigger="keyup changed delay:500ms"
+                    hx-target="#document-list-container"
+                    hx-include=".filters-container select, .filters-container input"
+                    type="text" 
+                    name="q" 
+                    placeholder="🔍 Recherche (client, type de document, statut...)" 
+                    class="input input-bordered w-full">
+
+            </div>
+
+            <!-- Filtre statut -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Statut</span>
+                </label>
+                <select 
+                    hx-get="{% url 'leads_app:documents-list' %}"
+                    hx-swap="innerHTML"
+                    hx-trigger="change"
+                    hx-target="#document-list-container"
+                    hx-include=".filters-container select, .filters-container input"
+                    name="statut"
+                    class="select select-bordered w-full">
+                    <option value="">📌 Tous statuts</option>
+                {% for value, label in statut_choices %}
+                <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+                </select>
+
+                
+                <!-- Filtre par date_from -->
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Date de validation - De</span>
+                    </label>
+                    <input 
+                        hx-get="{% url 'leads_app:documents-list' %}"
+                        hx-swap="innerHTML"
+                        hx-trigger="change"
+                        hx-target="#document-list-container"
+                        hx-include=".filters-container select, .filters-container input"
+                        type="date" 
+                        name="date_from" 
+                        class="input input-bordered w-full">
+            </div>
+
+                <!-- Filtre par date_to -->
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Date de validation - À</span>
+                    </label>
+                    <input 
+                        hx-get="{% url 'leads_app:documents-list' %}"
+                        hx-swap="innerHTML"
+                        hx-trigger="change"
+                        hx-target="#document-list-container"
+                        hx-include=".filters-container select, .filters-container input"
+                        type="date" 
+                        name="date_to" 
+                        class="input input-bordered w-full">
+                </div>
+
+        </div>
+
+        <div id="document-list-container">
+            {% include "partials/documents/com_list_doc.html" %}
+        </div>
 
 </body>

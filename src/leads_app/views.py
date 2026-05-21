@@ -415,19 +415,108 @@ class DocumentListView(LoginRequiredMixin, ListView):
         
         return ["clients_templates/client_list_doc.html"]
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["statut_choices"] = Documents.STATUT_DOCS
+        return context
+    
     def get_queryset(self):
         if self.request.user.is_superuser or self.request.user.role =="directeur": 
-            queryset = Documents.objects.all().order_by("-date_upload")
+            queryset = Documents.objects.all().select_related("client", "demande_financement").order_by("-date_upload")
+            
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            client_name = self.request.GET.get("client_name")
+            date_from = self.request.GET.get("date_from")
+            date_to = self.request.GET.get("date_to")
+            
+            if q:
+                queryset = queryset.filter(
+                                           Q(statut_dossier__icontains=q)|
+                                           Q(client__nom_complet__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
+                                           Q(commentaires__icontains=q)|
+                                           Q(demande_financement__etape__icontains=q)|
+                                           Q(demande_financement__financement_type__icontains=q)|
+                                           Q(demande_financement__financement_par__icontains=q)
+                                           ).distinct()
+           
+            if statut:
+                queryset = queryset.filter(statut_dossier=statut)
+            if client_name:
+                queryset = queryset.filter(client__nom_complet__icontains=client_name)
+            if date_from:
+                queryset = queryset.filter(date_upload__gte=date_from)
+            if date_to:
+                queryset = queryset.filter(date_upload__lte=date_to)
+                
             return queryset
         
         if self.request.user.is_staff or self.request.user.role == "commercial":
             queryset = Documents.objects.filter(client__in = self.request.user.clients_assignes.all()
-                                                ).order_by("-date_upload")
+                                                ).select_related("client", "demande_financement").order_by("-date_upload")
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            client_name = self.request.GET.get("client_name")
+            date_from = self.request.GET.get("date_from")
+            date_to = self.request.GET.get("date_to")
+            
+            if q:
+                queryset = queryset.filter(
+                                           Q(statut_dossier__icontains=q)|
+                                           Q(client__nom_complet__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
+                                           Q(commentaires__icontains=q)|
+                                           Q(demande_financement__etape__icontains=q)|
+                                           Q(demande_financement__financement_type__icontains=q)|
+                                           Q(demande_financement__financement_par__icontains=q)
+                                           ).distinct()
+           
+            if statut:
+                queryset = queryset.filter(statut_dossier=statut)
+            if client_name:
+                queryset = queryset.filter(client__nom_complet__icontains=client_name)
+            if date_from:
+                queryset = queryset.filter(date_upload__gte=date_from)
+            if date_to:
+                queryset = queryset.filter(date_upload__lte=date_to)
+                
             return queryset
         
         if self.request.user.role == "client":
-            queryset = Documents.objects.filter(client=self.request.user).order_by("-date_upload")
+            queryset = Documents.objects.filter(client=self.request.user).select_related("client", "demande_financement").order_by("-date_upload")
+            
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            client_name = self.request.GET.get("client_name")
+            date_from = self.request.GET.get("date_from")
+            date_to = self.request.GET.get("date_to")
+            
+            if q:
+                queryset = queryset.filter(
+                                           Q(statut_dossier__icontains=q)|
+                                           Q(client__nom_complet__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
+                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
+                                           Q(commentaires__icontains=q)|
+                                           Q(demande_financement__etape__icontains=q)|
+                                           Q(demande_financement__financement_type__icontains=q)|
+                                           Q(demande_financement__financement_par__icontains=q)
+                                           ).distinct()
+           
+            if statut:
+                queryset = queryset.filter(statut_dossier=statut)
+            if client_name:
+                queryset = queryset.filter(client__nom_complet__icontains=client_name)
+            if date_from:
+                queryset = queryset.filter(date_upload__gte=date_from)
+            if date_to:
+                queryset = queryset.filter(date_upload__lte=date_to)
+                
             return queryset
+        
         return Documents.objects.none()
             
 class DocumentDetailView(LoginRequiredMixin, DetailView):

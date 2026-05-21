@@ -1,0 +1,18 @@
+    <div class="grid grid-cols-1 gap-4">
+        {% for doc in documents %}
+        <div class="bg-white shadow rounded p-4 border">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p><strong>Client :</strong> {{ doc.demande_financement.client.nom_complet }}</p>
+                    <p><strong>Type :</strong> {{ doc.get_type_document_display }}</p>
+                    <p><strong>Statut dossier :</strong> {{ doc.get_statut_dossier_display }}</p>
+                    <p><strong>Date upload :</strong> {{ doc.date_upload|date:"d/m/Y H:i" }}</p>
+                </div>
+                <a href="{% url 'leads_app:document-detail' doc.id %}" class="btn btn-sm btn-outline">👁️ Voir</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center">Aucun document trouvé.</p>
+        {% endfor %}
+    </div>
+</div>

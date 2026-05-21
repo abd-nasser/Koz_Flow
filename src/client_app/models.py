@@ -139,10 +139,10 @@ class Documents(models.Model):
     ]
     statut_dossier = models.CharField(max_length=70, choices=STATUT_DOCS, default='vide')
     
-    # commentaires = models.TextField(blank=True, 
-    #                                 verbose_name="Commentaires du commercial ou de l'analyste",
-    #                                 limit_choices_to={'role': 'commercial'}
-    #                                 )
+    commentaires = models.TextField(blank=True, null=True,
+                                    verbose_name="Commentaires du commercial ou de l'analyste",
+                                    help_text="Utilisez ce champ pour indiquer les documents manquants, les erreurs à corriger, ou toute autre remarque pertinente pour le client.")        
+                                    
     
     date_upload = models.DateTimeField(auto_now_add=True)
     date_validation = models.DateTimeField(null=True, blank=True)
