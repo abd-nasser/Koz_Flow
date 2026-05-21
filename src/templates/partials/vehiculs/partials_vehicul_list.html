@@ -47,6 +47,7 @@
             {% else %}
                 <span class="badge badge-error">❌ Vendu</span>
             {% endif %}
+            <a href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}" class="btn btn-outline btn-sm mt-2">Voir détails</a>
         </div>
         {% empty %}
         <p class="text-gray-500 col-span-full text-center">Aucun véhicule trouvé.</p>

@@ -155,10 +155,7 @@ class VehiculListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(carburant=carburant)
         
         return queryset
-            
-
-            
-        
+               
 
 class VehiculDetailView(LoginRequiredMixin, DetailView):
     model = Vehicul

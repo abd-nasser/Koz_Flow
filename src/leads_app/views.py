@@ -1,6 +1,6 @@
 from datetime import timedelta, timezone, datetime
 
-
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -147,32 +147,112 @@ def estimer_prix_vehicule(request):
         'prix_estime': round(prix_vehicule)
     })
     
-    
-
 class DemandeFinView(LoginRequiredMixin, ListView):
     model = demande_financement
     context_object_name = "list_demande_financement"
 
     def get_template_names(self):
-        if self.request.user.role == "client":
-            return ["clients_templates/client_list_demande.html"]
-        if self.request.user.role == "commercial" or self.request.user.is_staff:
-            return ["commercial_templates/commercial_list_demande.html"]
+        is_htmx = self.request.headers.get("HX-Request") == "true"
         
-        return ["directeur_templates/directeur_list_demande.html"]  # fallback
+        if self.request.user.role == "client":
+            return ["partials/leads/partial_clients_list_demande.html" if is_htmx else "clients_templates/client_list_demande.html"]
+        
+        if self.request.user.role == "directeur" or self.request.user.is_superuser:
+            return ["partials/leads/partial_directeur_list_demande.html" if is_htmx else "directeur_templates/directeur_list_demande.html"]
+        
+        if self.request.user.role == "commercial" or self.request.user.is_staff:
+            return ["partials/leads/partial_commercial_list_demande.html" if is_htmx else "commercial_templates/commercial_list_demande.html"]
+        
+        # fallback (au cas où)
+        return ["partials/leads/partial_clients_list_demande.html" if is_htmx else "clients_templates/client_list_demande.html"]
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["etape"] = demande_financement.ETAPES
+        context["financement_type_choices"] = demande_financement.FINANCEMENT_TYPE_CHOISE
+        context["financement_par_choices"] = demande_financement.ENTREPRISE_FINANCE
+        return context
 
     def get_queryset(self):
         if self.request.user.role == "client":
-            return self.request.user.demande_financement.all()
+            queryset = self.request.user.demande_financement.all().select_related("Vehicul_interested", "client")
+            
+            search_query = self.request.GET.get("q")
+            etape = self.request.GET.get("etape")
+            financement_type = self.request.GET.get("type_entreprise")
+            financement_par = self.request.GET.get("financement_par")
+            
+            if search_query:
+                queryset = queryset.filter(Q(client__nom_complet__icontains=search_query)|
+                                           Q(etape__icontains=search_query)|
+                                           Q(financement_type__icontains=search_query)|
+                                           Q(financement_par__icontains=search_query)|
+                                           Q(Vehicul_interested__marque__nom__icontains=search_query)|
+                                           Q(Vehicul_interested__modele__icontains=search_query)|
+                                           Q(notes_commercial__icontains=search_query)
+                                           ).distinct()
+            if etape:
+                queryset = queryset.filter(etape=etape)
+            if financement_type:
+                queryset = queryset.filter(financement_type=financement_type)
+            if financement_par:
+                queryset = queryset.filter(financement_par=financement_par)
+                
+            return queryset.order_by("-date_creation")
         
         if self.request.user.role == "commercial":
-            return demande_financement.objects.filter(
+            queryset = demande_financement.objects.filter(
                 client__assigned_commercial=self.request.user
             )
+            search_query = self.request.GET.get("q")
+            etape = self.request.GET.get("etape")
+            financement_type = self.request.GET.get("type_entreprise")
+            financement_par = self.request.GET.get("financement_par")
+            
+            if search_query:
+                queryset = queryset.filter(Q(client__nom_complet__icontains=search_query)|
+                                           Q(etape__icontains=search_query)|
+                                           Q(financement_type__icontains=search_query)|
+                                           Q(financement_par__icontains=search_query)|
+                                           Q(Vehicul_interested__marque__nom__icontains=search_query)|
+                                           Q(Vehicul_interested__modele__icontains=search_query)|
+                                           Q(notes_commercial__icontains=search_query)
+                                           ).distinct()
+            if etape:
+                queryset = queryset.filter(etape=etape)
+            if financement_type:
+                queryset = queryset.filter(financement_type=financement_type)
+            if financement_par:
+                queryset = queryset.filter(financement_par=financement_par)
+                
+            return queryset.order_by("-date_creation")
+        else:
+            # Directeur ou superuser : voit toutes les demandes
+            queryset = demande_financement.objects.all().select_related("Vehicul_interested", "client").order_by("-date_creation")
+            search_query = self.request.GET.get("q")
+            etape = self.request.GET.get("etape")
+            financement_type = self.request.GET.get("type_entreprise")
+            financement_par = self.request.GET.get("financement_par")
+                
+            if search_query:
+                queryset = queryset.filter(Q(client__nom_complet__icontains=search_query)|
+                                            Q(etape__icontains=search_query)|
+                                            Q(financement_type__icontains=search_query)|
+                                            Q(financement_par__icontains=search_query)|
+                                            Q(Vehicul_interested__marque__nom__icontains=search_query)|
+                                            Q(Vehicul_interested__modele__icontains=search_query)|
+                                            Q(notes_commercial__icontains=search_query)
+                                            ).distinct()
+            if etape:
+                queryset = queryset.filter(etape=etape)
+            if financement_type:
+                queryset = queryset.filter(financement_type=financement_type)
+            if financement_par:
+                queryset = queryset.filter(financement_par=financement_par)
+                    
+            return queryset.order_by("-date_creation")
         
-        # Directeur ou superuser : voit toutes les demandes
-        return demande_financement.objects.all()
-    
+        
 class DemandeDetailView(LoginRequiredMixin, DetailView):
     model = demande_financement
     context_object_name = "demande" 
@@ -207,7 +287,6 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
             context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
          
         return context
-       
 class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = demande_financement
     form_class = GestionFinancementForm
@@ -225,8 +304,9 @@ class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, Update
         return reverse_lazy("leads_app:detail-demande", kwargs={"pk": self.object.pk})
         
 
-################################################### DOCUMENTS VIEWS #####################################################################
 
+
+################################################### DOCUMENTS VIEWS #####################################################################
 @login_required
 def upload_multiple_documents(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id, client=request.user)

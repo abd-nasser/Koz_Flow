@@ -12,8 +12,12 @@
 </head>
 <body>
 
-    {% if messages %}
-    <div class="messages">
+<nav>
+
+</nav>
+<header>
+{% if messages %}
+    <div class="messages mb-4">
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">
                 {{ message }}
@@ -21,17 +25,65 @@
         {% endfor %}
     </div>
     {% endif %}
+</header>
 
-    <h2>votre demande de financement pour == {{ demande.Vehicul_interested }}</h2>
-    <h4> Elovution de votre requete == {{ demande.get_etape_display }}</h4>
+<main>
+    <div class="bg-white shadow rounded p-6">
+        <h2 class="text-2xl font-bold mb-2">🚗 Votre demande de financement</h2>
+        <p><strong>Véhicule choisi :</strong> 
+            {% if demande.Vehicul_interested %}
+                {{ demande.Vehicul_interested.marque.nom }} {{ demande.Vehicul_interested.modele }}
+            {% else %}
+                {{ demande.other_Vehicul_interested|default:"Non renseigné" }}
+            {% endif %}
+        </p>
 
-    
-    {% if demande.etape == "en_attente" %}
-    <button class="btn btn_upload" onclick="upload_doc_modal.showModal()">Télecharger document</button>
-    {% include 'modals/leads/upload_doc.html' %}
-    {% endif %}
-    
+        <p class="mt-2"><strong>📌 Évolution de votre dossier :</strong></p>
+        <div class="badge badge-lg 
+            {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}badge-success
+            {% elif demande.etape == 'demand_refusee' %}badge-error
+            {% elif demande.etape == 'en_attente' %}badge-warning
+            {% else %}badge-info{% endif %}">
+            {{ demande.get_etape_display }}
+        </div>
+
+        <!-- Bloc conditionnel : upload de documents -->
+        {% if demande.etape == "en_attente" %}
+            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
+                <p class="font-semibold">📎 Des documents sont requis pour finaliser votre dossier.</p>
+                <button class="btn btn-primary mt-2" onclick="upload_doc_modal.showModal()">
+                    📤 Télécharger mes documents
+                </button>
+            </div>
+            {% include 'modals/leads/upload_doc.html' %}
+        {% endif %}
+
+        <!-- Bloc supplémentaire si demande refusée -->
+        {% if demande.etape == "demand_refusee" %}
+            <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded">
+                <p class="font-semibold text-red-700">❌ Votre demande a été refusée.</p>
+                <p>Contactez votre commercial pour plus d'informations.</p>
+            </div>
+        {% endif %}
+
+        <!-- Bloc supplémentaire si demande accordée -->
+        {% if demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" %}
+            <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded">
+                <p class="font-semibold text-green-700">✅ Félicitations ! Votre demande a été acceptée.</p>
+                <p>Un commercial vous contactera très prochainement pour la finalisation.</p>
+            </div>
+        {% endif %}
+
+        <div class="mt-6">
+            <a href="{% url 'client_app:client-view' %}" class="btn btn-outline">◀ Retour à mon espace</a>
+        </div>
+    </div>
+
+</main>
     
 
-           
+    <footer>
+        
+    </footer>
+
 </body>

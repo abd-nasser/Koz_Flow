@@ -6,30 +6,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% tailwind_css %}
-    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/directeur/directeur_list_demande_style.css' %}">
     <title>List des demandes</title>
     
 </head>
-<body class="bg-gray-100">
+<body >
+    <nav>
 
+    </nav>
+    <header>
     {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-    
-    {% for demande in list_demande_financement %}
-     <h3>Demandeur ======<a href="{% url 'leads_app:detail-demande' demande.pk %}">{{ demande.client.nom_complet }}</a></h3>
-     <h5> status =={{demande.etape}} </h5>
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </header>
         
-    {% endfor %}
-        
+    <main>
+          
+  <div class="filters-container max-w-4xl mx-auto mb-6 p-4 bg-white rounded shadow space-y-4">
 
-    
+    <!-- Filtre recherche -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Recherche</span>
+        </label>
+        <input 
+            hx-get="{% url 'leads_app:list-demande-financement' %}"
+            hx-swap="innerHTML"
+            hx-trigger="keyup changed delay:500ms"
+            hx-target="#demande-list-container"
+            hx-include=".filters-container select, .filters-container input"
+            type="text" 
+            name="q" 
+            placeholder="🔍 Recherche (client, véhicule, étape...)" 
+            class="input input-bordered w-full">
+    </div>
+
+    <!-- Filtre étape -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Étape</span>
+        </label>
+        <select 
+            hx-get="{% url 'leads_app:list-demande-financement' %}"
+            hx-swap="innerHTML"
+            hx-trigger="change"
+            hx-target="#demande-list-container"
+            hx-include=".filters-container select, .filters-container input"
+            name="etape" 
+            class="select select-bordered w-full">
+            <option value="">📌 Toutes les étapes</option>
+            {% for value, label in etape %}
+            <option value="{{ value }}" {% if request.GET.etape == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Filtre type financement -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Type de financement</span>
+        </label>
+        <select 
+            hx-get="{% url 'leads_app:list-demande-financement' %}"
+            hx-swap="innerHTML"
+            hx-trigger="change"
+            hx-target="#demande-list-container"
+            hx-include=".filters-container select, .filters-container input"
+            name="type_entreprise" 
+            class="select select-bordered w-full">
+            <option value="">🏢 Type financement</option>
+            {% for value, label in type_financement_choices %}
+            <option value="{{ value }}" {% if request.GET.type_entreprise == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Filtre financement par -->
+    <div class="form-control">
+        <label class="label">
+            <span class="label-text">Financement par</span>
+        </label>
+        <select 
+            hx-get="{% url 'leads_app:list-demande-financement' %}"
+            hx-swap="innerHTML"
+            hx-trigger="change"
+            hx-target="#demande-list-container"
+            hx-include=".filters-container select, .filters-container input"
+            name="financement_par" 
+            class="select select-bordered w-full">
+            <option value="">🏦 Financement par</option>
+            {% for value, label in financement_par_choices %}
+            <option value="{{ value }}" {% if request.GET.financement_par == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+</div>
+
+<div id="demande-list-container">
+    {% include 'partials/leads/partial_commercial_list_demande.html' %}
+</div>
+   
+    </main>
+
+    <footer>
+
+    </footer>
+   
 </body>
-        
-</body>
+
+</html>

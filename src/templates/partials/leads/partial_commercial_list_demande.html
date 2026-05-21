@@ -1,0 +1,29 @@
+    <div  class="grid grid-cols-1 gap-4">
+        {% for demande in list_demande_financement %}
+        <div class="bg-white shadow rounded p-4 border">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="font-bold text-lg">Demande #{{ demande.id }}</h3>
+                    <p><strong>Véhicule :</strong> 
+                        {% if demande.Vehicul_interested %}
+                            {{ demande.Vehicul_interested.marque.nom }} {{ demande.Vehicul_interested.modele }}
+                        {% else %}
+                            {{ demande.other_Vehicul_interested|default:"—" }}
+                        {% endif %}
+                    </p>
+                    <p><strong>Apport :</strong> {{ demande.apport }} FCFA</p>
+                    <p><strong>Durée :</strong> {{ demande.duree_mois }} mois</p>
+                    <p><strong>Revenus :</strong> {{ demande.revenus_mensuel }} FCFA</p>
+                    <p><strong>Statut :</strong> 
+                        <span class="badge {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}badge-success{% elif demande.etape == 'demand_refusee' %}badge-error{% else %}badge-warning{% endif %}">
+                            {{ demande.get_etape_display }}
+                        </span>
+                    </p>
+                </div>
+                <a href="{% url 'leads_app:detail-demande' demande.id %}" class="btn btn-sm btn-outline">👁️ Détail</a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">Aucune demande trouvée.</p>
+        {% endfor %}
+    </div>

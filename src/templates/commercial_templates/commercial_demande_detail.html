@@ -1,73 +1,84 @@
 {% load static %}
 {% load tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
-    <link rel="stylesheet" href="{% static 'css/commercial/commercial_demande_detail_style.css' %}">
-    {% tailwind_css %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des demandes</title>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/commercial/commercial_demande_detail_style.css' %}">
+    <title>Détail demande - {{ demande.client.nom_complet }}</title>
 </head>
-<body>
+<body class="bg-gray-100 p-6">
 
+    <!-- Messages flash -->
     {% if messages %}
-    <div class="messages">
+    <div class="fixed top-4 right-4 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <h2>demande de Mr/Mme : {{ demande.client.nom_complet }}</h2>
-    <h3>status de la demande : {{ demande.get_etape_display }}</h3>
-    <h3>Type de financement : {{ demande.get_financement_type_display }}</h3>
-    
-    {% if demande.financement_type == "externe" %}
-        <h3>Financement par : {{ demande.get_financement_par_display }}</h3>
-    {% endif %}
-        
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6">
+        <!-- En-tête -->
+        <div>
+            <h2 class="text-2xl font-bold">🧑‍💼 Demande de financement</h2>
+            <p class="text-gray-600">Client : <strong>{{ demande.client.nom_complet }}</strong> ({{ demande.client.email }})</p>
+        </div>
 
-    <button class="btn btn_gestion_demande" onclick="gestion_dmd_modal.showModal()">Gérer les etape dela demande</button>
+        <!-- Infos principales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div><span class="font-semibold">📌 Statut :</span> 
+                <span class="badge 
+                    {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}badge-success
+                    {% elif demande.etape == 'demand_refusee' %}badge-error
+                    {% elif demande.etape == 'en_attente' %}badge-warning
+                    {% else %}badge-info{% endif %}">
+                    {{ demande.get_etape_display }}
+                </span>
+            </div>
+            <div><span class="font-semibold">🏢 Type financement :</span> {{ demande.get_financement_type_display|default:"—" }}</div>
+            {% if demande.financement_type == "externe" %}
+            <div><span class="font-semibold">🏦 Partenaire :</span> {{ demande.get_financement_par_display }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Actions principales -->
+        <div class="flex flex-wrap gap-4">
+            <button class="btn btn-primary" onclick="gestion_dmd_modal.showModal()">🔁 Gérer l’étape</button>
+            <button class="btn btn-secondary" onclick="gestion_fin_modal.showModal()">💰 Gérer le financement</button>
+            {% if not demande.client.offre %}
+            <button class="btn btn-success" onclick="document.getElementById('offreModal').showModal()">✨ Générer une offre</button>
+            {% endif %}
+        </div>
+
+        <!-- Documents -->
+        <div>
+            <h3 class="text-xl font-semibold mb-3">📄 Dossier documentaire</h3>
+            {% with dossier=demande.documents.first %}
+                {% if dossier and dossier.statut_dossier != "vide" %}
+                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <li>🆔 CNI/Passeport : {% if dossier.cni_passeport %}✅ Téléchargé{% else %}❌ Manquant{% endif %}</li>
+                        <li>🏠 Justificatif domicile : {% if dossier.justificatif_domicile %}✅ Téléchargé{% else %}❌ Manquant{% endif %}</li>
+                        <li>💰 Quittance salaire : {% if dossier.quittance_salaire %}✅ Téléchargé{% else %}❌ Manquant{% endif %}</li>
+                        <li>🏦 Relevé bancaire : {% if dossier.relevé_bancaire %}✅ Téléchargé{% else %}❌ Manquant{% endif %}</li>
+                    </ul>
+                    <p class="mt-2"><strong>Statut dossier :</strong> {{ dossier.get_statut_dossier_display }}</p>
+                    <a href="{% url 'leads_app:document-detail' dossier.pk %}" class="text-blue-500 hover:underline text-sm">👉 Voir détails documents</a>
+                {% else %}
+                    <p class="text-gray-500">📭 Aucun document déposé pour cette demande.</p>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <!-- Modales (tu peux les garder dans des includes séparées) -->
     {% include 'modals/leads/gestion_demande.html' %}
-
-    <button class="btn btn_gestion_fin" onclick="gestion_fin_modal.showModal()">Gestion de type de financement</button>
     {% include 'modals/leads/gestion_type_financement.html' %}
-
-    
-    <h3>Documents du client</h3>
-    
-    {% if demande.documents.all %}
-        {% for document in demande.documents.all %}
-        
-        {% if document.statut_dossier != "vide" %}
-        <hr>
-            <h4>Document {{ forloop.counter }}</h4>
-             <ul>
-                <li>CNI : {% if document.cni_passeport %}✅{% else %}❌{% endif %}</li>
-                <li>Justificatif domicile : {% if document.justificatif_domicile %}✅{% else %}❌{% endif %}</li>
-                <li>Quittance salaire : {% if document.quittance_salaire %}✅{% else %}❌{% endif %}</li>
-                <li>Relevé bancaire : {% if document.relevé_bancaire %}✅{% else %}❌{% endif %}</li>
-                <li>Statut : {{ document.get_statut_dossier_display }}</li>
-                <a href="{% url 'leads_app:document-detail' document.pk %}">Voir les détails</a>
-            </ul>
-        <hr>
-            
-        {% endif %}
-        {% endfor %}
-    {% else %}
-        <p>Aucun document disponible pour ce client lié à cette demande.</p>  
-    {% endif %}
-        
-
-{% if not demande.client.offre %}
-    <button class="btn btn-primary mt-2" onclick="document.getElementById('offreModal').showModal()">
-        ✨ Générer une offre
-    </button>
     {% include 'modals/leads/creer_offre.html' %}
-{% endif %}
 
 </body>
+</html>

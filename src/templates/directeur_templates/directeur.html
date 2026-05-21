@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% tailwind_css %}
-    <link rel="stylesheet" href="{% static 'js/htmx.min.js' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/directeur/directeur_style.css' %}">
     <title>Dashboard {{ user.role }} - KOZ Services</title>
     
@@ -80,6 +80,7 @@
                 <div class="link-btns-container">
                     <a class="btn btn_all_vehicules" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
                     <a class="btn btn_all_marques"  href="{% url 'vehicul_app:list-marque' %}">Voir les marques</a>
+                    <a class="btn btn_all_dmd_financement" href="{% url 'leads_app:list-demande-financement' %}">Liste des demandes</a>
                     <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir tout les dossiers</a>
                     <a class="btn btn_all_categorie" href="{% url 'products_app:categorie-products-list' %}">Voir les catégories</a>
                     <a class="btn btn_all_produits" href="{% url 'products_app:products-list' %}">Voir les produits</a>
