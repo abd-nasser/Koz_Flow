@@ -1,0 +1,55 @@
+<!-- templates/partials/vehiculs/vehicul_filters.html -->
+<div id="vehicules-list">
+    <form hx-get="{% url 'vehicul_app:list-vehicul' %}"
+          hx-target="#vehicules-list"
+          hx-trigger="change, keyup delay:300ms"
+          class="bg-white p-4 rounded shadow mb-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Champ recherche textuelle -->
+            <input type="text" name="q" placeholder="🔍 Recherche (modèle, marque, année...)" 
+                   class="input input-bordered w-full" value="{{ request.GET.q }}">
+
+            <!-- Filtre par marque -->
+            <select name="marque" class="select select-bordered w-full">
+                <option value="">📌 Toutes les marques</option>
+                {% for marque in marques %}
+                <option value="{{ marque.nom }}" {% if request.GET.marque == marque.nom %}selected{% endif %}>
+                    {{ marque.nom }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Filtre par carburant -->
+            <select name="carburant" class="select select-bordered w-full">
+                <option value="">⛽ Tous carburants</option>
+                {% for value, label in TYPES_CARBURANT %}
+                <option value="{{ value }}" {% if request.GET.carburant == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+        </div>
+    </form>
+
+    <!-- Résultats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for vehicule in vehicul_list %}
+        <div class="bg-white shadow rounded p-4">
+            <img src="{{ vehicule.image_principale.url }}" width="160" height="160" class="w-full h-40 object-cover rounded mb-2">
+            <h3 class="font-bold">{{ vehicule.marque.nom }} {{ vehicule.modele }}</h3>
+            <p>{{ vehicule.annee }} - {{ vehicule.prix }} FCFA</p>
+            <p class="text-sm text-gray-500">{{ vehicule.kilometrage }} km - {{ vehicule.get_carburant_display }}</p>
+            {% if vehicule.disponible %}
+                <span class="badge badge-success">✅ Disponible</span>
+            {% else %}
+                <span class="badge badge-error">❌ Vendu</span>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-gray-500 col-span-full text-center">Aucun véhicule trouvé.</p>
+        {% endfor %}
+    </div>
+</div>

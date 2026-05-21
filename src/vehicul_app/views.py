@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import CreateView, ListView,DetailView, UpdateView, DeleteView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+from django.db.models import Q
 from django.urls import reverse_lazy 
 
 from .models import Vehicul, Marque
@@ -116,10 +117,49 @@ class CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
 class VehiculListView(LoginRequiredMixin, ListView):
     model = Vehicul
-    template_name= "vehicul_templates/vehicul_list.html"
     context_object_name ="vehicul_list"
+    def get_template_names(self):
+        if self.request.headers.get("HX-Request"):
+            return ["partials/vehiculs/partials_vehicul_list.html"]
+        
+        return ["vehicul_templates/vehicul_list.html"]
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["marques"] = Marque.objects.all()
+        context["TYPES_CARBURANT"] = Vehicul.TYPES_CARBURANT_CHOICES
+        return context
     
-    
+    def get_queryset(self):
+        queryset = Vehicul.objects.all().select_related("marque").order_by("-date_ajout")
+        
+        search_query = self.request.GET.get("q")
+        marque = self.request.GET.get("marque")
+        carburant = self.request.GET.get("carburant")
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(modele__icontains=search_query) |
+                Q(marque__nom__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(annee__icontains=search_query) |
+                Q(carburant__icontains=search_query) |
+                Q(kilometrage__icontains=search_query) |
+                Q(prix__icontains=search_query)
+            )
+        
+        if marque:
+            queryset = queryset.filter(marque__nom=marque)
+        
+        if carburant:
+            queryset = queryset.filter(carburant=carburant)
+        
+        return queryset
+            
+
+            
+        
+
 class VehiculDetailView(LoginRequiredMixin, DetailView):
     model = Vehicul
     template_name = "vehicul_templates/vehicul_detail.html"

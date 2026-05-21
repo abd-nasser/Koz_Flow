@@ -20,21 +20,15 @@
         {% endfor %}
     </div>
 {% endif %}
-    <ul>
-
     
-    {% for vehicul in vehicul_list  %}
-        <li>{{ vehicul.marque }}</li>
-        <li>{{ vehicul.modele }}</li>
-        <li><img width="150" height="150" src="{{ vehicul.image_principale.url }}" alt="{{ vehicul.nom }}"></li>
-        <li><a href="{% url 'vehicul_app:detail-vehicul' vehicul.pk %}">Voir les détails</a></li>
-    {% empty %}
-        <li>Aucune voiture disponible.</li>
-    {% endfor %}
-    </ul>
-    {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
-        <a class="btn" href="{% url 'directeur_app:directeur-view' %}">retour au dashboard</a>
-    {% endif %}
-    <a href="{}"></a>
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">🚗 Catalogue véhicules</h1>
+
+    {% include 'partials/vehiculs/partials_vehicul_list.html' %}
+        
+    </div>
+</div>
+
+
 </body>
 </html>

@@ -10,6 +10,12 @@ class Marque(models.Model):
 
 class Vehicul(models.Model):
     
+    TYPES_CARBURANT_CHOICES = [
+        ('essence', "Essence"),
+        ("diesel", "Diesel"),
+        ("electrique", 'Electrique')
+        ]
+    
     marque = models.ForeignKey(Marque, on_delete=models.CASCADE, related_name='vehicul')
     
     # CharField = texte court pour le nom du modèle (ex: "Clio", "208", "Camry")
@@ -20,11 +26,7 @@ class Vehicul(models.Model):
     
     prix = models.DecimalField(max_digits=12, decimal_places=0)
     kilometrage = models.IntegerField()
-    carburant  = models.CharField(max_length=20, choices=[
-        ('essence', "Essence"),
-        ("diesel", "Diesel"),
-        ("electrique", 'Electrique')
-        ])
+    carburant  = models.CharField(max_length=20, choices=TYPES_CARBURANT_CHOICES, default="essence")
     
     # ImageField pour la photo principale de la voiture
     image_principale = models.ImageField(upload_to='vehicules/')
