@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.db.models import Q
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -167,24 +168,149 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
     
     
     def get_template_names(self):
-        if self.request.user.role == "commercial" or self.request.user.role == "directeur":
-            return ["commercial_templates/maintenance_list.html"]
-        return['clients_templates/client_maintenance_list.html']
+        is_htmx = self.request.headers.get('HX-Request') == 'true'
+        if self.request.user.role == "directeur" or self.request.user.is_superuser:
+            return ["partials/maintenance/partials_maintenance_list.html" if is_htmx else "directeur_templates/directeur_maintenance_list.html"]
+        
+        if self.request.user.role == "commercial" or self.request.user.is_staff: 
+            return ["partials/maintenance/partials_maintenance_list.html" if is_htmx else "commercial_templates/commercial_maintenance_list.html"]
+        
+        return["partials/maintenance/partials_maintenance_list.html" if is_htmx else 'clients_templates/client_maintenance_list.html']
         
     
     def get_queryset(self):
         #Si commercial : Voir maintenances des ses clients
-        if self.request.user.role == "commercial":
-            return Maintenance.objects.filter(client__assigned_commercial=self.request.user)
+        if self.request.user.role == "commercial" or (self.request.user.is_staff and not self.request.user.is_superuser):
+            queryset = Maintenance.objects.filter(client__assigned_commercial=self.request.user).select_related("client")
+            q = self.request.GET.get("q")
+            type_maintenance = self.request.GET.get("type_maintenance")
+            priorite = self.request.GET.get("priorite")
+            origine = self.request.GET.get("origine")
+            statut = self.request.GET.get("statut")
+            effectue_par = self.request.GET.get("effectue_par")
+            
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |
+                    Q(marque__icontains=q) |
+                    Q(modele__icontains=q)|
+                    Q(vehicul__marque__nom__icontains=q)|
+                    Q(vehicul__modele__icontains=q)|
+                    Q(vehicul__annee__icontains=q)|
+                    Q(immatriculation__icontains=q)|
+                    Q(notes_client__icontains=q)|
+                    Q(notes_technicien__icontains=q)|
+                    Q(effectue_par__nom_complet__icontains=q)
+                )
+            
+            if type_maintenance:
+                queryset = queryset.filter(type_maintenance=type_maintenance)
+            
+            if priorite:
+                queryset = queryset.filter(priorite=priorite)
+            
+            if origine:
+                queryset = queryset.filter(origine=origine)
+            
+            if statut:
+                queryset = queryset.filter(statut=statut)
+            
+            if effectue_par:
+                queryset = queryset.filter(effectue_par=effectue_par)
+
+            return queryset
+            
+        
         #Si client: Voir ses maintenance 
         elif self.request.user.role == "client":
-            return Maintenance.objects.filter(client=self.request.user)
-        
-        return Maintenance.objects.all()
+            queryset = Maintenance.objects.filter(client=self.request.user)
+            q = self.request.GET.get("q")
+            type_maintenance = self.request.GET.get("type_maintenance")
+            priorite = self.request.GET.get("priorite")
+            origine = self.request.GET.get("origine")
+            statut = self.request.GET.get("statut")
+            effectue_par = self.request.GET.get("effectue_par")
+            
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |
+                    Q(marque__icontains=q) |
+                    Q(modele__icontains=q)|
+                    Q(vehicul__marque__nom__icontains=q)|
+                    Q(vehicul__modele__icontains=q)|
+                    Q(vehicul__annee__icontains=q)|
+                    Q(immatriculation__icontains=q)|
+                    Q(notes_client__icontains=q)|
+                    Q(notes_technicien__icontains=q)|
+                    Q(effectue_par__nom_complet__icontains=q)
+                )
+            
+            if type_maintenance:
+                queryset = queryset.filter(type_maintenance=type_maintenance)
+            
+            if priorite:
+                queryset = queryset.filter(priorite=priorite)
+            
+            if origine:
+                queryset = queryset.filter(origine=origine)
+            
+            if statut:
+                queryset = queryset.filter(statut=statut)
+            
+            if effectue_par:
+                queryset = queryset.filter(effectue_par=effectue_par)
+
+            return queryset
+            
+
+        else:
+            queryset = Maintenance.objects.all()
+            q = self.request.GET.get("q")
+            type_maintenance = self.request.GET.get("type_maintenance")
+            priorite = self.request.GET.get("priorite")
+            origine = self.request.GET.get("origine")
+            statut = self.request.GET.get("statut")
+            effectue_par = self.request.GET.get("effectue_par")
+            
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |
+                    Q(marque__icontains=q) |
+                    Q(modele__icontains=q)|
+                    Q(vehicul__marque__nom__icontains=q)|
+                    Q(vehicul__modele__icontains=q)|
+                    Q(vehicul__annee__icontains=q)|
+                    Q(immatriculation__icontains=q)|
+                    Q(notes_client__icontains=q)|
+                    Q(notes_technicien__icontains=q)|
+                    Q(effectue_par__nom_complet__icontains=q)
+                )
+            
+            if type_maintenance:
+                queryset = queryset.filter(type_maintenance=type_maintenance)
+            
+            if priorite:
+                queryset = queryset.filter(priorite=priorite)
+            
+            if origine:
+                queryset = queryset.filter(origine=origine)
+            
+            if statut:
+                queryset = queryset.filter(statut=statut)
+            
+            if effectue_par:
+                queryset = queryset.filter(effectue_par=effectue_par)
+
+            return queryset
+            
     
     def get_context_data(self, **kwargs):
         context =  super().get_context_data(**kwargs)
         context["maintenance_form"] = MaintenanceForm()
+        context["type_maintenance_choices"] = Maintenance.TYPE_CHOICES
+        context["priorite_choices"] = Maintenance.PRIORITE_CHOICES
+        context["origine_choices"] = Maintenance.ORIGINE_CHOICES
+        context["statut_choices"] = Maintenance.STATUT_CHOICES
         return context
     
 class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -210,7 +336,7 @@ class MaintenanceDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if  "up_maint_form" not in context:
+        if  "update_maintenance_form" not in context:
             context["update_maintenance_form"] = MaintenanceForm(instance=self.object)
         return context
 

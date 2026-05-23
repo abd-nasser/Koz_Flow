@@ -1,31 +1,5 @@
-{% load static %}
-{% load tailwind_tags %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/commercial/maintenance_list_style.css' %}">
-    {%tailwind_css%}
-    <title>Liste des maintenance</title>
-</head>
-<body>
-    
+<!-- Tableau des maintenances -->
 
-<div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">🔧 Suivi des maintenances</h1>
-        <button class="btn btn-primary" onclick="document.getElementById('maintenanceModal').showModal()">
-          🔧 Planifier une maintenance
-        </button>
-    </div>
-    <!-- Include modal for creating maintenance -->
-    {% include 'modals/maintenance/create_maintenance.html' %}
-
-
-    <!-- Tableau des maintenances -->
-    <div class="bg-white shadow rounded overflow-hidden">
         <table class="min-w-full">
             <thead class="bg-gray-100">
                 <tr>
@@ -70,10 +44,3 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-</div>
-
-
-
-</body>
-</html>

@@ -16,7 +16,9 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">🔧 Détail de la maintenance</h1>
         <div>
-            <a href="{% url 'commercial_app:maintenance-update' maintenance.id %}" class="btn btn-secondary mr-2">✏️ Modifier</a>
+            <button class="btn btn-secondary mr-2" onclick="document.getElementById('update_maintenanceModal').showModal()">
+             🔧 Modifier 
+            </button>
             <a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour</a>
         </div>
     </div>
@@ -87,9 +89,7 @@
 </div>
 <!-- Button to open the modal -->
 {% include 'modals/maintenance/update_maintenance.html' %}
-<button class="btn btn-primary" onclick="document.getElementById('update_maintenanceModal').showModal()">
-    🔧 Modifier une maintenance
-</button>
+
 
 {% include 'modals/maintenance/confirm_maintenance_delete.html' %}
 <button class="btn btn-danger" onclick="document.getElementById('delete_maintenance_modal').showModal()">
