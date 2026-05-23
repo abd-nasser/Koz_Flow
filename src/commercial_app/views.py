@@ -23,7 +23,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-   
 @login_required
 def creer_offre(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id)
@@ -137,22 +136,73 @@ class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
     def get_template_names(self):
+        is_htmx = self.request.headers.get('HX-Request') == 'true'
         if self.request.user.role == "commercial":
-            return ["commercial_templates/commercial_offre_list.html"]
-        elif self.request.user.role == "directeur":
-            return ["directeur_templates/directeur_offre_list.html"]
+            return ["partials/offre/partials_offre_list.html" if is_htmx else "commercial_templates/commercial_offre_list.html"]
         
-        return ["clients_templates/clients_offre_list.html"]
+        elif self.request.user.role == "directeur":
+            return ["partials/offre/partials_offre_list.html" if is_htmx else "directeur_templates/directeur_offre_list.html"]
+        
+        return ["partials/offre/partials_offre_list.html" if is_htmx else "clients_templates/clients_offre_list.html"]
     
     def get_queryset(self):
-        if self.request.user.role == "commercial":
-            queryset = Offre.objects.filter(client__assigned_commercial=self.request.user)
-        elif self.request.user.role == "directeur":
+        if self.request.user.role == "directeur":
             queryset = Offre.objects.all()
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |Q(client__email__icontains=q)|
+                    Q(vehicule_propose__marque__nom__icontains=q)|
+                    Q(vehicule_propose__modele__icontains=q)|
+                    Q(vehicule_propose__annee__icontains=q)
+                )
+            if statut:
+                queryset = queryset.filter(statut=statut)
+                
+            return queryset
+            
+        elif self.request.user.role == "commercial" or (self.request.user.is_staff and not self.request.user.is_superuser):
+            queryset = Offre.objects.filter(client__assigned_commercial=self.request.user).select_related("client")
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |Q(client__email__icontains=q)|
+                    Q(vehicule_propose__marque__nom__icontains=q)|
+                    Q(vehicule_propose__modele__icontains=q)|
+                    Q(vehicule_propose__annee__icontains=q)
+                )
+            if statut:
+                queryset = queryset.filter(statut=statut)
+                
+            return queryset
         else:
             queryset = Offre.objects.filter(client=self.request.user)
+            q = self.request.GET.get("q")
+            statut = self.request.GET.get("statut")
+            if q:
+                queryset = queryset.filter(
+                    Q(client__nom_complet__icontains=q) |Q(client__email__icontains=q)|
+                    Q(vehicule_propose__marque__nom__icontains=q)|
+                    Q(vehicule_propose__modele__icontains=q)|
+                    Q(vehicule_propose__annee__icontains=q)
+                )
+            if statut:
+                queryset = queryset.filter(statut=statut)
+                
+            return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["STATUTS_OFFRE"] = Offre.STATUTS_OFFRE
+        return context
+            
+            
 
-        return queryset
+     
+
+
 
 class OffreDetailView(LoginRequiredMixin, DetailView):
     model = Offre

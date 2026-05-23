@@ -1,0 +1,35 @@
+{% load humanize %}
+
+    {% for offre in offres %}
+    <div class="bg-white shadow rounded p-4 border hover:shadow-md transition">
+        <div class="flex justify-between items-start flex-wrap gap-3">
+            <div>
+                <h3 class="font-bold text-lg">Offre #{{ offre.id }} – {{ offre.client.nom_complet }}</h3>
+                <p class="text-sm text-gray-600">{{ offre.client.email }}</p>
+                <p><strong>Véhicule :</strong> {{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }}</p>
+                <p><strong>Montant financé :</strong> {{ offre.montant_finance|intcomma }} FCFA</p>
+                <p><strong>Mensualité :</strong> {{ offre.mensualite|intcomma }} FCFA</p>
+                <p><strong>Durée :</strong> {{ offre.duree_mois }} mois</p>
+                <p><strong>Statut :</strong> 
+                    <span class="badge 
+                        {% if offre.statut == 'acceptee' %}badge-success
+                        {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}badge-error
+                        {% elif offre.statut == 'envoyee' %}badge-warning
+                        {% else %}badge-info{% endif %}">
+                        {{ offre.get_statut_display }}
+                    </span>
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'leads_app:offre-detail' offre.id %}" class="btn btn-sm btn-outline">👁️ Détail</a>
+                {% if offre.statut == 'brouillon' %}
+                <a href="{% url 'leads_app:offre-update' offre.id %}" class="btn btn-sm btn-secondary">✏️ Modifier</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white shadow rounded p-6 text-center text-gray-500">
+        Aucune offre trouvée.
+    </div>
+    {% endfor %}

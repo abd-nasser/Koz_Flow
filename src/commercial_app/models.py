@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import datetime
+
 class Offre(models.Model):
     #Lien vers client
     client = models.OneToOneField("auth_app.kozUser", on_delete=models.CASCADE, related_name="offre")
@@ -22,7 +23,7 @@ class Offre(models.Model):
     #total à payer(mensualité * duree + frais)
     total_du = models.DecimalField(max_digits=12, decimal_places=0, blank=True)
     
-       # Statut de l'offre
+    # Statut de l'offre
     STATUTS_OFFRE = [
         ('brouillon', 'En cours de rédaction'),
         ('envoyee', 'Envoyée au client'),

@@ -29,21 +29,23 @@
         </header>
 
         <main>
+            <div>
+                <button class="btn btn-primary" onclick="document.getElementById('offreModal').showModal()">creer une offre</button>
+                {% include 'modals/leads/creer_offre.html' %}
+            </div>
+
             <div class="filter-container">
 
-                
-                {% comment %}
-                    filter by search
-                {% endcomment %}
-                    
+                    <!--filter by search-->
                 <div class="form-control w-full">
-                     <label class="label pb-1">
-                    <span class="label-text text-gray-600 text-sm">🔎 Recherche</span>
+                    <label class="label pb-1">
+                        <span class="label-text text-gray-600 text-sm">🔎 Recherche</span>
                     </label>
                     <input 
                     name="q"
-                    type="text"
+
                     class="input input-bordered w-full h-10"
+                    type="text"
                     placeholder="Rechercher par client ou véhicule..."
                     hx-get="{% url 'commercial_app:offre-list' %}"
                     hx-target="#offre-list"
@@ -53,17 +55,15 @@
                     >
                 </div>
                 
-                {% comment %}
-                    filter by statut
-                {% endcomment %}
+                    <!--filter by statut-->
                     
                 <div class="form-control">
                     <label class="label pb-1">
                         <span class="label-text text-gray-600 text-sm">📊 Filtrer par statut</span>
                     </label>
                     <select 
-                    name="statut"
                     class="select select-bordered w-full h-10"
+                    name="statut"
                     hx-get="{% url 'commercial_app:offre-list' %}"
                     hx-target="#offre-list"
                     hx-trigger="change"

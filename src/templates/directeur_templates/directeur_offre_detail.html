@@ -1,0 +1,72 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/directeur/directeur_offre_detail_style.css' %}">
+    {% tailwind_css %}
+    <title>Détail de l'offre</title>
+</head>
+<body>
+  <nav>
+
+  </nav>
+  <header>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+  </header>
+
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+    <div class="bg-white shadow rounded-lg p-6 space-y-6">
+        <!-- En-tête avec infos commercial -->
+        <div class="flex justify-between items-start">
+            <div>
+                <h2 class="text-2xl font-bold">📄 Offre de financement #{{ offre.id }}</h2>
+                <p><strong>Client :</strong> {{ offre.client.nom_complet }} ({{ offre.client.email }})</p>
+                <p><strong>Commercial référent :</strong> 
+                    <a href="{% url 'directeur_app:commercial-detail' offre.client.assigned_commercial.id %}" class="text-blue-500">
+                        {{ offre.client.assigned_commercial.nom_complet|default:"Non assigné" }}
+                    </a>
+                </p>
+            </div>
+            <div class="badge badge-lg 
+                {% if offre.statut == 'acceptee' %}badge-success
+                {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}badge-error
+                {% elif offre.statut == 'envoyee' %}badge-warning
+                {% else %}badge-info{% endif %}">
+                {{ offre.get_statut_display }}
+            </div>
+        </div>
+
+        <!-- ... mêmes blocs que commercial (véhicule + financement + validité) ... -->
+
+        <!-- Actions directeur -->
+        <div class="border-t pt-4 flex gap-4">
+            {% if offre.statut == 'brouillon' or offre.statut == 'envoyee' %}
+            <a href="{% url 'leads_app:offre-update' offre.id %}" class="btn btn-primary">✏️ Modifier l'offre</a>
+            {% if offre.statut == 'brouillon' %}
+            <a href="{% url 'leads_app:offre-envoyer' offre.id %}" class="btn btn-success">📨 Envoyer au client</a>
+            {% endif %}
+            {% endif %}
+            <a href="{% url 'directeur_app:client-detail' offre.client.id %}" class="btn btn-outline">👤 Voir fiche client</a>
+            <a href="{% url 'directeur_app:demande-list' %}" class="btn btn-outline">◀ Retour aux demandes</a>
+        </div>
+    </div>
+</main>
+
+        <footer>
+
+        </footer>
+</body>
+</html>

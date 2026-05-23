@@ -1,12 +1,12 @@
-<!-- Modal pour créer l'offre -->
+<!-- Modal pour modifier l'offre -->
 <dialog id="offreModal" class="modal">
     <div class="modal-box">
         <form
         encytype="multipart/form-data"
         method="post" 
-        action="{% url 'commercial_app:creer-offre' demande.pk %}" id="offreForm">
+        action="{% url 'commercial_app:update-offre' offre.pk %}" id="offreForm">
             {% csrf_token %}
-            <h3 class="font-bold text-lg mb-4">📝 Créer une offre de financement</h3>
+            <h3 class="font-bold text-lg mb-4">📝 Modifier une offre de financement</h3>
             
             {{ offre_form.non_field_errors }}
             
@@ -26,7 +26,7 @@
             {% endfor %}
             
             <div class="modal-action">
-                <button type="submit" class="btn btn-primary">✅ Créer l'offre</button>
+                <button type="submit" class="btn btn-primary">✅ Modifier l'offre</button>
                 <button type="button" class="btn" onclick="document.getElementById('offreModal').close()">Annuler</button>
             </div>
         </form>
