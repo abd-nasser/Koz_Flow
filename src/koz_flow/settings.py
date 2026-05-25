@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'directeur_app',    # Dashboard directeur
     'commercial_app',   # Dashboard commercial
     'chat_app',         # Messagerie client-commercial
+    'dashboard_app',     # Dashboard global
     'leads_app',        # Demandes de crédit
     
     
