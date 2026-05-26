@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .item-card {
+        transition: all 0.2s ease;
+    }
+    .item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    }
+</style>
+
+<body>
+    <nav>
+
+    </nav>
+    <header>
+            {% if messages %}
+            <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+            {% endif %}
+    </header>
+   <main>
+
+
+<div class="container mx-auto px-4 py-8">
+    <!-- En-tête avec retour -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold">{{ titre }}</h1>
+            <p class="text-gray-500 text-sm mt-1">
+                {% with total=items|length %}
+                    {% if total == 1 %}1 élément trouvé{% else %}{{ total }} éléments trouvés{% endif %}
+                {% endwith %}
+            </p>
+        </div>
+        <a href="{{ retour_url }}" class="btn btn-outline gap-2">
+            ← Retour au tableau de bord
+        </a>
+    </div>
+
+    <!-- Liste des résultats -->
+    <div class="space-y-3">
+        {% for item in items %}
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 item-card">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div class="flex-1">
+                    <!-- Offre -->
+                    {% if model_name == 'offre' %}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-gray-800">Offre #{{ item.id }}</span>
+                            <span class="badge 
+                                {% if item.statut == 'acceptee' %}badge-success
+                                {% elif item.statut == 'refusee' %}badge-error
+                                {% elif item.statut == 'expiree' %}badge-warning
+                                {% else %}badge-info{% endif %}">
+                                {{ item.get_statut_display }}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1">Client : {{ item.client.nom_complet }} ({{ item.client.email }})</p>
+                        <p class="text-gray-600 text-sm">Véhicule : {{ item.vehicule_propose }}</p>
+                        <p class="text-gray-600 text-sm">Montant financé : <span class="font-semibold">{{ item.montant_finance|intcomma }} FCFA</span></p>
+                    
+                    <!-- Demande de financement -->
+                    {% elif model_name == 'demande_financement' %}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-gray-800">Demande #{{ item.id }}</span>
+                            <span class="badge 
+                                {% if item.etape == 'en_attente' %}badge-warning
+                                {% elif item.etape == 'en_cours' %}badge-info
+                                {% elif item.etape == 'demand_refusee' %}badge-error
+                                {% else %}badge-success{% endif %}">
+                                {{ item.get_etape_display }}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1">Client : {{ item.client.nom_complet }}</p>
+                        <p class="text-gray-600 text-sm">Véhicule : {{ item.Vehicul_interested }}</p>
+                        <p class="text-gray-600 text-sm">Apport : {{ item.apport|intcomma }} FCFA | Durée : {{ item.duree_mois }} mois</p>
+                    
+                    <!-- Document -->
+                    {% elif model_name == 'documents' %}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-gray-800">Dossier documentaire</span>
+                            <span class="badge 
+                                {% if item.statut_dossier == 'valide' %}badge-success
+                                {% elif item.statut_dossier == 'rejete' %}badge-error
+                                {% else %}badge-warning{% endif %}">
+                                {{ item.get_statut_dossier_display }}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1">Client : {{ item.client.nom_complet }}</p>
+                        <p class="text-gray-600 text-sm">Date upload : {{ item.date_upload|date:"d/m/Y H:i" }}</p>
+                    
+                    <!-- Maintenance -->
+                    {% elif model_name == 'maintenance' %}
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-gray-800">Maintenance</span>
+                            <span class="badge 
+                                {% if item.statut == 'effectuee' %}badge-success
+                                {% elif item.statut == 'annulee' %}badge-error
+                                {% else %}badge-warning{% endif %}">
+                                {{ item.get_statut_display }}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mt-1">Client : {{ item.client.nom_complet }}</p>
+                        <p class="text-gray-600 text-sm">Véhicule : {{ item.marque }} {{ item.modele }}</p>
+                        <p class="text-gray-600 text-sm">Type : {{ item.get_type_maintenance_display }} | Priorité : {{ item.get_priorite_display }}</p>
+                    
+                    <!-- Client -->
+                    {% elif model_name == 'client' %}
+                        <span class="font-bold text-gray-800">{{ item.nom_complet }}</span>
+                        <p class="text-gray-600 text-sm mt-1">Email : {{ item.email }}</p>
+                        <p class="text-gray-600 text-sm">Téléphone : {{ item.telephone }}</p>
+                        <p class="text-gray-600 text-sm">Date inscription : {{ item.date_joined|date:"d/m/Y" }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Bouton détail -->
+                <div class="flex-shrink-0">
+                    {% if model_name == 'offre' %}
+                        <a href="{% url 'leads_app:offre-detail' item.id %}" class="btn btn-sm btn-primary">Voir détail →</a>
+                    {% elif model_name == 'demande_financement' %}
+                        <a href="{% url 'leads_app:demande-detail' item.id %}" class="btn btn-sm btn-primary">Voir détail →</a>
+                    {% elif model_name == 'documents' %}
+                        <a href="{% url 'leads_app:document-detail' item.id %}" class="btn btn-sm btn-primary">Voir détail →</a>
+                    {% elif model_name == 'maintenance' %}
+                        <a href="{% url 'commercial_app:maintenance-detail' item.id %}" class="btn btn-sm btn-primary">Voir détail →</a>
+                    {% elif model_name == 'client' %}
+                        <a href="{% url 'commercial_app:client-detail' item.id %}" class="btn btn-sm btn-primary">Voir détail →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white border border-gray-200 rounded-lg p-8 text-center">
+            <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-700">Aucun résultat</h3>
+            <p class="text-gray-500 mt-1">Aucun élément trouvé pour ce filtre.</p>
+            <a href="{{ retour_url }}" class="btn btn-outline mt-4">Retour au tableau de bord</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-6 flex justify-center">
+        <div class="join">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="join-item btn btn-sm">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">‹</a>
+            {% endif %}
+            
+            <span class="join-item btn btn-sm btn-disabled">
+                Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+   </main>
+   <footer>
+
+   </footer>
+</body>
+</html>

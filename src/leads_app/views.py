@@ -12,7 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .forms import DemandeFinancementForm, GestionFinancementForm, DocumentsUploadForm
 from commercial_app.forms import OffreForm
-from .models import DevisLeads, demande_financement
+from .models import DevisLeads, Vente, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 
@@ -334,28 +334,50 @@ def valide_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
     
     if dossier.statut_dossier == "incomplet":
-        messages.error(request, "Ce dossier ne peut pas être validé pour le moment : documents obligatoires incomplets.")
+        messages.error(request, "Dossier incomplet, documents obligatoires manquants.")
         return redirect("leads_app:document-detail", dossier.pk)
     
     if dossier.statut_dossier == "rejete":
-        messages.warning(request, "Ce dossier a été rejeté et ne peut pas être validé.")
+        messages.warning(request, "Dossier rejeté, ne peut pas être validé.")
         return redirect("leads_app:document-detail", dossier.pk)
     
-    # Validation
+    # 1️⃣ Valider le dossier
     dossier.statut_dossier = "valide"
     dossier.save()
     
-    # Mise à jour de l'étape de la demande si financement externe
+    # 2️⃣ Mettre à jour la demande et créer la vente
     demande = dossier.demande_financement
+    
     if demande.financement_type == "externe":
         if demande.financement_par == "fidelis":
             demande.etape = "demande_accordee_fidelis"
         elif demande.financement_par == "alios":
             demande.etape = "demande_accordee_alios"
         demande.save()
+        
+        # ✅ Vente externe conclue
+        Vente.objects.create(
+            client=demande.client,
+            demande_financement=demande,
+            statut='conclue',
+            montant=demande.montant_souhaite  # ou demande.mensualite_simulee * duree_mois
+        )
+        
+    elif demande.financement_type == "maison":
+        # ✅ Vente interne (KOZ Finance) conclue
+        demande.etape = "demande_accordee_maison"  # à ajouter dans ETAPES
+        demande.save()
+        
+        Vente.objects.create(
+            client=demande.client,
+            demande_financement=demande,
+            statut='conclue',
+            montant=demande.montant_souhaite
+        )
     
-    messages.success(request, "Ce dossier est désormais validé.")
+    messages.success(request, "Dossier validé. Demande et vente enregistrées.")
     return redirect("leads_app:document-detail", dossier.pk)
+
 
 @login_required
 def modifier_dossier (request, dossier_id):
@@ -373,14 +395,29 @@ def modifier_dossier (request, dossier_id):
 @login_required
 def rejete_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
+    demande = dossier.demande_financement
+    
     if dossier.statut_dossier == "rejete":
-        messages.info(request, "ce dossier est déjà rejeté")
+        messages.info(request, "Ce dossier est déjà rejeté.")
     elif dossier.statut_dossier == "valide":
-        messages.warning(request, "ce dossier a été validé, vous ne pouvez pas le rejeter")
+        messages.warning(request, "Ce dossier a été validé, vous ne pouvez pas le rejeter.")
     else:
+        # 1️⃣ Rejeter le dossier
         dossier.statut_dossier = "rejete"
         dossier.save()
-        messages.success(request, "ce dossier est désormais rejeté")
+        
+        # 2️⃣ Mettre à jour l'étape de la demande
+        demande.etape = "demand_refusee"
+        demande.save()
+        
+        # 3️⃣ Si une vente existait déjà (ex: validé par erreur, puis rejeté ?), on la passe en "perdue"
+        if hasattr(demande, 'vente'):
+            vente = demande.vente
+            vente.statut = 'perdue'
+            vente.save()
+            messages.info(request, "La vente associée a été marquée comme perdue.")
+        
+        messages.success(request, "Dossier rejeté. Demande marquée comme refusée.")
     
     return redirect("leads_app:document-detail", dossier.pk)
 
@@ -568,10 +605,7 @@ class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
     
         
     
-    
-    
-    
-    
+
     
     
         

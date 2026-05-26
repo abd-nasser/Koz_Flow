@@ -25,8 +25,6 @@ class DevisLeads(models.Model):
     def __str__(self):
         return f"{self.first_name}-{self.last_name} ({self.phone})"
 
-
-
 class demande_financement(models.Model):
     """
         TABLE WHO STOCK REQUEST Financement
@@ -37,7 +35,7 @@ class demande_financement(models.Model):
         ("en_cours", "En cours de traitement"),
         ("demande_accordee_fidelis", "Demande accordée chez Fidelis"),
         ("demande_accordee_alios", "Demande accordée chez Alios"),
-        ("demande_accordee_maison", "Demande accordée en interne"),
+        ("demande_accordee_maison", "Demande accordée (KOZ Finance)"),
         ('demand_refusee', "Demande Refusé")
     ]
     
@@ -106,3 +104,37 @@ class demande_financement(models.Model):
     
     def __str__(self):
         return f"{self.client}"
+    
+# leads_app/models.py
+
+class Vente(models.Model):
+    """Vente conclue ou perdue, liée à une demande de financement et un client"""
+    
+    STATUT_VENTE = [
+        ('non_classifie', 'Non classifié'),
+        ('conclue', 'Conclue'),
+        ('perdue', 'Perdue'),
+    ]
+    
+    client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='ventes')
+    demande_financement = models.OneToOneField('demande_financement', on_delete=models.CASCADE, related_name='vente', null=True, blank=True)
+    
+    statut = models.CharField(max_length=20, choices=STATUT_VENTE, default='non_classifie')
+    montant = models.DecimalField(max_digits=12, decimal_places=0, help_text="Montant total de la vente")
+    date_vente = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def type_vente(self):
+        if self.demande_financement is None :
+            return 'cash' if self.statut == 'conclue' else 'non_classifie'
+        
+        demande = self.demande_financement
+        if demande.financement_type == 'maison':
+            return 'interne'
+        if demande.financement_type == 'externe':
+            if demande.financement_par == 'fidelis':
+                return 'externe_fidelis'
+            if demande.financement_par == 'alios':
+                return 'externe_alios'
+        return 'non_classifie'
+        
