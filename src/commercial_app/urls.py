@@ -11,6 +11,7 @@ urlpatterns = [
     path("offre/<int:pk>/", views.OffreDetailView.as_view(), name="offre-detail"),  
     path("offre/<int:offre_id>/accepter/", views.accepter_offre, name="accepter-offre"),
     path("offre/<int:offre_id>/refuser/", views.refuser_offre, name="refuser-offre"),
+    path('offre/<int:offre_id>/negocier/',views.negocier_offre, name='negocier-offre'),
     
     #######################________Maintenance____________#############################
     path('maintenances/',views.MaintenanceListView.as_view(), name='maintenance-list'),

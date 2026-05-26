@@ -1,0 +1,95 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/client/client_offre_detail_style.css' %}">
+    {%tailwind_css%}
+    <title>Detail de l'offre</title>
+    
+</head>
+<body>
+    <nav>
+        
+    </nav>
+    <header>
+             {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    </header>
+    <main>
+ 
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="bg-white shadow rounded-lg p-6">
+        
+        <!-- En-tête avec statut -->
+        <div class="flex justify-between items-start mb-4">
+            <h1 class="text-2xl font-bold">📄 Offre de financement #{{ offre.id }}</h1>
+            <div class="badge badge-lg 
+                {% if offre.statut == 'acceptee' %}badge-success
+                {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}badge-error
+                {% elif offre.statut == 'envoyee' %}badge-warning
+                {% else %}badge-info{% endif %}">
+                {{ offre.get_statut_display }}
+            </div>
+        </div>
+
+        <!-- Message d'expiration -->
+        {% if offre.statut == 'envoyee' %}
+        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 text-sm text-yellow-700">
+            ⏰ Cette offre expire le <strong>{{ offre.date_expiration|date:"d/m/Y" }}</strong>.
+        </div>
+        {% endif %}
+
+        <!-- Véhicule proposé -->
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">🚗 Véhicule proposé</h2>
+            <p class="text-gray-800">{{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }} ({{ offre.vehicule_propose.annee }})</p>
+        </div>
+
+        <!-- Détails du financement -->
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">💰 Détails du financement</h2>
+            <div class="grid grid-cols-2 gap-2 text-sm mt-2">
+                <p><strong>Prix du véhicule :</strong> {{ offre.prix_vehicule|intcomma }} FCFA</p>
+                <p><strong>Apport demandé :</strong> {{ offre.apport_demande|intcomma }} FCFA</p>
+                <p><strong>Montant financé :</strong> {{ offre.montant_finance|intcomma }} FCFA</p>
+                <p><strong>Durée :</strong> {{ offre.duree_mois }} mois</p>
+                <p><strong>Taux d'intérêt :</strong> {{ offre.taux_interet }}%</p>
+                <p><strong>Mensualité :</strong> {{ offre.mensualite|intcomma }} FCFA</p>
+                <p><strong>Frais de dossier :</strong> {{ offre.frais_dossier|intcomma }} FCFA</p>
+                <p><strong>Frais de garantie :</strong> {{ offre.frais_garantie|intcomma }} FCFA</p>
+                <p class="font-bold text-green-700"><strong>Total à payer :</strong> {{ offre.total_du|intcomma }} FCFA</p>
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="text-sm text-gray-500 mb-4">
+            <p>📅 Offre créée le : {{ offre.date_creation|date:"d/m/Y H:i" }}</p>
+        </div>
+            
+       {% include 'modals/leads/offre_gestion.html' %}
+
+        <!-- Bouton retour -->
+        <div class="mt-6">
+            <a href="{% url 'client_app:client-view' %}" class="btn btn-outline">◀ Retour à mon espace</a>
+        </div>
+
+    </div>
+</div>
+
+    </main>
+    <footer>
+
+    </footer>
+</body>
+</html>

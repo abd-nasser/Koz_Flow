@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from auth_app.models import kozUser
 from client_app.views import ClientDetailView
-from leads_app.models import demande_financement
+from leads_app.models import Vente, demande_financement
 from client_app.models import Maintenance
 from commercial_app.models import Offre
 from chat_app.models import Message
@@ -68,44 +68,73 @@ def creer_offre(request, demande_id):
         messages.error(request, f"Une erreur est survenue lors de la création de l'offre: {str(e)}")
 
     return redirect("leads_app:detail-demande", demande.pk)
-            
+    
 @login_required
 def accepter_offre(request, offre_id):
-    offre = get_object_or_404(Offre, id=offre_id)
+    offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
-    # Vérifier que l'utilisateur a le droit (client)
-    if request.user.role != 'client' or request.user != offre.client:
-        messages.error(request, "Vous n'avez pas l'autorisation d'accepter cette offre.")
-        return redirect('commercial_app:offre-detail', offre.pk)
+    if offre.statut != 'envoyee':
+        messages.warning(request, "Cette offre ne peut pas être acceptée.")
+        return redirect('leads_app:offre-detail', offre_id=offre.id)
     
-    try:
-        offre.statut = 'acceptee'
-        offre.save()
-        messages.success(request, "Offre acceptée avec succès.")
-    except Exception as e:
-        logger.error(f"Une erreur est survenue lors de l'acceptation de l'offre: {str(e)}")
-        messages.error(request, f"Une erreur est survenue lors de l'acceptation de l'offre: {str(e)}")
-
-    return redirect('commercial_app:offre-detail', offre.pk)
+    offre.statut = 'acceptee'
+    offre.save()
+    
+    # Créer la vente associée
+    client = offre.client
+    Vente.objects.create(
+        client=client,
+        demande_financement=client.demande_financement,
+        statut='conclue_par_offre_acceptee',
+        montant=offre.montant_finance
+    )
+    
+    messages.success(request, "Offre acceptée. Vente enregistrée.")
+    return redirect('leads_app:offre-detail', offre_id=offre.id)
 
 @login_required
 def refuser_offre(request, offre_id):
-    offre = get_object_or_404(Offre, id=offre_id)
+    offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
-    # Vérifier que l'utilisateur a le droit (client)
-    if request.user.role != 'client' or request.user != offre.client:
-        messages.error(request, "Vous n'avez pas l'autorisation de refuser cette offre.")
-        return redirect('commercial_app:offre-detail', offre.pk)
+    if offre.statut != 'envoyee':
+        messages.warning(request, "Cette offre ne peut pas être refusée.")
+        return redirect('commercial_app:offre-detail', offre_id=offre.id)
     
-    try:
-        offre.statut = 'refusee'
-        offre.save()
-        messages.success(request, "Offre refusée avec succès.")
-    except Exception as e:
-        logger.error(f"Une erreur est survenue lors du refus de l'offre: {str(e)}")
-        messages.error(request, f"Une erreur est survenue lors du refus de l'offre: {str(e)}")
+    offre.statut = 'refusee'
+    offre.save()
+    
+    # Créer la vente associée (perdue)
+    client=offre.client
+    Vente.objects.create(
+        client=client,
+        demande_financement=client.demande_financement,
+        statut='perdue_par_offre_refusee',
+        montant=offre.montant_finance
+    )
+    
+    messages.info(request, "Offre refusée.")
+    return redirect('commercial_app:offre-detail', offre_id=offre.id)
 
-    return redirect('commercial_app:offre-detail', offre.pk)
+@login_required
+def negocier_offre(request, offre_id):
+    offre = get_object_or_404(Offre, id=offre_id, client=request.user)
+    
+    if offre.statut != 'envoyee':
+        messages.warning(request, "Seules les offres envoyées peuvent être renégociées.")
+        return redirect('leads_app:offre-detail', offre_id=offre.id)
+    
+    # Option 1 : simple notification
+    messages.info(request, "Une demande de renégociation a été envoyée à votre commercial.")
+    
+    # Option 2 : créer une demande de modification (à implémenter)
+    # Negociation.objects.create(offre=offre, client=request.user, ...)
+    
+    # Option 3 : remettre l'offre en brouillon
+    offre.statut = 'brouillon'
+    offre.save()
+    messages.info(request, "L'offre a été remise en brouillon. Votre commercial peut la modifier.")
+    
+    return redirect('commercial_app:offre-detail', offre_id=offre.id)
 
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
@@ -160,9 +189,7 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         context["offre_simple_form"] = form
         context["open_offre_simple_modal"] = True
         return self.render_to_response(context)
-    
-    
-    
+           
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
