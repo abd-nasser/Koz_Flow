@@ -31,8 +31,12 @@ class Offre(models.Model):
         ('refusee', 'Refusée par le client'),
         ('expiree', 'Offre expirée'),
     ]
-    
+    TYPE_OFFRE_CHOICES = [
+        ('simple', 'Offre simple (sans demande)'),
+        ('demande', 'Offre liée à une demande'),
+    ]
     statut = models.CharField(max_length=30, choices=STATUTS_OFFRE, default="brouillon")
+    type_offre = models.CharField(max_length=20, choices=TYPE_OFFRE_CHOICES, default="simple")  # standard ou simple
     signature_client = models.ImageField(upload_to='signatures/', blank=True, null=True)
     
     # Validité de l'offre (ex: 15 jours)

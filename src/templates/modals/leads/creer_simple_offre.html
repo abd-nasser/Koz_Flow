@@ -1,0 +1,41 @@
+<!-- Modal pour créer l'offre -->
+<dialog id="simpleoffreModal" class="modal">
+    <div class="modal-box">
+        <form
+        enctype="multipart/form-data"
+        method="post" 
+        action="{% url 'commercial_app:creer-offre-simple' client.pk %}" id="simpleoffreForm">
+            {% csrf_token %}
+            <h3 class="font-bold text-lg mb-4">📝 Créer une offre de financement</h3>
+            
+            {{ offre_simple_form.non_field_errors }}
+            
+            {% for field in offre_simple_form %}
+                <div class="form-group mb-4">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="modal-action">
+                <button type="submit" class="btn btn-primary">✅ Créer l'offre</button>
+                <button type="button" class="btn" onclick="document.getElementById('simpleoffreModal').close()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Script pour rouvrir le modal si formulaire invalide -->
+{% if open_offre_simple_modal %}
+<script>
+    document.getElementById('simpleoffreModal').showModal();
+</script>
+{% endif %}

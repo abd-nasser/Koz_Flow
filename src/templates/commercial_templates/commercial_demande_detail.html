@@ -51,7 +51,7 @@
             <button class="btn btn-primary" onclick="gestion_dmd_modal.showModal()">🔁 Gérer l’étape</button>
             <button class="btn btn-secondary" onclick="gestion_fin_modal.showModal()">💰 Gérer le financement</button>
             {% if not demande.client.offre %}
-            <button class="btn btn-success" onclick="document.getElementById('offreModal').showModal()">✨ Générer une offre</button>
+            <button class="btn btn-success" onclick="document.getElementById('offreModal').showModal()">✨ Générer une offre lié à cette demande</button>
             {% endif %}
         </div>
 

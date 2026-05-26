@@ -13,6 +13,13 @@
 </head>
 <body>
     
+<nav>
+
+</nav>
+<header>
+
+</header>
+<main>
 <!-- clients_templates/client_detail.html -->
 <h1 class="text-2xl font-bold mb-4">👤 Détail du client</h1>
 
@@ -74,17 +81,12 @@
         <p><strong>Statut offre :</strong> {{ client.offre.get_statut_display }}</p>
         <a href="#" class="text-blue-500">Voir l'offre</a> 
     {% else %}
-        <p class="text-gray-500">Aucune offre générée pour ce client.</p>
-        {% if client.demande_financement.all %}
-            {% with demande=client.demande_financement.last %}
-                <a href="#" class="btn btn-primary mt-2">
-                    ✨ Générer une offre
-                </a> 
-            {% endwith %}
-        {% endif %}
+        <p class="text-gray-500">Aucune offre de financement générée.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('simpleoffreModal').showModal()">✨ Générer une offre simple</button>
+        {% include "modals/leads/creer_simple_offre.html" %}
     {% endif %}
 </div>
-
+</main>
 </body>
 </html>
 

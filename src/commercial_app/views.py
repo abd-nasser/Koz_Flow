@@ -7,6 +7,8 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView,
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
+from auth_app.models import kozUser
+from client_app.views import ClientDetailView
 from leads_app.models import demande_financement
 from client_app.models import Maintenance
 from commercial_app.models import Offre
@@ -46,6 +48,7 @@ def creer_offre(request, demande_id):
                 offre.apport_demande = form.cleaned_data['apport_demande']
                 offre.montant_finance = offre.prix_vehicule - offre.apport_demande
                 offre.mensualite = (offre.montant_finance * (offre.taux_interet / 100 / 12)) / (1 - (1 + offre.taux_interet / 100 / 12) ** -offre.duree_mois)
+                offre.type_offre = "demande"
                 offre.save()
                 messages.success(request, "Offre créée avec succès.")
                 return render(request, 'commercial_templates/commercial_demande_detail.html', {'demande': demande, 
@@ -132,6 +135,34 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
 
 
 ##########################################________________OFFRE_VIEW_________________####################################################
+class offreSimpleCreateView(LoginRequiredMixin, CreateView):
+    model = Offre
+    form_class = OffreForm
+    template_name = "clients_templates/client_detail.html"
+    
+    def get_success_url(self):
+        return reverse_lazy('client_app:client-detail', kwargs={'pk': self.kwargs.get('pk')})
+    
+    def form_valid(self, form):
+        client_id = self.kwargs.get("pk")
+        client = get_object_or_404(kozUser, id=client_id)
+        form.instance.client = client
+        form.instance.type_offre = "simple"
+        form.save()
+        messages.success(self.request, f"Offre simple créée pour {client.nom_complet}")
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        detail_view = ClientDetailView()
+        detail_view.request = self.request
+        detail_view.kwargs = self.kwargs
+        context = detail_view.get_context_data()
+        context["offre_simple_form"] = form
+        context["open_offre_simple_modal"] = True
+        return self.render_to_response(context)
+    
+    
+    
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
@@ -197,13 +228,7 @@ class OffreView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["STATUTS_OFFRE"] = Offre.STATUTS_OFFRE
         return context
-            
-            
-
-     
-
-
-
+        
 class OffreDetailView(LoginRequiredMixin, DetailView):
     model = Offre
     context_object_name = "offre"

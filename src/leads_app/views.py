@@ -378,7 +378,6 @@ def valide_dossier(request, dossier_id):
     messages.success(request, "Dossier validé. Demande et vente enregistrées.")
     return redirect("leads_app:document-detail", dossier.pk)
 
-
 @login_required
 def modifier_dossier (request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id, client=request.user)

@@ -27,6 +27,12 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
          context["change_pass_form"] = ChangePasswordForm()
       return context
 
+class clientListView(LoginRequiredMixin, ListView):
+   model = kozUser
+   template_name = "clients_templates/client_list.html"
+   context_object_name = "clients"
+   def get_queryset(self):
+      return kozUser.objects.filter(role="client")
 
 class ClientDetailView(LoginRequiredMixin, DetailView):
    model = kozUser
