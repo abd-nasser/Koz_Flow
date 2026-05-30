@@ -261,6 +261,67 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "offre"
     template_name = "commercial_templates/offre_detail.html"
     
+######################################___________VENTE/GESTION_View__________________#########################################################""""""
+
+def vente_update_statut(request, pk):
+    vente = get_object_or_404(Vente, id=pk)
+    
+    if request.method == 'POST':
+        nouveau_statut = request.POST.get('statut')
+        if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
+            vente.statut = nouveau_statut
+            vente.save()
+            messages.success(request, f"Statut de la vente mis à jour : {vente.get_statut_display()}")
+        else:
+            messages.error(request, "Statut invalide")
+    
+    return redirect('commercial_app:vente-list')
+
+class VenteListView(LoginRequiredMixin, ListView):
+    model = Vente
+    template_name = "commercial_templates/vente_list.html"
+    context_object_name = "ventes"
+    paginate_by = 20
+
+    def get_template_names(self):
+        is_htmx = self.request.headers.get('HX-Request') == 'true'
+        if self.request.user.is_superuser or self.request.user.role  == "directeur":
+            return ["partials/vente/partials_vente_list.html" if is_htmx else "directeur_templates/directeur_vente_list.html"]
+        return ["partials/vente/partials_vente_list.html" if is_htmx else "commercial_templates/commercial_vente_list.html"]
+       
+        
+    def get_queryset(self):
+        # 1. Base queryset selon le rôle
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            queryset = Vente.objects.all()
+            
+        elif self.request.user.is_staff or self.request.user.role == "commercial":
+            queryset = Vente.objects.filter(client__assigned_commercial=self.request.user)
+        else:
+            return Vente.objects.none()
+
+        # 2. Optimisation
+        queryset = queryset.select_related('client', 'demande_financement').order_by('-date_vente')
+
+        # 3. Filtres communs
+        statut = self.request.GET.get('statut')
+        type_vente = self.request.GET.get('type_vente')
+        client_name = self.request.GET.get('client')
+
+        if statut:
+            queryset = queryset.filter(statut=statut)
+        if type_vente:
+            queryset = queryset.filter(type_vente=type_vente)
+        if client_name:
+            queryset = queryset.filter(client__nom_complet__icontains=client_name)
+
+        return queryset
+                
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statut_choices'] = Vente.STATUT_VENTE
+        return context
 
 
 #######################################__________________MAINTENANCE_VIEW_______________##################################################

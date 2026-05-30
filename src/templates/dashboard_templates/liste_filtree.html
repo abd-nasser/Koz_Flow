@@ -1,9 +1,13 @@
+{% load static %}
+{% load humanize %}
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Liste Filtre</title>
+    {% tailwind_css %}
 </head>
 <style>
     .item-card {
@@ -44,7 +48,7 @@
                 {% endwith %}
             </p>
         </div>
-        <a href="{{ retour_url }}" class="btn btn-outline gap-2">
+        <a href="#" class="btn btn-outline gap-2">
             ← Retour au tableau de bord
         </a>
     </div>
@@ -148,7 +152,7 @@
             </svg>
             <h3 class="text-lg font-semibold text-gray-700">Aucun résultat</h3>
             <p class="text-gray-500 mt-1">Aucun élément trouvé pour ce filtre.</p>
-            <a href="{{ retour_url }}" class="btn btn-outline mt-4">Retour au tableau de bord</a>
+            <a href="#" class="btn btn-outline mt-4">Retour au tableau de bord</a>
         </div>
         {% endfor %}
     </div>

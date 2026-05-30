@@ -19,4 +19,11 @@ urlpatterns = [
     path('maintenances/<int:pk>/',views.MaintenanceDetailView.as_view(), name='maintenance-detail'),
     path('maintenances/<int:pk>/modifier/',views.MaintenanceUpdateView.as_view(), name='maintenance-update'),
     path('maintenances/<int:pk>/supprimer/',views.MaintenanceDeleteView.as_view(), name='maintenance-delete'),
+    
+    
+    # commercial_app/urls.py
+
+path('ventes/',views.VenteListView.as_view(), name='vente-list'),
+path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
+path('ventes/<int:pk>/statut/',views.vente_update_statut, name='vente-update'),
 ]

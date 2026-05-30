@@ -111,7 +111,7 @@ class Vente(models.Model):
     """Vente conclue ou perdue, liée à une demande de financement et un client"""
     
     STATUT_VENTE = [
-    ('non_classifie', 'non classifié')
+    ('non_classifie', 'non classifié'),
     ('en_cours', 'En cours'),
     ('conclue', 'Conclue (manuelle)'),
     ('conclue_par_offre_acceptee', 'Conclue par offre acceptée'),
@@ -122,7 +122,7 @@ class Vente(models.Model):
     client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='ventes')
     demande_financement = models.OneToOneField('demande_financement', on_delete=models.CASCADE, related_name='vente', null=True, blank=True)
     
-    statut = models.CharField(max_length=20, choices=STATUT_VENTE, default='non_classifie')
+    statut = models.CharField(max_length=70, choices=STATUT_VENTE, default='non_classifie')
     montant = models.DecimalField(max_digits=12, decimal_places=0, help_text="Montant total de la vente")
     date_vente = models.DateTimeField(auto_now_add=True)
     

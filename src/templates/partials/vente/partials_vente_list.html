@@ -1,0 +1,71 @@
+{% load humanize %}
+<div id="ventes-container">
+    <!-- Filtres -->
+    <div class="bg-white shadow rounded p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" name="client" placeholder="🔍 Client"
+                   hx-get="{% url 'commercial_app:vente-list-partial' %}"
+                   hx-target="#ventes-container"
+                   hx-trigger="keyup changed delay:500ms"
+                   class="input input-bordered w-full">
+
+            <select name="statut"
+                    hx-get="{% url 'commercial_app:vente-list-partial' %}"
+                    hx-target="#ventes-container"
+                    hx-trigger="change"
+                    class="select select-bordered w-full">
+                <option value="">📌 Tous statuts</option>
+                {% for value, label in statut_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+
+            <a href="{% url 'commercial_app:vente-list' %}" class="btn btn-outline">🔄 Réinitialiser</a>
+        </div>
+    </div>
+
+    <!-- Liste des ventes -->
+    <div class="grid grid-cols-1 gap-4">
+        {% for vente in ventes %}
+        <div class="bg-white shadow rounded p-4 border hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-3">
+                <div>
+                    <p><strong>Client :</strong> {{ vente.client.nom_complet }}</p>
+                    <p><strong>Montant :</strong> {{ vente.montant|intcomma }} FCFA</p>
+                    <p><strong>Statut :</strong> 
+                        <span class="badge 
+                            {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_offre_acceptee' %}badge-success
+                            {% elif vente.statut == 'perdue' or vente.statut == 'perdue_par_offre_refusee' %}badge-error
+                            {% else %}badge-warning{% endif %}">
+                            {{ vente.get_statut_display }}
+                        </span>
+                    </p>
+                    <p><strong>Date :</strong> {{ vente.date_vente|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'commercial_app:vente-update' vente.id %}" class="btn btn-sm btn-primary">✏️ Modifier statut</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center">Aucune vente trouvée.</p>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-6 flex justify-center">
+        <div class="join">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="join-item btn btn-sm">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">‹</a>
+            {% endif %}
+            <span class="join-item btn btn-sm btn-disabled">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

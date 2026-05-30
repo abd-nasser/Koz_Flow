@@ -1,5 +1,10 @@
 from multiprocessing import context
 
+from django.db.models import Sum
+from django.utils import timezone
+from datetime import timedelta
+from leads_app.models import Vente
+
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from datetime import datetime, timedelta
@@ -13,17 +18,16 @@ from auth_app.models import kozUser
 from leads_app.models import demande_financement
 
 
-class DashboardView(TemplateView):
+class DashboardView(LoginRequiredMixin,TemplateView):
     
-    template_name = 'dashboard_app/dashboard.html'
-    
+
     def get_template_names(self):
         is_htmx = self.request.headers.get('HX-Request') == 'true'
         if self.request.user.role == 'directeur' or self.request.user.is_superuser:
             return ['partials/partial_dashboard_directeur.html' if  is_htmx else 'dashboard_templates/directeur_dashboard.html']
         elif self.request.user.role == 'commercial' or self.request.user.is_staff:
             return ['partials/partial_dashboard_commercial.html' if  is_htmx else 'dashboard_templates/commercial_dashboard.html']
-        return super().get_template_names()
+       
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -114,9 +118,9 @@ class DashboardView(TemplateView):
         ############################################"KPI DOCUMENTS"########################################
         ############################################"KPI DOCUMENTS"########################################
         total_dossiers = Documents.objects.all().count()
-        dossiers_jour = Documents.objects.filter(date_creation__date=datetime.now().date()).count()
-        dossiers_semaine = Documents.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=7)).count()
-        dossiers_mois = Documents.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
+        dossiers_jour = Documents.objects.filter(date_upload__date=datetime.now().date()).count()
+        dossiers_semaine = Documents.objects.filter(date_upload__date__gte=datetime.now().date() - timedelta(days=7)).count()
+        dossiers_mois = Documents.objects.filter(date_upload__date__gte=datetime.now().date() - timedelta(days=30)).count()
         dossier_vide = Documents.objects.filter(statut_dossier='vide').count()
         dossier_incomplet = Documents.objects.filter(statut_dossier='incomplet').count()
         dossier_complet = Documents.objects.filter(statut_dossier='complet').count()
@@ -257,9 +261,9 @@ class DashboardView(TemplateView):
 
         #############################____QUERYSET DOCUMENTS____################################################"
         total_dossiers_queryset = Documents.objects.all()
-        dossiers_jour_queryset = Documents.objects.filter(date_creation__date=datetime.now().date())
-        dossiers_semaine_queryset = Documents.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=7))
-        dossiers_mois_queryset = Documents.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=30))
+        dossiers_jour_queryset = Documents.objects.filter(date_upload__date=datetime.now().date())
+        dossiers_semaine_queryset = Documents.objects.filter(date_upload__date__gte=datetime.now().date() - timedelta(days=7))
+        dossiers_mois_queryset = Documents.objects.filter(date_upload__date__gte=datetime.now().date() - timedelta(days=30))
         dossier_vide_queryset = Documents.objects.filter(statut_dossier='vide') 
         dossier_incomplet_queryset = Documents.objects.filter(statut_dossier='incomplet')
         dossier_complet_queryset = Documents.objects.filter(statut_dossier='complet')
@@ -325,19 +329,7 @@ class DashboardView(TemplateView):
             'maintenances_en_cours_queryset': maintenances_en_cours_queryset
         })
         
-        # dashboard_app/views.py
-
-from django.db.models import Sum
-from django.utils import timezone
-from datetime import timedelta
-from leads_app.models import Vente
-
-class DashboardView(TemplateView):
-    # ... ton code existant (KPI, clients, demandes, etc.) ...
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
+               
         # ============================================
         # 📊 CHART LINE : Évolution du CA par type de vente
         # ============================================
@@ -463,7 +455,7 @@ class DashboardView(TemplateView):
         
     
 class ListeFiltreeView(TemplateView):
-    template_name = 'dashboard_app/liste_filter.html'
+    template_name = 'dashboard_templates/liste_filtree.html'
     context_object_name = 'items'
     paginate_by = 10  # Nombre d'éléments par page
     
@@ -494,5 +486,5 @@ class ListeFiltreeView(TemplateView):
         context = super().get_context_data(**kwargs)
         
         context['titre'] = f"{self.kwargs.get('model_name')} - {self.kwargs.get('filtre_nom')} : {self.kwargs.get('filtre_valeur')}"
-        context['retour_url'] =  reverse_lazy('dashboard_app:directeur-kpi')  # URL de retour à la page principale du dashboard
+        context['retour_url'] =  reverse_lazy('dashboard_app:directeur-view')  # URL de retour à la page principale du dashboard
         return context

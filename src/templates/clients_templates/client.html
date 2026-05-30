@@ -51,7 +51,7 @@
     
     {% for doc in client.documents.all %} 
         {% if doc.statut_dossier != "vide" %}
-             <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir tout les dossiers</a>
+             <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir mes dossiers dossiers</a>
         {% endif %}
     {% endfor %}
         

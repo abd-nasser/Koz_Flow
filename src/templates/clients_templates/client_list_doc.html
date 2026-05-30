@@ -1,49 +1,36 @@
-{%load static%}
+{% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'client_list_doc_style.css' %}">
     {% tailwind_css %}
-    <title>Liste Document</title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'css/client_list_doc_style.css' %}">
+    <title>Mes documents - KOZ Services</title>
 </head>
-<body>
+<body class="bg-gray-100">
+
+<div class="container mx-auto px-4 py-8 max-w-6xl">
     
+    <!-- En-tête -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">📄 Mes documents</h1>
+        <a href="{% url 'client_app:client-view' %}" class="btn btn-outline btn-sm">◀ Retour à mon espace</a>
+    </div>
 
-    <!-- clients_templates/client_list_doc.html -->
-<h1>📄 Mes documents</h1>
+    <!-- Zone dynamique (filtres + liste) -->
+    <div hx-get="{% url 'leads_app:document-list' %}" 
+         hx-trigger="load" 
+         hx-target="#document-list-container" 
+         hx-swap="innerHTML">
+        <div class="text-center py-10">Chargement...</div>
+    </div>
 
-<table border="1">
-    <thead>
-        <tr>
-            <th>Document ID</th>
-            <th>Statut</th>
-            <th>Date upload</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for doc in documents %}
-        <tr>
-            <td>{{ doc.pk }}</td>
-            <td>{{ doc.get_statut_dossier_display }}</td>
-            <td>{{ doc.date_upload|date:"d/m/Y H:i" }}</td>
-            <td>
-                {% if doc.statut_dossier == "rejete" %}
-                    <span>({{ doc.commentaire_rejet }})</span>
-                {% endif %}
-                <a href="{% url 'leads_app:document-detail' doc.pk %}">details</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="5">Aucun document uploadé.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-        
+</div>
+
 </body>
+</html>

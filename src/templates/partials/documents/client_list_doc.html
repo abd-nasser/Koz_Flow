@@ -1,0 +1,81 @@
+<div id="document-list-container">
+    
+    <!-- Filtres simples (optionnels) -->
+    <div class="bg-white shadow rounded p-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select name="statut" 
+                    hx-get="{% url 'leads_app:document-list' %}"
+                    hx-target="#document-list-container"
+                    hx-trigger="change"
+                    class="select select-bordered w-full">
+                <option value="">📌 Tous statuts</option>
+                <option value="vide">Vide</option>
+                <option value="incomplet">Incomplet</option>
+                <option value="complet">Complet</option>
+                <option value="valide">Validé</option>
+                <option value="rejete">Rejeté</option>
+            </select>
+
+            <a href="{% url 'leads_app:document-list' %}" class="btn btn-outline">🔄 Réinitialiser</a>
+        </div>
+    </div>
+
+    <!-- Liste des documents -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Type</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Statut</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Date upload</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr class="border-t hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">{{ doc.get_type_document_display }}</td>
+                    <td class="px-6 py-4">
+                        <span class="badge 
+                            {% if doc.statut_dossier == 'valide' %}badge-success
+                            {% elif doc.statut_dossier == 'rejete' %}badge-error
+                            {% else %}badge-warning{% endif %}">
+                            {{ doc.get_statut_dossier_display }}
+                        </span>
+                        {% if doc.statut_dossier == "rejete" and doc.commentaire_rejet %}
+                            <div class="text-xs text-red-500 mt-1">{{ doc.commentaire_rejet }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">{{ doc.date_upload|date:"d/m/Y H:i" }}</td>
+                    <td class="px-6 py-4">
+                        <a href="{% url 'leads_app:document-detail' doc.pk %}" class="btn btn-sm btn-outline">👁️ Détails</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                        📭 Aucun document trouvé.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-6 flex justify-center">
+        <div class="join">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="join-item btn btn-sm">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm">‹</a>
+            {% endif %}
+            <span class="join-item btn btn-sm btn-disabled">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-sm">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-sm">»</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>

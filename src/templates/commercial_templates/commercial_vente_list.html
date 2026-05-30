@@ -1,0 +1,39 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}" ></script>
+    <link rel="stylesheet" href="{% static 'css/commercial/commercial_vente_list.html' %}">
+    {% tailwind_css %}
+    <title>list des ventes</title>
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <header>
+             {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    </header>
+    <main>
+             <div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">💰 Gestion des ventes</h1>
+
+                {% include 'partials/vente/partials_vente_list.html' %}
+    </main>
+   <footer>
+
+   </footer>
+</div>
+</body>
+</html>

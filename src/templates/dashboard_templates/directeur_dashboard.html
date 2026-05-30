@@ -1,3 +1,5 @@
+{% load static %}
+{% load tailwind_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard/directeur/dashboard.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>KPI Dashboard analytique</title>
+    {% tailwind_css %}
 </head>
 <body>
     <nav>
@@ -26,92 +29,6 @@
     <body>
     <main>
 
-<!-- Section du graphique (ajouter avant les cartes KPI) -->
-<div class="bg-white shadow rounded-lg p-6 mb-8">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold border-l-4 border-blue-500 pl-3">📈 Évolution du chiffre d'affaires</h2>
-        
-        <!-- Sélecteur de période -->
-        <div class="flex gap-2">
-            <a href="?period=1j" class="btn btn-sm {% if selected_period == '1j' %}btn-primary{% else %}btn-outline{% endif %}">1j</a>
-            <a href="?period=7j" class="btn btn-sm {% if selected_period == '7j' %}btn-primary{% else %}btn-outline{% endif %}">7j</a>
-            <a href="?period=1m" class="btn btn-sm {% if selected_period == '1m' %}btn-primary{% else %}btn-outline{% endif %}">1m</a>
-            <a href="?period=1y" class="btn btn-sm {% if selected_period == '1y' %}btn-primary{% else %}btn-outline{% endif %}">1y</a>
-        </div>
-    </div>
-    
-    <canvas id="caChart" height="300"></canvas>
-</div>
-
-
-    <script>
-        const ctx = document.getElementById('caChart').getContext('2d');
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: {{ chart_labels|safe }},
-                datasets: [
-                    {
-                        label: 'Fidelis',
-                        data: {{ chart_fidelis|safe }},
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59,130,246,0.1)',
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'Alios',
-                        data: {{ chart_alios|safe }},
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139,92,246,0.1)',
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'KOZ Finance (Maison)',
-                        data: {{ chart_maison|safe }},
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16,185,129,0.1)',
-                        tension: 0.3,
-                        fill: true
-                    },
-                    {
-                        label: 'Paiement cash',
-                        data: {{ chart_cash|safe }},
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245,158,11,0.1)',
-                        tension: 0.3,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                interaction: { mode: 'index', intersect: false },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString() + ' FCFA';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' FCFA';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    </script>
 
 
           <!-- ==================== CLIENTS ==================== -->
@@ -216,6 +133,96 @@
     <p class="text-yellow-700 text-sm">🔄 En cours</p>
     <p class="text-2xl font-bold text-yellow-700">{{ maintenances_en_cours }}</p>
 </a>
+
+    <!-- Section du graphique (ajouter avant les cartes KPI) -->
+<div class="bg-white shadow rounded-lg p-6 mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold border-l-4 border-blue-500 pl-3">📈 Évolution du chiffre d'affaires</h2>
+        
+        <!-- Sélecteur de période -->
+        <div class="flex gap-2">
+            <a href="?period=1j" class="btn btn-sm {% if selected_period == '1j' %}btn-primary{% else %}btn-outline{% endif %}">1j</a>
+            <a href="?period=7j" class="btn btn-sm {% if selected_period == '7j' %}btn-primary{% else %}btn-outline{% endif %}">7j</a>
+            <a href="?period=1m" class="btn btn-sm {% if selected_period == '1m' %}btn-primary{% else %}btn-outline{% endif %}">1m</a>
+            <a href="?period=1y" class="btn btn-sm {% if selected_period == '1y' %}btn-primary{% else %}btn-outline{% endif %}">1y</a>
+        </div>
+    </div>
+    
+    <canvas id="caChart" height="300"></canvas>
+</div>
+
+
+    <script>
+        const ctx = document.getElementById('caChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Fidelis',
+                        data: {{ chart_fidelis|safe }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Alios',
+                        data: {{ chart_alios|safe }},
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'KOZ Finance (Maison)',
+                        data: {{ chart_maison|safe }},
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Paiement cash',
+                        data: {{ chart_cash|safe }},
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+
         </main>
     </body>
     <footer>
