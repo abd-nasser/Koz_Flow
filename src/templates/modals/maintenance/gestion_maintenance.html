@@ -1,0 +1,8 @@
+<dialog id="gestion_maintenance_modal" class="modal">
+    <div class="modal-box">
+        <a class="btn btn_start_maintenance" href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'en_cours' %}">Commencer la maintenance</a>
+        <a class="btn btn_effectuee_maintenance" href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'effectuee' %}">Marquer comme effectuée</a>
+        <a class="btn btn_annulee_maintenance" href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id  'annulee' %}">Annuler la maintenance</a>
+        <button type="button" class="btn" onclick="gestion_maintenance_modal.close()">Annuler</button>
+    </div>
+</dialog>

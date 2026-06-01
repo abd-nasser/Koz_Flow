@@ -4,8 +4,13 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
 from django.urls import reverse_lazy
+from django.conf import settings
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -16,7 +21,7 @@ from .models import DevisLeads, Vente, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 
-##################################################___Demande et Gestion de Financemen_______###########################################
+##################################################___Demande et Gestion de Financement_______###########################################
 @login_required
 def demande_financement_view(request, vehicul_id):
     
@@ -44,18 +49,46 @@ def demande_financement_view(request, vehicul_id):
             demande.Vehicul_interested = vehicul
             demande.etape = "envoye"
             demande.save()
-            messages.success(request, "Votre demande a été envoyée.")
-            return redirect("client_app:client-view")
-        
-            # Erreurs : on rouvre le modal avec le formulaire
-        context = {
-                'vehicul': vehicul,
-                'dmd_fin_form': form,
-                'open_dmd_fin_modal': True,
-            }
-        return render(request, 'vehicul_templates/vehicul_detail.html', context)
-   
-    return redirect("vehicul_app:detail-vehicul")
+            
+            # ✉️ ENVOI DE L'EMAIL DE CONFIRMATION
+           
+
+            # Vérifier que le client a bien un commercial assigné
+            if client.assigned_commercial and client.assigned_commercial.email:
+                try:
+                    html_message = render_to_string('emails/demande_financement/demande_financement_envoyee.html', context_email)
+                    plain_message = strip_tags(html_message)
+                    client = request.user
+                    
+                    context_email = {
+                    'client': request.user,
+                    'vehicule': f"{vehicul.marque.nom} {vehicul.modele} ({vehicul.annee})",
+                    'apport': form.cleaned_data.get('apport', 0),
+                    'duree': form.cleaned_data.get('duree_mois', 36),
+                    'revenus': form.cleaned_data.get('revenus_mensuel', 0),
+                    'lien_suivi': request.build_absolute_uri("/client/demandes/"),
+                }
+                    send_mail(
+                        subject="🆕 Nouvelle demande de financement - KOZ Services",
+                        message=plain_message,
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[client.assigned_commercial.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                    messages.info(request, "Votre commercial a été notifié de votre demande.")
+                except Exception as e:
+                    print(f"Erreur envoi email au commercial: {e}")
+            else:
+                print(f"Client {client.email} n'a pas de commercial assigné")
+                context = {
+                            'vehicul': vehicul,
+                            'dmd_fin_form': form,
+                            'open_dmd_fin_modal': True,
+                        }
+                return render(request, 'vehicul_templates/vehicul_detail.html', context)
+            
+            return redirect("vehicul_app:detail-vehicul")
 
 @login_required
 def attente_document(request, demande_id):
@@ -69,20 +102,29 @@ def attente_document(request, demande_id):
     else:
         demande.etape = "en_attente"
         demande.save()
+        
         messages.info(request, "cette demande financement est désormais en attente de document")
-        """send_mail(
-           subject="",
-           message="",
-           from_email=Setting,
-           recipient_list=[],
-           fail_silently=False
-           
+                # ✉️ Email au client
+        try:
+            context_email = {
+                'client': demande.client,
+                'demande_id': demande.id,
+                'lien_upload': request.build_absolute_uri(f"/client/documents/upload/{demande.id}/"),
+            }
+            html_message = render_to_string('emails/demande_financement/demande_attente_documents.html', context_email)
+            plain_message = strip_tags(html_message)
             
-        )
+            send_mail(
+                subject="📎 Documents requis pour votre demande de financement - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[demande.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
         
-        API WHATSAPP à voir apres
-        
-        """
     return redirect("leads_app:detail-demande", demande.pk)
 
 @login_required
@@ -96,9 +138,31 @@ def refuser_demande(request, demande_id):
     else:
         demande.etape = "demande_refusee"
         demande.save()
-        messages.success(request, f"La demande de {demande.client.nom_complet} a été refusée.")
+        messages.success(request, f"La demande de {demande.client.nom_complet} a été refusée. Un email a été envoyé au client.")
         
-        # Option : notifier le client, envoyer lettre de refus
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': demande.client,
+                'demande_id': demande.id,
+                'raison': request.POST.get('raison_refus', 'Non conforme aux critères de financement'),
+            }
+            html_message = render_to_string('emails/demande_financement/demande_refusee.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="❌ Mise à jour de votre demande de financement - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[demande.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
+        
+        
+        
     
     return redirect("leads_app:detail-demande", demande_id=demande.pk)    
 
@@ -108,14 +172,48 @@ def accorder_demande(request, demande_id):
     
     if demande.etape == "demande_accordee":
         messages.info(request, "Cette demande est déjà accordée.")
+    
     elif demande.etape == "demande_refusee":
         messages.warning(request, "Cette demande a été refusée, vous ne pouvez pas l'accorder.")
+    
     else:
-        demande.etape = "demande_accordee"
-        demande.save()
-        messages.success(request, f"La demande de {demande.client.nom_complet} a été accordée.")
+        # Déterminer le type d'accord
+        if demande.financement_type == "externe" and demande.financement_par == "fidelis":
+            demande.etape = "demande_accordee_fidelis"
+            partenaire = "Fidelis"
+        elif demande.financement_type == "externe" and demande.financement_par == "alios":
+            demande.etape = "demande_accordee_alios"
+            partenaire = "Alios"
+        else:
+            demande.etape = "demande_accordee"
+            partenaire = "KOZ Finance"
         
-        # Option : notifier le client, générer contrat, etc.
+        demande.save()
+        
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': demande.client,
+                'demande_id': demande.id,
+                'partenaire': partenaire,
+                'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné",
+                'lien_offre': request.build_absolute_uri(f"/client/offres/{demande.id}/"),
+            }
+            html_message = render_to_string('emails/demande_financement/demande_accordee.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="✅ Félicitations ! Votre demande de financement a été acceptée - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[demande.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
+        
+        messages.success(request, f"La demande de {demande.client.nom_complet} a été accordée ({partenaire}). Un email a été envoyé au client.")
     
     return redirect("leads_app:detail-demande", demande.pk)
 
@@ -250,9 +348,7 @@ class DemandeFinView(LoginRequiredMixin, ListView):
             if financement_par:
                 queryset = queryset.filter(financement_par=financement_par)
                     
-            return queryset.order_by("-date_creation")
-        
-        
+            return queryset.order_by("-date_creation")             
 class DemandeDetailView(LoginRequiredMixin, DetailView):
     model = demande_financement
     context_object_name = "demande" 
@@ -304,8 +400,6 @@ class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, Update
         return reverse_lazy("leads_app:detail-demande", kwargs={"pk": self.object.pk})
         
 
-
-
 ################################################### DOCUMENTS VIEWS #####################################################################
 @login_required
 def upload_multiple_documents(request, demande_id):
@@ -316,10 +410,39 @@ def upload_multiple_documents(request, demande_id):
         form = DocumentsUploadForm(request.POST, request.FILES, instance=dossier)
         if form.is_valid():
             dossier = form.save()
+            
             if dossier.verifier_completude():
+                # ✅ Dossier complet
+                dossier.statut_dossier = "complet"
+                dossier.save()
+                demande.etape = "en_cours"
+                demande.save()
+                
                 messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
-                dossier.demande_financement.etape = "en_cours"
-                dossier.demande_financement.save()
+                
+                # ✉️ Email au commercial assigné
+                if demande.client.assigned_commercial and demande.client.assigned_commercial.email:
+                    try:
+                        context_email = {
+                            'client': demande.client,
+                            'demande_id': demande.id,
+                            'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Non renseigné",
+                            'lien_demande': request.build_absolute_uri(f"/commercial/demande/{demande.id}/"),
+                        }
+                        html_message = render_to_string('emails/documents/dossier_complet_commercial.html', context_email)
+                        plain_message = strip_tags(html_message)
+                        
+                        send_mail(
+                            subject="📄 Dossier complet à étudier - KOZ Services",
+                            message=plain_message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[demande.client.assigned_commercial.email],
+                            html_message=html_message,
+                            fail_silently=False,
+                        )
+                    except Exception as e:
+                        print(f"Erreur envoi email au commercial: {e}")
+                
             else:
                 dossier.statut_dossier = "incomplet"
                 dossier.save()
@@ -351,21 +474,10 @@ def valide_dossier(request, dossier_id):
     if demande.financement_type == "externe":
         if demande.financement_par == "fidelis":
             demande.etape = "demande_accordee_fidelis"
+            partenaire = "Fidelis"
         elif demande.financement_par == "alios":
             demande.etape = "demande_accordee_alios"
-        demande.save()
-        
-        # ✅ Vente externe conclue
-        Vente.objects.create(
-            client=demande.client,
-            demande_financement=demande,
-            statut='conclue',
-            montant=demande.montant_souhaite  # ou demande.mensualite_simulee * duree_mois
-        )
-        
-    elif demande.financement_type == "maison":
-        # ✅ Vente interne (KOZ Finance) conclue
-        demande.etape = "demande_accordee_maison"  # à ajouter dans ETAPES
+            partenaire = "Alios"
         demande.save()
         
         Vente.objects.create(
@@ -374,23 +486,98 @@ def valide_dossier(request, dossier_id):
             statut='conclue',
             montant=demande.montant_souhaite
         )
+        
+    elif demande.financement_type == "maison":
+        demande.etape = "demande_accordee_maison"
+        demande.save()
+        partenaire = "KOZ Finance"
+        
+        Vente.objects.create(
+            client=demande.client,
+            demande_financement=demande,
+            statut='conclue',
+            montant=demande.montant_souhaite
+        )
     
-    messages.success(request, "Dossier validé. Demande et vente enregistrées.")
+    # ✉️ Email au client pour l'informer de l'accord
+    try:
+        context_email = {
+            'client': demande.client,
+            'demande_id': demande.id,
+            'partenaire': partenaire,
+            'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné",
+            'montant_finance': demande.montant_souhaite,
+            'duree': demande.duree_mois,
+            'lien_offre': request.build_absolute_uri(f"/leads/offre/{demande.id}/"),
+        }
+        html_message = render_to_string('emails/documents/demande_accordee_client.html', context_email)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject="✅ Félicitations ! Votre financement est accepté - KOZ Services",
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[demande.client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email au client: {e}")
+    
+    messages.success(request, "Dossier validé. Demande et vente enregistrées. Un email a été envoyé au client.")
     return redirect("leads_app:document-detail", dossier.pk)
 
 @login_required
-def modifier_dossier (request, dossier_id):
-    dossier = get_object_or_404(Documents, id=dossier_id, client=request.user)
+def modifier_dossier(request, dossier_id):
+    dossier = get_object_or_404(Documents, id=dossier_id)
+    
+    # Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "Vous n'avez pas l'autorisation de modifier ce dossier.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
     if dossier.statut_dossier == "valide":
-        messages.warning(request, "ce dossier a été validé, vous ne pouvez plus le modifier")
+        messages.warning(request, "Ce dossier a déjà été validé, vous ne pouvez pas demander de modifications.")
     elif dossier.statut_dossier == "rejete":
-        messages.warning(request, "ce dossier a été rejeté, vous ne pouvez plus le modifier, veuillez faire une nouvelle demande de financement")
+        messages.warning(request, "Ce dossier a été rejeté. Une nouvelle demande de financement est nécessaire.")
     else:
         dossier.statut_dossier = "modification"
         dossier.save()
-        messages.info(request, "les documents de ce dossier sont en attente de modification")
+        messages.success(request, f"Une demande de modification a été envoyée à {dossier.client.nom_complet}.")
+        
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': dossier.client,
+                'commercial': request.user,
+                'dossier_id': dossier.id,
+                'lien_chat': request.build_absolute_uri("/chat/"),
+            }
+            html_message = render_to_string('emails/documents/demande_modification_documents.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="📝 Demande de modification de vos documents - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[dossier.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au client: {e}")
+        
+        # 💬 Message dans le chat interne
+        from chat_app.models import Message
+        Message.objects.create(
+            client=dossier.client,
+            commercial=request.user,
+            contenu=f"📄 Demande de modification de vos documents pour le dossier #{dossier.id}. Veuillez consulter votre espace client.",
+            est_client=False,
+        )
+    
     return redirect("leads_app:document-detail", dossier.pk)
-       
+
 @login_required
 def rejete_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
@@ -398,45 +585,98 @@ def rejete_dossier(request, dossier_id):
     
     if dossier.statut_dossier == "rejete":
         messages.info(request, "Ce dossier est déjà rejeté.")
+    
     elif dossier.statut_dossier == "valide":
         messages.warning(request, "Ce dossier a été validé, vous ne pouvez pas le rejeter.")
+    
     else:
+        # Récupérer le motif de rejet (depuis le formulaire)
+        motif_rejet = request.POST.get('motif_rejet', 'Non conforme aux critères de financement')
+        
         # 1️⃣ Rejeter le dossier
         dossier.statut_dossier = "rejete"
+        dossier.commentaire_rejet = motif_rejet
         dossier.save()
         
         # 2️⃣ Mettre à jour l'étape de la demande
         demande.etape = "demand_refusee"
         demande.save()
         
-        # 3️⃣ Si une vente existait déjà (ex: validé par erreur, puis rejeté ?), on la passe en "perdue"
-        if hasattr(demande, 'vente'):
-            vente = demande.vente
+        # 3️⃣ Si une vente existait, la passer en "perdue"
+        vente = getattr(demande, 'vente', None)
+        if vente:
             vente.statut = 'perdue'
             vente.save()
             messages.info(request, "La vente associée a été marquée comme perdue.")
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': demande.client,
+                'dossier_id': dossier.id,
+                'demande_id': demande.id,
+                'motif_rejet': motif_rejet,
+                'commercial': request.user,
+            }
+            html_message = render_to_string('emails/document/dossier_rejete.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="❌ Votre dossier a été rejeté - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[demande.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au client: {e}")
         
-        messages.success(request, "Dossier rejeté. Demande marquée comme refusée.")
+        messages.success(request, "Dossier rejeté. Demande marquée comme refusée. Un email a été envoyé au client.")
     
     return redirect("leads_app:document-detail", dossier.pk)
 
 @login_required
 def verifier_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
+    
     if dossier.statut_dossier == "verification":
-        messages.info(request, "ce dossier est déjà en cours de vérification")
+        messages.info(request, "Ce dossier est déjà en cours de vérification.")
+    
     elif dossier.statut_dossier == "valide":
-        messages.warning(request, "ce dossier a été validé, vous ne pouvez pas le mettre en vérification")
+        messages.warning(request, "Ce dossier a été validé, vous ne pouvez pas le mettre en vérification.")
+    
     elif dossier.statut_dossier == "rejete":
-        messages.warning(request, "ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification")
+        messages.warning(request, "Ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification.")
+    
     else:
         dossier.statut_dossier = "verification"
         dossier.save()
-        messages.success(request, "ce dossier est désormais en cours de vérification")
+        messages.success(request, "Ce dossier est désormais en cours de vérification.")
+        
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': dossier.client,
+                'dossier_id': dossier.id,
+                'demande_id': dossier.demande_financement.id,
+                'lien_suivi': request.build_absolute_uri(f"/client/demandes/{dossier.demande_financement.id}/"),
+            }
+            html_message = render_to_string('emails/documents/dossier_verification.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="🔄 Votre dossier est en cours de vérification - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[dossier.client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au client: {e}")
     
-    return redirect("leads_app:document-detail", dossier.pk)    
-
-
+    return redirect("leads_app:document-detail", dossier.pk)
+       
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
     context_object_name = "documents"

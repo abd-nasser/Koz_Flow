@@ -5,7 +5,16 @@ from django.contrib.auth import(
                                 logout as django_logout) 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.contrib.auth import update_session_auth_hash
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+from django.conf import settings
 from django.urls import reverse_lazy
+from django.utils import timezone
+
 from django.contrib import messages
 from django.views.generic import(
     TemplateView, ListView, CreateView, FormView,
@@ -29,6 +38,7 @@ from .forms import UserRegisterForm, ChangePasswordForm
 from .models import kozUser
 from directeur_app.views import DirecteurDashboardView
 from commercial_app.views import CommercialDashboardView
+
 
 import logging
 
@@ -170,6 +180,7 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def get_success_url(self):
         if self.request.user.is_superuser or self.request.user.role == "directeur":
             return reverse_lazy("directeur_app:directeur-view")
+        
         elif self.request.user.role == "commercial":
             return reverse_lazy("commercial_app:commercial-view")
         else:
@@ -197,16 +208,20 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         #on passe le formulaire invalide au context
         if self.request.user.is_superuser or self.request.user.role =="directeur":
             dashboard = DirecteurDashboardView()
-        
+            dashboard.request = self.request
+            dashboard.kwargs = self.kwargs
+            dashboard.args = self.args   
         else:
             dashboard = CommercialDashboardView()
+            dashboard.request = self.request 
+            dashboard.kwargs = self.kwargs
+            dashboard.args = self.args   
             
         context = dashboard.get_context_data()
         context["user_register_form"] = form
         context["open_user_register_modal"] = True # variable pour réouvrir le modal avec les erreurs
         return self.render_to_response(context)
-        
-      
+             
 class ChangePasswordView(LoginRequiredMixin, FormView):
     form_class = ChangePasswordForm
     
@@ -231,23 +246,45 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
         kwargs["user"] = self.request.user
         return kwargs
     
+    
+
+
     def form_valid(self, form):
-        # Récupère le nouveau mot de passe
         new_password = form.cleaned_data.get("new_password")
         
-        # Change le mot de passe
         user = self.request.user
         user.set_password(new_password)
         user.save()
         
-        from django.contrib.auth import update_session_auth_hash
+        #Reconnecte le User
+        
         update_session_auth_hash(self.request, user)
         
-        # Message de succès
+        # ✉️ Envoi d'email de confirmation
+         # ✉️ Email HTML
+        html_message = render_to_string('emails/auth/changement_mdp.html', {
+            'user': user,
+            'date': timezone.now(),
+        })
+        plain_message = strip_tags(html_message)
+
+        try:
+            send_mail(
+                subject="🔐 Votre mot de passe a été modifié - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
+    
+        
         messages.success(self.request, "Votre mot de passe a été changé avec succès !")
         
         return super().form_valid(form)
-    
+        
     def form_invalid(self, form):
         #Quand le formulaire est invalide, on reste sur la meme page
         # on passe le formulaire invalide au context

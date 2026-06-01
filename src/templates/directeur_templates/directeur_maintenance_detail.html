@@ -1,0 +1,116 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/directeur/maintenance_detail_style.css' %}">
+    {% tailwind_css %}
+    <title>Detais maintenance</title>
+</head>
+<body>
+<nav>
+
+</nav>
+<header>
+
+</header>
+
+<main>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">🔧 Détail de la maintenance</h1>
+        <div>
+            <button class="btn btn-secondary mr-2" onclick="document.getElementById('update_maintenanceModal').showModal()">
+             🔧 Modifier 
+            </button>
+
+            <button class="btn btn_gestion_maintenance" onclick="gestion_maintenance_modal.showModal()">
+                🔧 Gérer la maintenance
+            </button>
+
+            <button class="btn btn-error ml-2" onclick="document.getElementById('delete_maintenanceModal').showModal()">
+                🗑️ Supprimer
+            </button>
+
+            
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Informations client -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">👤 Client</h2>
+            <p><strong>Nom :</strong> {{ maintenance.client.nom_complet }}</p>
+            <p><strong>Email :</strong> {{ maintenance.client.email }}</p>
+            <p><strong>Téléphone :</strong> {{ maintenance.client.telephone }}</p>
+        </div>
+
+        <!-- Informations véhicule -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">🚗 Véhicule</h2>
+            <p><strong>Marque :</strong> {{ maintenance.marque }}</p>
+            <p><strong>Modèle :</strong> {{ maintenance.modele }}</p>
+            <p><strong>Année :</strong> {{ maintenance.annee }}</p>
+            <p><strong>Immatriculation :</strong> {{ maintenance.immatriculation }}</p>
+            <p><strong>Origine :</strong> {% if maintenance.origine == 'koz' %}✅ Acheté chez KOZ{% else %}🌍 Véhicule extérieur{% endif %}</p>
+        </div>
+
+        <!-- Détails maintenance -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">🔧 Maintenance</h2>
+            <p><strong>Type :</strong> {{ maintenance.get_type_maintenance_display }}</p>
+            <p><strong>Priorité :</strong> 
+                <span class="badge {% if maintenance.priorite == 'urgente' %}badge-error{% elif maintenance.priorite == 'haute' %}badge-warning{% else %}badge-info{% endif %}">
+                    {{ maintenance.get_priorite_display }}
+                </span>
+            </p>
+            <p><strong>Statut :</strong> 
+                <span class="badge {% if maintenance.statut == 'effectuee' %}badge-success{% elif maintenance.statut == 'depassee' %}badge-error{% else %}badge-warning{% endif %}">
+                    {{ maintenance.get_statut_display }}
+                </span>
+            </p>
+        </div>
+
+        <!-- Dates et kilométrage -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">📅 Échéances</h2>
+            <p><strong>Prochaine maintenance :</strong> {{ maintenance.date_prochaine|date:"d/m/Y" }}</p>
+            <p><strong>Dernière maintenance :</strong> {{ maintenance.date_derniere|date:"d/m/Y"|default:"—" }}</p>
+            <p><strong>Kilométrage actuel :</strong> {{ maintenance.kilometrage_actuel }} km</p>
+            <p><strong>Kilométrage prochain :</strong> {{ maintenance.kilometrage_prochain }} km</p>
+            {% if maintenance.km_restant > 0 %}
+                <p><strong>⏳ Km restants :</strong> {{ maintenance.km_restant }} km</p>
+            {% else %}
+                <p class="text-red-500"><strong>⚠️ Maintenance dépassée</strong></p>
+            {% endif %}
+        </div>
+
+        <!-- Prix -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">💰 Coûts</h2>
+            <p><strong>Montant estimé :</strong> {{ maintenance.montant_estime|default:"—" }} FCFA</p>
+            <p><strong>Montant réel :</strong> {{ maintenance.montant_reel|default:"—" }} FCFA</p>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-white shadow rounded p-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Notes</h2>
+            <p><strong>Client :</strong> {{ maintenance.notes_client|default:"—" }}</p>
+            <p><strong>Technicien :</strong> {{ maintenance.notes_technicien|default:"—" }}</p>
+        </div>
+    </div>
+</div>
+<a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour</a>
+<!-- Button to open the modal -->
+{% include 'modals/maintenance/update_maintenance.html' %}
+{% include 'modals/maintenance/confirm_maintenance_delete.html' %}
+{% include 'modals/maintenance/gestion_maintenance.html' %}
+</main>
+<footer>
+
+</footer>
+</body>
+</html>

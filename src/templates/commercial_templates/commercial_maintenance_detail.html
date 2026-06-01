@@ -11,7 +11,14 @@
     <title>Detais maintenance</title>
 </head>
 <body>
+<nav>
 
+</nav>
+<header>
+
+</header>
+
+<main>
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">🔧 Détail de la maintenance</h1>
@@ -19,7 +26,16 @@
             <button class="btn btn-secondary mr-2" onclick="document.getElementById('update_maintenanceModal').showModal()">
              🔧 Modifier 
             </button>
-            <a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour</a>
+
+            <button class="btn btn_gestion_maintenance" onclick="gestion_maintenance_modal.showModal()">
+                🔧 Gérer la maintenance
+            </button>
+
+            <button class="btn btn-error ml-2" onclick="document.getElementById('delete_maintenanceModal').showModal()">
+                🗑️ Supprimer
+            </button>
+
+            
         </div>
     </div>
 
@@ -87,13 +103,14 @@
         </div>
     </div>
 </div>
+<a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour</a>
 <!-- Button to open the modal -->
 {% include 'modals/maintenance/update_maintenance.html' %}
-
-
 {% include 'modals/maintenance/confirm_maintenance_delete.html' %}
-<button class="btn btn-danger" onclick="document.getElementById('delete_maintenance_modal').showModal()">
-    ❌ Supprimer la maintenance
-</button>
+{% include 'modals/maintenance/gestion_maintenance.html' %}
+</main>
+<footer>
+
+</footer>
 </body>
 </html>

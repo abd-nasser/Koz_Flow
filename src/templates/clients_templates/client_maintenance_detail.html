@@ -1,0 +1,174 @@
+{% load static %}
+{% load tailwind_tags %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    {% tailwind_css %}
+    <link rel="stylesheet" href="{% static 'css/commercial/maintenance_detail_style.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <header>
+        
+      
+                
+    </header>
+    <main>
+
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="bg-white shadow rounded-lg p-6">
+        
+        <!-- En-tête avec statut -->
+        <div class="flex justify-between items-start mb-4">
+            <h1 class="text-2xl font-bold">🔧 Détail de la maintenance</h1>
+            <div class="badge badge-lg 
+                {% if maintenance.statut == 'effectuee' %}badge-success
+                {% elif maintenance.statut == 'annulee' or maintenance.statut == 'depassee' %}badge-error
+                {% elif maintenance.statut == 'confirmee' %}badge-info
+                {% elif maintenance.statut == 'en_cours' %}badge-warning
+                {% else %}badge-secondary{% endif %}">
+                {{ maintenance.get_statut_display }}
+            </div>
+        </div>
+
+        <!-- Alerte si dépassée -->
+        {% if maintenance.est_en_retard %}
+        <div class="bg-red-50 border border-red-200 rounded p-3 mb-4 text-sm text-red-700">
+            ⚠️ Cette maintenance est dépassée ! Contactez votre commercial rapidement.
+        </div>
+        {% endif %}
+
+        <!-- Informations véhicule -->
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">🚗 Véhicule concerné</h2>
+            <p><strong>Marque / Modèle :</strong> {{ maintenance.marque }} {{ maintenance.modele }}</p>
+            <p><strong>Année :</strong> {{ maintenance.annee }}</p>
+            <p><strong>Immatriculation :</strong> {{ maintenance.immatriculation }}</p>
+            <p><strong>Kilométrage actuel :</strong> {{ maintenance.kilometrage_actuel|intcomma }} km</p>
+            <p><strong>Origine :</strong> 
+                {% if maintenance.origine == 'koz' %}
+                    <span class="text-green-600">✅ Acheté chez KOZ</span>
+                {% else %}
+                    <span class="text-gray-500">🌍 Véhicule extérieur</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Détails de la maintenance -->
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">🔧 Détails de l'intervention</h2>
+            <p><strong>Type :</strong> {{ maintenance.get_type_maintenance_display }}</p>
+            <p><strong>Priorité :</strong> 
+                <span class="badge 
+                    {% if maintenance.priorite == 'urgente' %}badge-error
+                    {% elif maintenance.priorite == 'haute' %}badge-warning
+                    {% else %}badge-info{% endif %}">
+                    {{ maintenance.get_priorite_display }}
+                </span>
+            </p>
+            <p><strong>Date prévue :</strong> {{ maintenance.date_prochaine|date:"d/m/Y" }}</p>
+            {% if maintenance.date_derniere %}
+            <p><strong>Date de la dernière maintenance :</strong> {{ maintenance.date_derniere|date:"d/m/Y" }}</p>
+            {% endif %}
+            <p><strong>Kilométrage pour prochaine maintenance :</strong> {{ maintenance.kilometrage_prochain|intcomma }} km</p>
+            <p><strong>Km restants :</strong> 
+                {% if maintenance.km_restant > 0 %}
+                    <span class="text-green-600">{{ maintenance.km_restant|intcomma }} km</span>
+                {% else %}
+                    <span class="text-red-600">⚠️ Dépassé</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Prix -->
+        {% if maintenance.montant_estime %}
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">💰 Estimation</h2>
+            <p><strong>Montant estimé :</strong> {{ maintenance.montant_estime|intcomma }} FCFA</p>
+            {% if maintenance.montant_reel %}
+            <p><strong>Montant réel :</strong> {{ maintenance.montant_reel|intcomma }} FCFA</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Notes client -->
+        {% if maintenance.notes_client %}
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">📝 Vos notes</h2>
+            <p class="text-gray-600">{{ maintenance.notes_client }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Notes technicien -->
+        {% if maintenance.notes_technicien %}
+        <div class="border-b pb-3 mb-3">
+            <h2 class="text-lg font-semibold text-gray-700">🔧 Notes du technicien</h2>
+            <p class="text-gray-600">{{ maintenance.notes_technicien }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Actions selon statut -->
+        <div class="mt-6 pt-3 border-t">
+            {% if maintenance.statut == 'planifiee' %}
+                <button class="btn btn_conf_maintenance" onclick="confirm_or_refuse_maintenance_modal.showModal()">Confirmer/Refuser</button>
+                {% include 'modals/maintenance/confirm_maintenance.html' %}
+                <p class="text-sm text-gray-500 mt-2">
+                    📌 Merci de confirmer votre disponibilité pour cette maintenance.
+                </p>
+            
+            {% elif maintenance.statut == 'confirmee' %}
+                <div class="bg-blue-50 border border-blue-200 rounded p-3">
+                    <p class="text-blue-700">✅ Maintenance confirmée. Un commercial vous contactera pour le créneau horaire.</p>
+                </div>
+            
+            {% elif maintenance.statut == 'en_cours' %}
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3">
+                    <p class="text-yellow-700">🔄 Votre maintenance est en cours. Nous vous tiendrons informé.</p>
+                </div>
+            
+            {% elif maintenance.statut == 'effectuee' %}
+                <div class="bg-green-50 border border-green-200 rounded p-3">
+                    <p class="text-green-700">✅ Maintenance effectuée. Merci pour votre confiance !</p>
+                    {% if maintenance.montant_reel %}
+                    <p class="text-sm mt-1">💰 Montant total : {{ maintenance.montant_reel|intcomma }} FCFA</p>
+                    {% endif %}
+                </div>
+            
+            {% elif maintenance.statut == 'annulee' %}
+                <div class="bg-red-50 border border-red-200 rounded p-3">
+                    <p class="text-red-700">❌ Maintenance annulée. Contactez votre commercial pour reprogrammer.</p>
+                </div>
+            
+            {% elif maintenance.statut == 'depassee' %}
+                <div class="bg-orange-50 border border-orange-200 rounded p-3">
+                    <p class="text-orange-700">⚠️ Maintenance dépassée. Veuillez contacter votre commercial rapidement.</p>
+                    <a href="{% url 'commercial_app:renouveler-maintenance' maintenance.id %}" class="btn btn-sm btn-warning mt-2">
+                        🔄 Demander un nouveau rendez-vous
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Bouton retour -->
+        <div class="mt-6">
+            <a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour à mes maintenances</a>
+        </div>
+
+    </div>
+</div>
+</main>
+<footer>
+
+</footer>
+</body>
+</html>
+
+
+

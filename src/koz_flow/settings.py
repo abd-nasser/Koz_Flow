@@ -1,6 +1,7 @@
 from pathlib import Path
 import os 
-
+from dotenv import load_dotenv
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_$&duxxn#qq4b@^70$6ju1a)%&&igb0qh0%too1gigg%j_lai5'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -208,3 +209,12 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR/"koz_flow/static/")]
 #Taiwlind configurations
 TAILWIND_APP_NAME = "theme"
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
+
+#Email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465  # Port SSL
+EMAIL_USE_SSL = True  # Au lieu de TLS
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")

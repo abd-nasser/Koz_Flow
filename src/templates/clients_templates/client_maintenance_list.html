@@ -20,12 +20,7 @@
         <a href="{% url 'client_app:client-view' %}" class="btn btn-outline btn-sm">◀ Retour</a>
     </div>
 
-    <div hx-get="{% url 'client_app:maintenance-list' %}" 
-         hx-trigger="load" 
-         hx-target="#maintenances-container" 
-         hx-swap="innerHTML">
-        <div class="text-center py-10">Chargement...</div>
-    </div>
+    {% include 'partials/maintenance/partials_maintenance_list.html' %}
 
 </div>
 </body>

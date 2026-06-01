@@ -45,15 +45,7 @@
 
         
     </h4>
-    <a class="btn" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
-    <a  class='btn btn_list_demande_fin' href="{% url 'leads_app:list-demande-financement' %}">Mes demande de financement</a>
-    <a  class='btn btn_list_offres' href="{% url 'commercial_app:offre-list' %}">Voir mes offres</a>
-    
-    {% for doc in client.documents.all %} 
-        {% if doc.statut_dossier != "vide" %}
-             <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir mes dossiers dossiers</a>
-        {% endif %}
-    {% endfor %}
+   
         
       <div class="flex items-center space-x-4">
                     <span class="text-gray-600">{{ user.email }}</span>
@@ -65,13 +57,21 @@
     
 </header>
     <main>
-
+             <a class="btn" href="{% url 'vehicul_app:list-vehicul' %}">Voir les voitures</a>
+            <a  class='btn btn_list_demande_fin' href="{% url 'leads_app:list-demande-financement' %}">Mes demande de financement</a>
+            <a  class='btn btn_list_offres' href="{% url 'commercial_app:offre-list' %}">Voir mes offres</a>
+            <a  class='btn btn_list_maintenance'href="{% url 'commercial_app:maintenance-list' %}">Programme de maintenance</a>
+    
+    {% for doc in client.documents.all %} 
+        {% if doc.statut_dossier != "vide" %}
+             <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir mes dossiers dossiers</a>
+        {% endif %}
+    {% endfor %}
     </main>
     <footer>
 
     </footer>
     
-   
        <script>
         // Gestion de la déconnexion
         document.getElementById('logoutBtn').addEventListener('click', async () => {

@@ -1,8 +1,17 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+
+
 from django.urls import reverse_lazy
+from django.conf import settings
+
 from django.contrib import messages
 from django.db.models import Q
+from django.utils import timezone
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -20,77 +29,131 @@ from leads_app.forms import GestionFinancementForm
 from client_app.forms import MaintenanceForm
 from .forms import OffreForm
 
-
 import logging
-
 logger = logging.getLogger(__name__)
+
+
 
 @login_required
 def creer_offre(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id)
     
-    # Vérifier que l'utilisateur a le droit (commercial/directeur)
     if request.user.role not in ['commercial', 'directeur']:
         messages.error(request, "Vous n'avez pas l'autorisation de créer une offre.")
         return redirect('leads_app:demande-detail', demande.pk)
     
-    # Vérifier si une offre existe déjà
     if hasattr(demande.client, 'offre'):
         messages.warning(request, "Une offre existe déjà pour ce client.")
         return redirect('commercial_app:offre-detail', offre_id=demande.client.offre.id)
-    try:
-        if request.method == 'POST':
-            form = OffreForm(request.POST)
-            if form.is_valid():
-                offre = form.save(commit=False)
-                offre.client = demande.client
-                offre.prix_vehicule = form.cleaned_data['prix_vehicule']
-                offre.apport_demande = form.cleaned_data['apport_demande']
-                offre.montant_finance = offre.prix_vehicule - offre.apport_demande
-                offre.mensualite = (offre.montant_finance * (offre.taux_interet / 100 / 12)) / (1 - (1 + offre.taux_interet / 100 / 12) ** -offre.duree_mois)
-                offre.type_offre = "demande"
-                offre.save()
-                messages.success(request, "Offre créée avec succès.")
-                return render(request, 'commercial_templates/commercial_demande_detail.html', {'demande': demande, 
-                                                                                               'offre_form': form,
-                                                                                               "gestion_type_fin_form": GestionFinancementForm(instance=demande),
-                                                                                               "open_offre_modal": True
-                                                                                               }) if request.user.role == 'commercial' else render(request, 'directeur_templates/directeur_demande_detail.html', 
-                                                                                                {
-                                                                                            'demande': demande, 
-                                                                                               'offre_form': form,
-                                                                                               "gestion_type_fin_form": GestionFinancementForm(instance=demande),
-                                                                                               "open_offre_modal": True
-                                                                                               })    
-                
-    except Exception as e:
-        logger.error(f"Une erreur est survenue lors de la création de l'offre: {str(e)}")
-        messages.error(request, f"Une erreur est survenue lors de la création de l'offre: {str(e)}")
-
-    return redirect("leads_app:detail-demande", demande.pk)
     
+    if request.method == 'POST':
+        form = OffreForm(request.POST)
+        if form.is_valid():
+            offre = form.save(commit=False)
+            offre.client = demande.client
+            offre.prix_vehicule = form.cleaned_data['prix_vehicule']
+            offre.apport_demande = form.cleaned_data['apport_demande']
+            offre.montant_finance = offre.prix_vehicule - offre.apport_demande
+            offre.mensualite = (offre.montant_finance * (offre.taux_interet / 100 / 12)) / (1 - (1 + offre.taux_interet / 100 / 12) ** -offre.duree_mois)
+            offre.type_offre = "demande"
+            offre.statut = "envoyee"
+            offre.save()
+            
+            # ✉️ EMAIL AU CLIENT
+            try:
+                context_email = {
+                    'client': demande.client,
+                    'offre_id': offre.id,
+                    'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                    'montant_finance': offre.montant_finance,
+                    'mensualite': offre.mensualite,
+                    'duree_mois': offre.duree_mois,
+                    'apport': offre.apport_demande,
+                    'date_expiration': offre.date_expiration,
+                    'lien_offre': request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+                }
+                html_message = render_to_string('emails/offres/offre_creee_client.html', context_email)
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    subject="📄 Une offre de financement vous attend - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[demande.client.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+            except Exception as e:
+                print(f"Erreur envoi email au client: {e}")
+            
+            messages.success(request, f"Offre créée et envoyée à {demande.client.nom_complet}.")
+            
+            # Redirection selon le rôle
+            if request.user.role == 'commercial':
+                return redirect('commercial_app:offre-detail', offre_id=offre.id)
+            else:
+                return redirect('directeur_app:offre-detail', offre_id=offre.id)
+        else:
+            # Formulaire invalide
+            template = 'commercial_templates/commercial_demande_detail.html' if request.user.role == 'commercial' else 'directeur_templates/directeur_demande_detail.html'
+            return render(request, template, {
+                'demande': demande,
+                'offre_form': form,
+                'gestion_type_fin_form': GestionFinancementForm(instance=demande),
+                'open_offre_modal': True
+            })
+    
+    return redirect('leads_app:demande-detail', demande.pk)
+
 @login_required
 def accepter_offre(request, offre_id):
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Cette offre ne peut pas être acceptée.")
-        return redirect('leads_app:offre-detail', offre_id=offre.id)
+        return redirect('commercial_app:offre-detail', offre_id=offre.id)
     
     offre.statut = 'acceptee'
     offre.save()
     
     # Créer la vente associée
     client = offre.client
-    Vente.objects.create(
+    vente = Vente.objects.create(
         client=client,
         demande_financement=client.demande_financement,
         statut='conclue_par_offre_acceptee',
         montant=offre.montant_finance
     )
     
-    messages.success(request, "Offre acceptée. Vente enregistrée.")
-    return redirect('leads_app:offre-detail', offre_id=offre.id)
+    # ✉️ EMAIL AU COMMERCIAL ASSIGNÉ
+    commercial = client.assigned_commercial
+    if commercial and commercial.email:
+        try:
+            context_email = {
+                'client': client,
+                'offre_id': offre.id,
+                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                'montant_finance': offre.montant_finance,
+                'date_acceptation': timezone.now(),
+                'lien_vente': request.build_absolute_uri(f"/commercial/ventes/{vente.id}/"),
+                'lien_client': request.build_absolute_uri(f"/commercial/client/{client.id}/"),
+            }
+            html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="✅ Un client a accepté son offre de financement - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au commercial: {e}")
+    
+    messages.success(request, "Offre acceptée. Vente enregistrée. Le commercial a été notifié.")
+    return redirect('commercial_app:offre-detail', offre_id=offre.id)
 
 @login_required
 def refuser_offre(request, offre_id):
@@ -98,22 +161,38 @@ def refuser_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Cette offre ne peut pas être refusée.")
-        return redirect('commercial_app:offre-detail', offre_id=offre.id)
+        return redirect('leads_app:offre-detail', offre_id=offre.id)
     
     offre.statut = 'refusee'
     offre.save()
     
-    # Créer la vente associée (perdue)
-    client=offre.client
-    Vente.objects.create(
-        client=client,
-        demande_financement=client.demande_financement,
-        statut='perdue_par_offre_refusee',
-        montant=offre.montant_finance
-    )
+    # ✉️ Email au commercial
+    commercial = offre.client.assigned_commercial
+    if commercial and commercial.email:
+        try:
+            context_email = {
+                'client': offre.client,
+                'offre_id': offre.id,
+                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
+                'date_refus': timezone.now(),
+                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+            }
+            html_message = render_to_string('emails/offre_refusee_commercial.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="❌ Un client a refusé son offre - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au commercial: {e}")
     
-    messages.info(request, "Offre refusée.")
-    return redirect('commercial_app:offre-detail', offre_id=offre.id)
+    messages.info(request, "Offre refusée. Le commercial a été notifié.")
+    return redirect('leads_app:offre-detail', offre_id=offre.id)
 
 @login_required
 def negocier_offre(request, offre_id):
@@ -123,19 +202,46 @@ def negocier_offre(request, offre_id):
         messages.warning(request, "Seules les offres envoyées peuvent être renégociées.")
         return redirect('leads_app:offre-detail', offre_id=offre.id)
     
-    # Option 1 : simple notification
-    messages.info(request, "Une demande de renégociation a été envoyée à votre commercial.")
-    
-    # Option 2 : créer une demande de modification (à implémenter)
-    # Negociation.objects.create(offre=offre, client=request.user, ...)
-    
-    # Option 3 : remettre l'offre en brouillon
+    # 1️⃣ Changer le statut de l'offre
     offre.statut = 'brouillon'
     offre.save()
-    messages.info(request, "L'offre a été remise en brouillon. Votre commercial peut la modifier.")
     
-    return redirect('commercial_app:offre-detail', offre_id=offre.id)
-
+    # 2️⃣ ✉️ Email au commercial
+    commercial = offre.client.assigned_commercial
+    if commercial and commercial.email:
+        try:
+            context_email = {
+                'client': offre.client,
+                'offre_id': offre.id,
+                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
+                'montant_finance': offre.montant_finance,
+                'date_demande': timezone.now(),
+                'lien_offre': request.build_absolute_uri(f"/commercial/offre/{offre.id}/modifier/"),
+                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+            }
+            html_message = render_to_string('emails/offres/offre_negociation_commercial.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="🔄 Demande de renégociation d'offre - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au commercial: {e}")
+    
+    # 3️⃣ Message pour le client
+    messages.info(request, "Votre demande de renégociation a été envoyée. Votre commercial va étudier votre proposition.")
+    
+    # 4️⃣ Redirection selon le rôle
+    if request.user.role == 'client':
+        return redirect('leads_app:offre-detail', offre_id=offre.id)
+    else:
+        return redirect('commercial_app:offre-detail', offre_id=offre.id)
+    
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
     template_name = "commercial_templates/commercial.html"
@@ -162,23 +268,50 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         
         return context
 
-
 ##########################################________________OFFRE_VIEW_________________####################################################
 class offreSimpleCreateView(LoginRequiredMixin, CreateView):
     model = Offre
     form_class = OffreForm
     template_name = "clients_templates/client_detail.html"
-    
-    def get_success_url(self):
-        return reverse_lazy('client_app:client-detail', kwargs={'pk': self.kwargs.get('pk')})
+    success_url = reverse_lazy("client_app:detail-client")
     
     def form_valid(self, form):
         client_id = self.kwargs.get("pk")
         client = get_object_or_404(kozUser, id=client_id)
+        
         form.instance.client = client
         form.instance.type_offre = "simple"
-        form.save()
-        messages.success(self.request, f"Offre simple créée pour {client.nom_complet}")
+        form.instance.statut = "envoyee"  # ← Statut envoyé directement
+        offre = form.save()
+        
+        # ✉️ EMAIL AU CLIENT
+        try:
+            context_email = {
+                'client': client,
+                'offre_id': offre.id,
+                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                'montant_finance': offre.montant_finance,
+                'mensualite': offre.mensualite,
+                'duree_mois': offre.duree_mois,
+                'apport': offre.apport_demande,
+                'date_expiration': offre.date_expiration,
+                'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+            }
+            html_message = render_to_string('emails/offres/simple_offre_cree.client.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="📄 Une offre de financement vous attend - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au client: {e}")
+        
+        messages.success(self.request, f"Offre simple créée pour {client.nom_complet}. Un email a été envoyé au client.")
         return super().form_valid(form)
     
     def form_invalid(self, form):
@@ -189,7 +322,7 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         context["offre_simple_form"] = form
         context["open_offre_simple_modal"] = True
         return self.render_to_response(context)
-           
+    
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
@@ -322,6 +455,141 @@ class VenteListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['statut_choices'] = Vente.STATUT_VENTE
         return context
+
+############################################# GESTION_MAINTENANCE_VIEW ##########################################################################
+
+@login_required
+def confirmer_maintenance(request, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id, client=request.user)
+    
+    if maintenance.statut != 'planifiee':
+        messages.warning(request, "Cette maintenance ne peut pas être confirmée.")
+        return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+    
+    maintenance.statut = 'confirmee'
+    maintenance.save()
+    
+    # ✉️ Email au commercial
+    commercial = maintenance.client.assigned_commercial
+    if commercial and commercial.email:
+        try:
+            context_email = {
+                'client': maintenance.client,
+                'commercial': commercial,
+                'maintenance': maintenance,
+                'lien_maintenance': request.build_absolute_uri(f"/commercial/maintenance/{maintenance.id}/"),
+            }
+            html_message = render_to_string('emails/maintenance/maintenance_confirmee_commercial.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="✅ Un client a confirmé sa maintenance - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
+    
+    messages.success(request, "Votre maintenance a été confirmée. Un email a été envoyé à votre commercial.")
+    return redirect('client_app:maintenance-detail', pk=maintenance.id)
+
+    
+@login_required
+def refuser_maintenance(request, maintenance_id):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id, client=request.user)
+    
+    if maintenance.statut != 'planifiee':
+        messages.warning(request, "Cette maintenance ne peut pas être annulée.")
+        return redirect('client_app:maintenance-detail', pk=maintenance.id)
+    
+    maintenance.statut = 'annulee'
+    maintenance.save()
+    
+    # ✉️ Email au commercial
+    commercial = maintenance.client.assigned_commercial
+    if commercial and commercial.email:
+        try:
+            context_email = {
+                'client': maintenance.client,
+                'commercial': commercial,
+                'maintenance': maintenance,
+                'lien_maintenance': request.build_absolute_uri(f"/commercial/maintenance/{maintenance.id}/"),
+            }
+            html_message = render_to_string('emails/maintenance/maintenance_annulee_commercial.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="❌ Un client a annulé sa maintenance - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email: {e}")
+    
+    messages.info(request, "Votre maintenance a été annulée. Votre commercial a été notifié.")
+    return redirect('client_app:maintenance-list')
+
+
+def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
+    maintenance = get_object_or_404(Maintenance, id=maintenance_id)
+    
+    # Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "Action non autorisée.")
+        return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+    
+    statuts_valides = ['en_cours', 'effectuee', 'annulee']
+    if nouveau_statut not in statuts_valides:
+        messages.error(request, "Statut invalide.")
+        return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+    
+    maintenance.statut = nouveau_statut
+    if nouveau_statut == 'effectuee':
+        maintenance.date_derniere = timezone.now().date()
+        maintenance.kilometrage_dernier = maintenance.kilometrage_actuel
+    maintenance.save()
+    
+    # ✉️ Email au client
+    try:
+        context_email = {
+            'client': maintenance.client,
+            'maintenance': maintenance,
+            'nouveau_statut': maintenance.get_statut_display(),
+            'lien_maintenance': request.build_absolute_uri(f"/client/maintenance/{maintenance.id}/"),
+        }
+        
+        if nouveau_statut == 'en_cours':
+            template = 'emails/maintenance/maintenance_en_cours_client.html'
+            sujet = "🔄 Votre maintenance est en cours - KOZ Services"
+        elif nouveau_statut == 'effectuee':
+            template = 'emails/maintenance/maintenance_effectuee_client.html'
+            sujet = "✅ Votre maintenance est terminée - KOZ Services"
+        else:
+            template = 'emails/maintenance/maintenance_annulee_client.html'
+            sujet = "❌ Votre maintenance a été annulée - KOZ Services"
+        
+        html_message = render_to_string(template, context_email)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject=sujet,
+            message=plain_message,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[maintenance.client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email: {e}")
+    
+    messages.success(request, f"Maintenance passée en '{maintenance.get_statut_display()}'. Le client a été notifié.")
+    return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
 
 
 #######################################__________________MAINTENANCE_VIEW_______________##################################################
@@ -489,18 +757,28 @@ class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         messages.success(self.request, "Maintenance ajoutée avec succès.")
         return super().form_valid(form)
 
-class MaintenanceDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class MaintenanceDetailView(LoginRequiredMixin, DetailView):
     model = Maintenance
-    template_name = "commercial_templates/maintenance_detail.html"
     context_object_name = "maintenance"
+    
+    def get_template_names(self):
+        is_htmx = self.request.headers.get('HX-Request') == 'true'
+        if self.request.user.role == "directeur" or self.request.user.is_superuser:
+            return ["partials/maintenance/partials_maintenance_detail.html" if is_htmx else "directeur_templates/directeur_maintenance_detail.html"]
+        
+        if self.request.user.role == "commercial" or self.request.user.is_staff: 
+            return ["partials/maintenance/partials_maintenance_detail.html" if is_htmx else "commercial_templates/maintenance_detail.html"]
+        
+        return["partials/maintenance/partials_maintenance_detail.html" if is_htmx else 'clients_templates/client_maintenance_detail.html']
 
-    def test_func(self):
-        return self.request.user.role in ['commercial', 'directeur']
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if  "update_maintenance_form" not in context:
-            context["update_maintenance_form"] = MaintenanceForm(instance=self.object)
+        if self.request.user.role in ['commercial', 'directeur']:
+            if  "update_maintenance_form" not in context:
+                context["update_maintenance_form"] = MaintenanceForm(instance=self.object)
+            return context
+        
         return context
 
 class MaintenanceUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
@@ -539,4 +817,4 @@ class MaintenanceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView)
         messages.success(request, "Maintenance supprimée.")
         return super().delete(request, *args, **kwargs)
 
-############################################# GESTION_MAINTENANCE_VIEW ###################################################################
+
