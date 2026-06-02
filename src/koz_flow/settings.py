@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'chat_app',         # Messagerie client-commercial
     'dashboard_app',     # Dashboard global
     'leads_app',        # Demandes de crédit
+    'maintenance_app',    # Suivi des maintenances
     
     
     #tailwind_app
