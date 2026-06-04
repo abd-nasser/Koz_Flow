@@ -1,12 +1,31 @@
-<div class="message {% if message.est_client %}client-message{% else %}commercial-message {% endif %}" >
-    <strong>
-        {% if message.est_client %}
-            {{ message.client.nom_complet}}
-        {% else %}
-            {{ message.commercial.nom_complet }}
-        {% endif %}
-        
-    </strong>
-            <p >{{ message.contenu }}</p>
-     <small>{{ message.date_envoi|date:"d/m/Y H:i" }}</small>
+<div class="message {% if message.est_client %}client-message{% else %}commercial-message{% endif %} mb-2 animate-fade-in">
+    <div class="flex justify-between items-center mb-1">
+        <strong class="text-sm font-semibold">
+            {% if message.est_client %}
+                {{ message.client.nom_complet }}
+            {% else %}
+                {{ message.commercial.nom_complet }}
+            {% endif %}
+        </strong>
+        <small class="text-xs opacity-70">
+            {{ message.date_envoi|date:"H:i" }}
+        </small>
+    </div>
+    <p class="text-sm leading-relaxed break-words">{{ message.contenu }}</p>
 </div>
+
+<style>
+    @keyframes fadeInMessage {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in {
+        animation: fadeInMessage 0.2s ease-out;
+    }
+</style>

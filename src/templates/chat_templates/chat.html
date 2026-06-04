@@ -1,74 +1,180 @@
 {% load static %}
 {% load tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/chat/chat_style.css' %}">
-    <title>Discussion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/chat/chat_style.css' %}">
+    <title>Messagerie - KOZ Services</title>
 </head>
-<body >
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
+
+    <!-- Messages flash -->
     {% if messages %}
-    <div class="messages">
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% if user.role == 'client' %}{% url 'client_app:client-view' %}{% else %}{% url 'commercial_app:dashboard' %}{% endif %}" 
+                   class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
             </div>
-        {% endfor %}
-    </div>
-{% endif %}
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p class="text-sm font-semibold text-gray-800">
+                        {% if user.role == "client" %}
+                            {{ destinataire.nom_complet|default:"Commercial" }}
+                        {% else %}
+                            {{ client.nom_complet }}
+                        {% endif %}
+                    </p>
+                    <p class="text-xs text-gray-500">
+                        {% if user.role == "client" %}Votre commercial{% else %}Client{% endif %}
+                    </p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white shadow-md">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <h1>💬 Discussion</h1>
-    <div class="message-container" id="messages-container">
-        {% for message in messages %}
-            {% include 'partials/chat/message.html' %}
-        {% empty %}
-            <p>Aucun message pour le moment</p>
-        {% endfor %}
-    </div>
+    <main class="container mx-auto px-4 py-6 max-w-4xl h-screen flex flex-col" style="height: calc(100vh - 70px);">
+        
+        <!-- Zone des messages -->
+        <div id="messages-container" class="flex-1 bg-white rounded-2xl shadow-lg p-4 overflow-y-auto space-y-3 mb-4" style="max-height: calc(100vh - 180px);">
+            {% for message in messages %}
+                {% include 'partials/chat/message.html' %}
+            {% empty %}
+                <div class="flex flex-col items-center justify-center h-full text-gray-400">
+                    <i class="fas fa-comment-dots text-5xl mb-3"></i>
+                    <p>Aucun message pour le moment</p>
+                    <p class="text-sm">Soyez le premier à envoyer un message</p>
+                </div>
+            {% endfor %}
+        </div>
 
-    
-    {% if user.role == "client" %}
-    <form class="chat-form"
-          method="post"
-          hx-post="{% url 'chat_app:client_envoyer_message' %}"
-          hx-target="#messages-container"
-          hx-swap="beforeend"
-          hx-on::after-request='this.reset()'
-          >
-        {% csrf_token %}
-        <input type="text" name="contenu" placeholder="Votre message..." autocomplete="off">
-        <button type="submit">Envoyer</button>
-    </form>
+        <!-- Formulaire d'envoi -->
+        <div class="bg-white rounded-2xl shadow-lg p-3">
+            {% if user.role == "client" %}
+            <form class="chat-form flex gap-3"
+                  method="post"
+                  hx-post="{% url 'chat_app:client_envoyer_message' %}"
+                  hx-target="#messages-container"
+                  hx-swap="beforeend"
+                  hx-on::after-request="this.reset(); scrollToBottom()">
+                {% csrf_token %}
+                <input type="text" name="contenu" 
+                       placeholder="Votre message..." 
+                       autocomplete="off"
+                       class="flex-1 input input-bordered rounded-full px-5 py-3 focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-glow rounded-full px-6 py-3">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            {% else %}
+            <form class="chat-form flex gap-3"
+                  method="post"
+                  hx-post="{% url 'chat_app:commercial_envoyer_message' client_id=client.id %}"
+                  hx-target="#messages-container"
+                  hx-swap="beforeend"
+                  hx-on::after-request="this.reset(); scrollToBottom()">
+                {% csrf_token %}
+                <input type="text" name="contenu" 
+                       placeholder="Répondre à {{ client.nom_complet }}..." 
+                       autocomplete="off"
+                       class="flex-1 input input-bordered rounded-full px-5 py-3 focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-glow rounded-full px-6 py-3">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            {% endif %}
+        </div>
 
-{% else %}
-    <form class="chat-form"
-          method="post"
-          hx-post="{% url 'chat_app:commercial_envoyer_message' client_id=client.id %}"
-          hx-target="#messages-container"
-          hx-swap="beforeend"
-          hx-on::after-request='this.reset()'
-          >
-        {% csrf_token %}
-        <input type="text" name="contenu" placeholder="Répondre à {{ client.nom_complet }}" autocomplete="off">
-        <button type="submit">Envoyer</button>
-    </form>
-{% endif %}
-       
+    </main>
+
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+        .client-message {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            border-radius: 20px 20px 5px 20px;
+            max-width: 70%;
+            margin-left: auto;
+            padding: 10px 16px;
+        }
+        .commercial-message {
+            background: #f3f4f6;
+            color: #1f2937;
+            border-radius: 20px 20px 20px 5px;
+            max-width: 70%;
+            margin-right: auto;
+            padding: 10px 16px;
+        }
+        .client-message small {
+            color: rgba(255,255,255,0.7);
+        }
+        .commercial-message small {
+            color: #6b7280;
+        }
+        .client-message strong {
+            color: white;
+        }
+    </style>
+
+    <script>
+        function scrollToBottom() {
+            const container = document.getElementById('messages-container');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Scroll au chargement
+        document.addEventListener('DOMContentLoaded', scrollToBottom);
+
+        // Scroll après chaque échange HTMX
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.target.id === 'messages-container') {
+                scrollToBottom();
+            }
+        });
+
+        // Focus automatique sur le champ après envoi
+        document.body.addEventListener('htmx:afterRequest', function() {
+            const input = document.querySelector('.chat-form input');
+            if (input) input.focus();
+        });
+    </script>
+
 </body>
-<script>
-    const container = document.getElementById('messages-container');
-    container.scrollTop = container.scrollHeight;
-    
-    // Écoute l'événement après échange HTMX
-    document.body.addEventListener('htmx:after-request', function(evt) {
-        // Scroll auto
-        container.scrollTop = container.scrollHeight;
-    });
-</script>
-
 </html>
