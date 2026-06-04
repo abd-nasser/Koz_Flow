@@ -2,173 +2,269 @@
 {% load tailwind_tags %}
 {% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Détail maintenance - KOZ Services</title>
     {% tailwind_css %}
-    <link rel="stylesheet" href="{% static 'css/commercial/maintenance_detail_style.css' %}">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/client/client_maintenance_detail_style.css' %}">
 </head>
-<body>
-    <nav>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
-    </nav>
-    <header>
-        
-      
-                
-    </header>
-    <main>
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-    <div class="bg-white shadow rounded-lg p-6">
-        
-        <!-- En-tête avec statut -->
-        <div class="flex justify-between items-start mb-4">
-            <h1 class="text-2xl font-bold">🔧 Détail de la maintenance</h1>
-            <div class="badge badge-lg 
-                {% if maintenance.statut == 'effectuee' %}badge-success
-                {% elif maintenance.statut == 'annulee' or maintenance.statut == 'depassee' %}badge-error
-                {% elif maintenance.statut == 'confirmee' %}badge-info
-                {% elif maintenance.statut == 'en_cours' %}badge-warning
-                {% else %}badge-secondary{% endif %}">
-                {{ maintenance.get_statut_display }}
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'client_app:maintenance-list' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour à mes maintenances
+                </a>
             </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Détail de la maintenance</h1>
+            <div class="w-10"></div>
         </div>
+    </nav>
 
-        <!-- Alerte si dépassée -->
-        {% if maintenance.est_en_retard %}
-        <div class="bg-red-50 border border-red-200 rounded p-3 mb-4 text-sm text-red-700">
-            ⚠️ Cette maintenance est dépassée ! Contactez votre commercial rapidement.
-        </div>
-        {% endif %}
-
-        <!-- Informations véhicule -->
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">🚗 Véhicule concerné</h2>
-            <p><strong>Marque / Modèle :</strong> {{ maintenance.marque }} {{ maintenance.modele }}</p>
-            <p><strong>Année :</strong> {{ maintenance.annee }}</p>
-            <p><strong>Immatriculation :</strong> {{ maintenance.immatriculation }}</p>
-            <p><strong>Kilométrage actuel :</strong> {{ maintenance.kilometrage_actuel|intcomma }} km</p>
-            <p><strong>Origine :</strong> 
-                {% if maintenance.origine == 'koz' %}
-                    <span class="text-green-600">✅ Acheté chez KOZ</span>
-                {% else %}
-                    <span class="text-gray-500">🌍 Véhicule extérieur</span>
-                {% endif %}
-            </p>
-        </div>
-
-        <!-- Détails de la maintenance -->
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">🔧 Détails de l'intervention</h2>
-            <p><strong>Type :</strong> {{ maintenance.get_type_maintenance_display }}</p>
-            <p><strong>Priorité :</strong> 
-                <span class="badge 
-                    {% if maintenance.priorite == 'urgente' %}badge-error
-                    {% elif maintenance.priorite == 'haute' %}badge-warning
-                    {% else %}badge-info{% endif %}">
-                    {{ maintenance.get_priorite_display }}
-                </span>
-            </p>
-            <p><strong>Date prévue :</strong> {{ maintenance.date_prochaine|date:"d/m/Y" }}</p>
-            {% if maintenance.date_derniere %}
-            <p><strong>Date de la dernière maintenance :</strong> {{ maintenance.date_derniere|date:"d/m/Y" }}</p>
-            {% endif %}
-            <p><strong>Kilométrage pour prochaine maintenance :</strong> {{ maintenance.kilometrage_prochain|intcomma }} km</p>
-            <p><strong>Km restants :</strong> 
-                {% if maintenance.km_restant > 0 %}
-                    <span class="text-green-600">{{ maintenance.km_restant|intcomma }} km</span>
-                {% else %}
-                    <span class="text-red-600">⚠️ Dépassé</span>
-                {% endif %}
-            </p>
-        </div>
-
-        <!-- Prix -->
-        {% if maintenance.montant_estime %}
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">💰 Estimation</h2>
-            <p><strong>Montant estimé :</strong> {{ maintenance.montant_estime|intcomma }} FCFA</p>
-            {% if maintenance.montant_reel %}
-            <p><strong>Montant réel :</strong> {{ maintenance.montant_reel|intcomma }} FCFA</p>
-            {% endif %}
-        </div>
-        {% endif %}
-
-        <!-- Notes client -->
-        {% if maintenance.notes_client %}
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">📝 Vos notes</h2>
-            <p class="text-gray-600">{{ maintenance.notes_client }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Notes technicien -->
-        {% if maintenance.notes_technicien %}
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">🔧 Notes du technicien</h2>
-            <p class="text-gray-600">{{ maintenance.notes_technicien }}</p>
-        </div>
-        {% endif %}
-
-        <!-- Actions selon statut -->
-        <div class="mt-6 pt-3 border-t">
-            {% if maintenance.statut == 'planifiee' %}
-                <button class="btn btn_conf_maintenance" onclick="confirm_or_refuse_maintenance_modal.showModal()">Confirmer/Refuser</button>
-                {% include 'modals/maintenance/confirm_maintenance.html' %}
-                <p class="text-sm text-gray-500 mt-2">
-                    📌 Merci de confirmer votre disponibilité pour cette maintenance.
-                </p>
+    <main class="container mx-auto px-4 py-10 max-w-4xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
             
-            {% elif maintenance.statut == 'confirmee' %}
-                <div class="bg-blue-50 border border-blue-200 rounded p-3">
-                    <p class="text-blue-700">✅ Maintenance confirmée. Un commercial vous contactera pour le créneau horaire.</p>
+            <!-- Header avec statut -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            🔧 {{ maintenance.get_type_maintenance_display }}
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Programmé le {{ maintenance.date_prochaine|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if maintenance.statut == 'effectuee' %}bg-green-500 text-white
+                        {% elif maintenance.statut == 'annulee' or maintenance.statut == 'depassee' %}bg-red-500 text-white
+                        {% elif maintenance.statut == 'confirmee' %}bg-blue-500 text-white
+                        {% elif maintenance.statut == 'en_cours' %}bg-yellow-500 text-white
+                        {% else %}bg-gray-500 text-white{% endif %}">
+                        {{ maintenance.get_statut_display }}
+                    </div>
                 </div>
-            
-            {% elif maintenance.statut == 'en_cours' %}
-                <div class="bg-yellow-50 border border-yellow-200 rounded p-3">
-                    <p class="text-yellow-700">🔄 Votre maintenance est en cours. Nous vous tiendrons informé.</p>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <!-- Alerte si dépassée -->
+                {% if maintenance.est_en_retard %}
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-red-500"></i>
+                        <p class="text-red-700 font-semibold">Cette maintenance est dépassée !</p>
+                    </div>
+                    <p class="text-sm text-red-600 mt-1">Contactez votre commercial rapidement pour reprogrammer.</p>
                 </div>
-            
-            {% elif maintenance.statut == 'effectuee' %}
-                <div class="bg-green-50 border border-green-200 rounded p-3">
-                    <p class="text-green-700">✅ Maintenance effectuée. Merci pour votre confiance !</p>
-                    {% if maintenance.montant_reel %}
-                    <p class="text-sm mt-1">💰 Montant total : {{ maintenance.montant_reel|intcomma }} FCFA</p>
+                {% endif %}
+
+                <!-- Informations véhicule -->
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-car text-blue-600"></i>Véhicule concerné
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <p><span class="text-gray-500">Marque / Modèle :</span> <strong>{{ maintenance.marque }} {{ maintenance.modele }}</strong></p>
+                        <p><span class="text-gray-500">Année :</span> {{ maintenance.annee }}</p>
+                        <p><span class="text-gray-500">Immatriculation :</span> {{ maintenance.immatriculation }}</p>
+                        <p><span class="text-gray-500">Kilométrage actuel :</span> {{ maintenance.kilometrage_actuel|intcomma }} km</p>
+                        <p class="col-span-2"><span class="text-gray-500">Origine :</span> 
+                            {% if maintenance.origine == 'koz' %}
+                                <span class="text-green-600">✅ Acheté chez KOZ</span>
+                            {% else %}
+                                <span class="text-gray-500">🌍 Véhicule extérieur</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Détails de l'intervention -->
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-tools text-blue-600"></i>Détails de l'intervention
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <p><span class="text-gray-500">Type :</span> {{ maintenance.get_type_maintenance_display }}</p>
+                        <p><span class="text-gray-500">Priorité :</span> 
+                            <span class="badge px-2 py-1 rounded-full text-xs
+                                {% if maintenance.priorite == 'urgente' %}bg-red-100 text-red-700
+                                {% elif maintenance.priorite == 'haute' %}bg-orange-100 text-orange-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ maintenance.get_priorite_display }}
+                            </span>
+                        </p>
+                        <p><span class="text-gray-500">Date prévue :</span> {{ maintenance.date_prochaine|date:"d/m/Y" }}</p>
+                        {% if maintenance.date_derniere %}
+                        <p><span class="text-gray-500">Dernière maintenance :</span> {{ maintenance.date_derniere|date:"d/m/Y" }}</p>
+                        {% endif %}
+                        <p><span class="text-gray-500">Kilométrage prochain :</span> {{ maintenance.kilometrage_prochain|intcomma }} km</p>
+                        <p><span class="text-gray-500">Km restants :</span> 
+                            {% if maintenance.km_restant > 0 %}
+                                <span class="text-green-600">{{ maintenance.km_restant|intcomma }} km</span>
+                            {% else %}
+                                <span class="text-red-600">⚠️ Dépassé</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Estimation des coûts -->
+                {% if maintenance.montant_estime %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <i class="fas fa-coins text-blue-600"></i>Estimation
+                    </h3>
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <span class="text-sm text-gray-600">Montant estimé : <strong>{{ maintenance.montant_estime|intcomma }} FCFA</strong></span>
+                        {% if maintenance.montant_reel %}
+                        <span class="text-sm text-gray-600">Montant réel : <strong class="text-blue-700">{{ maintenance.montant_reel|intcomma }} FCFA</strong></span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if maintenance.notes_client %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i class="fas fa-pen text-blue-600"></i>Vos notes
+                    </h3>
+                    <p class="text-gray-600 text-sm">{{ maintenance.notes_client }}</p>
+                </div>
+                {% endif %}
+
+                {% if maintenance.notes_technicien %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i class="fas fa-wrench text-blue-600"></i>Notes du technicien
+                    </h3>
+                    <p class="text-gray-600 text-sm">{{ maintenance.notes_technicien }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Actions selon statut -->
+                <div class="border-t pt-4">
+                    {% if maintenance.statut == 'planifiee' %}
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="document.getElementById('confirm_maintenance_modal').showModal()" 
+                                class="btn-glow px-6 py-2 rounded-xl">
+                            <i class="fas fa-check-circle mr-2"></i>Confirmer ma venue
+                        </button>
+                        <button onclick="document.getElementById('refuse_maintenance_modal').showModal()" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md">
+                            <i class="fas fa-times-circle mr-2"></i>Annuler / Reporter
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">
+                        📌 Merci de confirmer votre disponibilité pour cette maintenance.
+                    </p>
+                    {% include 'modals/maintenance/confirm_maintenance.html' %}
+                    {% include 'modals/maintenance/refuse_maintenance.html' %}
+                    
+                    {% elif maintenance.statut == 'confirmee' %}
+                    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-4">
+                        <p class="text-blue-700 font-semibold">✅ Maintenance confirmée</p>
+                        <p class="text-sm text-blue-600 mt-1">Un commercial vous contactera pour le créneau horaire.</p>
+                    </div>
+                    
+                    {% elif maintenance.statut == 'en_cours' %}
+                    <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-xl p-4">
+                        <p class="text-yellow-700 font-semibold">🔄 Maintenance en cours</p>
+                        <p class="text-sm text-yellow-600 mt-1">Nous vous tiendrons informé de l'avancement.</p>
+                    </div>
+                    
+                    {% elif maintenance.statut == 'effectuee' %}
+                    <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4">
+                        <p class="text-green-700 font-semibold">✅ Maintenance effectuée</p>
+                        <p class="text-sm text-green-600 mt-1">Merci pour votre confiance !</p>
+                        {% if maintenance.montant_reel %}
+                        <p class="text-sm mt-2">💰 Montant total : <strong>{{ maintenance.montant_reel|intcomma }} FCFA</strong></p>
+                        {% endif %}
+                    </div>
+                    
+                    {% elif maintenance.statut == 'annulee' %}
+                    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
+                        <p class="text-red-700 font-semibold">❌ Maintenance annulée</p>
+                        <p class="text-sm text-red-600 mt-1">Contactez votre commercial pour reprogrammer.</p>
+                    </div>
+                    
+                    {% elif maintenance.statut == 'depassee' %}
+                    <div class="bg-orange-50 border-l-4 border-orange-500 rounded-xl p-4">
+                        <p class="text-orange-700 font-semibold">⚠️ Maintenance dépassée</p>
+                        <p class="text-sm text-orange-600 mt-1">Veuillez contacter votre commercial rapidement.</p>
+                        <a href="{% url 'client_app:renouveler-maintenance' maintenance.id %}" class="btn btn-sm bg-orange-600 hover:bg-orange-700 text-white mt-3 inline-flex items-center gap-2 rounded-xl px-4 py-2">
+                            <i class="fas fa-calendar-plus"></i>Demander un nouveau rendez-vous
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
-            
-            {% elif maintenance.statut == 'annulee' %}
-                <div class="bg-red-50 border border-red-200 rounded p-3">
-                    <p class="text-red-700">❌ Maintenance annulée. Contactez votre commercial pour reprogrammer.</p>
-                </div>
-            
-            {% elif maintenance.statut == 'depassee' %}
-                <div class="bg-orange-50 border border-orange-200 rounded p-3">
-                    <p class="text-orange-700">⚠️ Maintenance dépassée. Veuillez contacter votre commercial rapidement.</p>
-                    <a href="{% url 'commercial_app:renouveler-maintenance' maintenance.id %}" class="btn btn-sm btn-warning mt-2">
-                        🔄 Demander un nouveau rendez-vous
+
+                <!-- Bouton retour -->
+                <div class="text-center pt-2">
+                    <a href="{% url 'client_app:maintenance-list' %}" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à mes maintenances
                     </a>
                 </div>
-            {% endif %}
+            </div>
         </div>
+    </main>
 
-        <!-- Bouton retour -->
-        <div class="mt-6">
-            <a href="{% url 'commercial_app:maintenance-list' %}" class="btn btn-outline">◀ Retour à mes maintenances</a>
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
         </div>
+    </footer>
 
-    </div>
-</div>
-</main>
-<footer>
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
 
-</footer>
+    <script>
+        // Réouverture modale si erreur
+        {% if open_confirm_modal %}
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('confirm_maintenance_modal').showModal();
+        });
+        {% endif %}
+        {% if open_refuse_modal %}
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('refuse_maintenance_modal').showModal();
+        });
+        {% endif %}
+    </script>
 </body>
 </html>
-
-
-

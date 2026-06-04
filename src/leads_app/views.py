@@ -240,11 +240,9 @@ def estimer_prix_vehicule(request):
     # 4. Prix du véhicule = capital + apport
     prix_vehicule = capital + apport
 
-    # 5. On renvoie le résultat en JSON (HTMX l'affichera)
-    return JsonResponse({
-        'prix_estime': round(prix_vehicule)
-    })
-    
+    # 5. On renvoie le résultat HTML partiel pour HTMX
+    return render(request, "partials/leads/resulta_simulation.html", {"prix_estime": prix_vehicule})
+
 class DemandeFinView(LoginRequiredMixin, ListView):
     model = demande_financement
     context_object_name = "list_demande_financement"

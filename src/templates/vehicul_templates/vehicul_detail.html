@@ -1,46 +1,242 @@
 {% load static %}
 {% load tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/vehicul/vehicul_detail_style.css' %}">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <title>Détails de la voiture</title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>{{ vehicul.marque }} {{ vehicul.modele }} - KOZ Services</title>
 </head>
-<body>
-  {% if messages %}
-    <div class="messages">
+<body class="bg-gradient-to-br from-gray-50 to-blue-400 font-inter">
+    
+<div id="particles"></div>
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
-{% endif %}
-    <h1>{{ vehicul.marque }} {{ vehicul.modele }}</h1>
-    <img width="150" height="150" src="{{ vehicul.image_principale.url }}" alt="{{ vehicul.nom }}">
-    <p>Année: {{ vehicul.annee }}</p>
-    <p>Prix: {{ vehicul.prix }} FCFA</p>
-    <p>Description: {{ vehicul.description }}</p>
-    <p>Carburant: {{ vehicul.get_type_carburant_display }}</p>
-    
-    
-    <a href="{% url 'vehicul_app:list-vehicul' %}">🔙🔙🔙🔙🔙</a>
-    
-    {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
-        {% include 'modals/vehicul/up_vehicul.html' %}
-            <button class="btn" onclick="vehicul_modal.showModal()">Modifier la voiture</button>
-        {% include 'modals/vehicul/vehicul_confirm_delete.html' %}
-            <button class="btn btn-danger" onclick="delete_vehicul_modal.showModal()">Supprimer la voiture</button>
     {% endif %}
-    
-    {% if user.is_authenticated and not user.is_superuser or not user.is_staff %}
-    
-      <button class="btn btn_dmd_fin" onclick="dmd_fin_modal.showModal()">demander un financement</button>
-      {% include 'modals/leads/demande_financement.html' %}
 
-    {% endif %}
+    <!-- ========== NAVBAR MINIMALISTE ========== -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'vehicul_app:list-vehicul' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au catalogue
+                </a>
+            </div>
+            <div class="text-sm text-gray-500">
+                <i class="fas fa-car"></i> KOZ Services
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main>
+        
+        <!-- Grille principale : image principale + infos -->
+        <div class="image_principale_infos">
+            
+            <!-- Galerie d'images -->
+            <div class="space-y-4 image-full ">
+                <div class="relative overflow-hidden rounded-2xl shadow-xl bg-white group img_gallery">
+                    <img id="mainImage" src="{{ vehicul.image_principale.url }}" 
+                         alt="{{ vehicul.marque }} {{ vehicul.modele }}"
+                         class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
+                    <div class="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                        <i class="fas fa-expand"></i> Cliquez pour zoomer
+                    </div>
+                </div>
+                
+                <!-- Miniatures -->
+                <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
+                    <img src="{{ vehicul.image_principale.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                         onclick="changeImage('{{ vehicul.image_principale.url }}')">
+                    {% if vehicul.image_2 %}
+                    <img src="{{ vehicul.image_2.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                         onclick="changeImage('{{ vehicul.image_2.url }}')">
+                    {% endif %}
+                    {% if vehicul.image_3 %}
+                    <img src="{{ vehicul.image_3.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                         onclick="changeImage('{{ vehicul.image_3.url }}')">
+                    {% endif %}
+                    {% if vehicul.image_4 %}
+                    <img src="{{ vehicul.image_4.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                         onclick="changeImage('{{ vehicul.image_4.url }}')">
+                    {% endif %}
+                    {% if vehicul.image_5 %}
+                    <img src="{{ vehicul.image_5.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                         onclick="changeImage('{{ vehicul.image_5.url }}')">
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Informations principales -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 space-y-5 info_principales">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">{{ vehicul.marque.nom }} {{ vehicul.modele }}</h1>
+                            <p class="text-gray-500 mt-1">{{ vehicul.annee }} • {{ vehicul.get_carburant_display }}</p>
+                        </div>
+                        <div class="px-3 py-1 rounded-full text-sm font-semibold 
+                            {% if vehicul.disponible %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {% if vehicul.disponible %}✅ Disponible{% else %}❌ Vendu{% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <p class="text-3xl font-bold text-blue-700">{{ vehicul.prix }} FCFA</p>
+                    <p class="text-sm text-gray-500"><i class="fas fa-road mr-1"></i>{{ vehicul.kilometrage }} km</p>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <h3 class="font-semibold text-gray-700 mb-2">📝 Description</h3>
+                    <p class="text-gray-600 leading-relaxed">{{ vehicul.description|default:"Aucune description disponible." }}</p>
+                </div>
+                
+                <!-- Boutons d'action -->
+                <div class="flex flex-wrap gap-3 pt-4 border-t">
+                    {% if user.is_authenticated and not user.is_superuser and user.role != "directeur" %}
+                        <button onclick="document.getElementById('dmd_fin_modal').showModal()" 
+                                class="btn-glow px-8 py-3 rounded-xl font-semibold">
+                            <i class="fas fa-hand-holding-usd mr-2"></i>Demander un financement
+                        </button>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated and user.is_superuser or user.role == "directeur" %}
+                        <button onclick="document.getElementById('vehicul_modal').showModal()" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl transition">
+                            <i class="fas fa-edit mr-2"></i>Modifier
+                        </button>
+                        <button onclick="document.getElementById('delete_vehicul_modal').showModal()" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition">
+                            <i class="fas fa-trash mr-2"></i>Supprimer
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section caractéristiques détaillées (optionnelle) -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 caractéristiques">
+            <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Caractéristiques techniques</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="p-3 bg-gray-50 rounded-xl">
+                    <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
+                    <p class="font-semibold mt-1">{{ vehicul.annee }}</p>
+                    <p class="text-xs text-gray-500">Année</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl">
+                    <i class="fas fa-tachometer-alt text-blue-600 text-xl"></i>
+                    <p class="font-semibold mt-1">{{ vehicul.kilometrage }} km</p>
+                    <p class="text-xs text-gray-500">Kilométrage</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl">
+                    <i class="fas fa-gas-pump text-blue-600 text-xl"></i>
+                    <p class="font-semibold mt-1">{{ vehicul.get_carburant_display }}</p>
+                    <p class="text-xs text-gray-500">Carburant</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded-xl">
+                    <i class="fas fa-check-circle text-blue-600 text-xl"></i>
+                    <p class="font-semibold mt-1">Contrôle technique</p>
+                    <p class="text-xs text-gray-500">Inclus</p>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <!-- ========== MODALES ========== -->
+    {% include 'modals/vehicul/up_vehicul.html' %}
+    {% include 'modals/vehicul/vehicul_confirm_delete.html' %}
+    {% include 'modals/leads/demande_financement.html' %}
+
+    <script>
+        // Galerie d'images : changer l'image principale
+        function changeImage(src) {
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.src = src;
+                // Petite animation de fondu
+                mainImage.style.animation = 'fadeIn 0.3s ease';
+                setTimeout(() => { mainImage.style.animation = ''; }, 300);
+            }
+        }
+        
+        // Animation fadeIn (CSS)
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.98); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Zoom sur l'image principale (simulation)
+        const mainImage = document.getElementById('mainImage');
+        if (mainImage) {
+            mainImage.addEventListener('click', () => {
+                window.open(mainImage.src, '_blank');
+            });
+        }
+        
+        // Surligner la miniature active
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('border-blue-500'));
+                this.classList.add('border-blue-500');
+            });
+        });
+
+// Création des particules (ton code existant)
+    const particlesContainer = document.getElementById('particles');
+    if (particlesContainer) {
+        for (let i = 0; i < 100; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + 'vw';
+            particle.style.top = Math.random() * 100 + 'vh';
+            const size = Math.random() * 10 + 5;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            const hue = Math.random() * 40 + 200;
+            particle.style.backgroundColor = `hsla(${hue}, 80%, 65%, 0.3)`;
+            particle.style.animationDuration = Math.random() * 20 + 10 + 's';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+
+
+    </script>
+
 </body>
+</html>

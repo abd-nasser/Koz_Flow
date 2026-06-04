@@ -8,27 +8,103 @@
     {% tailwind_css %}
     <link rel="stylesheet" href="{% static 'css/vehicul/vehicul_list_style.css' %}">
     <script src="{% static 'js/htmx.min.js' %}"></script>
+    
+   
     <title>Liste des voitures</title>
 </head>
 <body>
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
-    
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold mb-6">🚗 Catalogue véhicules</h1>
+  <!-- Particules animées en fond -->
+    <div id="particles"></div>
 
-    {% include 'partials/vehiculs/partials_vehicul_list.html' %}
+<nav>
+    
+</nav>
+<header>
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+<div class="container mx-auto px-4 py-8">
+
+    <h1 class="text-3xl font-bold mb-6">🚗 Catalogue véhicules</h1>
+
+    <!-- ========== FILTRES (fixes, en dehors du partial) ========== -->
+    <div class="filters-container bg-white p-4 rounded shadow mb-6">
         
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Recherche textuelle -->
+            <input type="text" name="q" 
+                   placeholder="🔍 Rechercher un véhicule..." 
+                   class="input input-bordered w-full"
+                   hx-get="{% url 'vehicul_app:list-vehicul' %}"
+                   hx-target="#vehicules-list"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-include="[name='marque'], [name='carburant']"
+                   value="{{ request.GET.q }}">
+
+            <!-- Filtre par marque -->
+            <select name="marque" 
+                    class="select select-bordered w-full"
+                    hx-get="{% url 'vehicul_app:list-vehicul' %}"
+                    hx-target="#vehicules-list"
+                    hx-trigger="change"
+                    hx-include="[name='q'], [name='carburant']">
+                <option value="">📌 Toutes les marques</option>
+                {% for marque in marques %}
+                <option value="{{ marque.nom }}" {% if request.GET.marque == marque.nom %}selected{% endif %}>
+                    {{ marque.nom }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Filtre par carburant -->
+            <select name="carburant" 
+                    class="select select-bordered w-full"
+                    hx-get="{% url 'vehicul_app:list-vehicul' %}"
+                    hx-target="#vehicules-list"
+                    hx-trigger="change"
+                    hx-include="[name='q'], [name='marque']">
+                <option value="">⛽ Tous carburants</option>
+                {% for value, label in TYPES_CARBURANT %}
+                <option value="{{ value }}" {% if request.GET.carburant == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'vehicul_app:list-vehicul' %}" 
+               class="btn btn-outline btn-sm"
+               hx-get="{% url 'vehicul_app:list-vehicul' %}"
+               hx-target="#vehicules-list"
+               hx-swap="innerHTML">
+                🔄 Réinitialiser les filtres
+            </a>
+        </div>
+
     </div>
+
 </div>
 
+</header>
 
+<main>
+    <div id="vehicules-list">
+    {% include 'partials/vehiculs/partials_vehicul_list.html' %}
+    </div>
+</main>
+
+    <footer>
+    </footer>
+
+
+<script src="{% static 'js/vehicule/vehicule_script.js' %}"></script>
 </body>
 </html>

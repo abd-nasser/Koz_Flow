@@ -1,95 +1,185 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=, initial-scale=1.0">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    {% tailwind_css %}
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/client/client_offre_detail_style.css' %}">
-    {%tailwind_css%}
-    <title>Detail de l'offre</title>
-    
+    <title>Détail offre - KOZ Services</title>
 </head>
-<body>
-    <nav>
-        
-    </nav>
-    <header>
-             {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    </header>
-    <main>
- 
-<div class="container mx-auto px-4 py-8 max-w-4xl">
-    <div class="bg-white shadow rounded-lg p-6">
-        
-        <!-- En-tête avec statut -->
-        <div class="flex justify-between items-start mb-4">
-            <h1 class="text-2xl font-bold">📄 Offre de financement #{{ offre.id }}</h1>
-            <div class="badge badge-lg 
-                {% if offre.statut == 'acceptee' %}badge-success
-                {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}badge-error
-                {% elif offre.statut == 'envoyee' %}badge-warning
-                {% else %}badge-info{% endif %}">
-                {{ offre.get_statut_display }}
-            </div>
-        </div>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
-        <!-- Message d'expiration -->
-        {% if offre.statut == 'envoyee' %}
-        <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 text-sm text-yellow-700">
-            ⏰ Cette offre expire le <strong>{{ offre.date_expiration|date:"d/m/Y" }}</strong>.
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl">
+            <span>{{ message }}</span>
         </div>
-        {% endif %}
-
-        <!-- Véhicule proposé -->
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">🚗 Véhicule proposé</h2>
-            <p class="text-gray-800">{{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }} ({{ offre.vehicule_propose.annee }})</p>
-        </div>
-
-        <!-- Détails du financement -->
-        <div class="border-b pb-3 mb-3">
-            <h2 class="text-lg font-semibold text-gray-700">💰 Détails du financement</h2>
-            <div class="grid grid-cols-2 gap-2 text-sm mt-2">
-                <p><strong>Prix du véhicule :</strong> {{ offre.prix_vehicule|intcomma }} FCFA</p>
-                <p><strong>Apport demandé :</strong> {{ offre.apport_demande|intcomma }} FCFA</p>
-                <p><strong>Montant financé :</strong> {{ offre.montant_finance|intcomma }} FCFA</p>
-                <p><strong>Durée :</strong> {{ offre.duree_mois }} mois</p>
-                <p><strong>Taux d'intérêt :</strong> {{ offre.taux_interet }}%</p>
-                <p><strong>Mensualité :</strong> {{ offre.mensualite|intcomma }} FCFA</p>
-                <p><strong>Frais de dossier :</strong> {{ offre.frais_dossier|intcomma }} FCFA</p>
-                <p><strong>Frais de garantie :</strong> {{ offre.frais_garantie|intcomma }} FCFA</p>
-                <p class="font-bold text-green-700"><strong>Total à payer :</strong> {{ offre.total_du|intcomma }} FCFA</p>
-            </div>
-        </div>
-
-        <!-- Dates -->
-        <div class="text-sm text-gray-500 mb-4">
-            <p>📅 Offre créée le : {{ offre.date_creation|date:"d/m/Y H:i" }}</p>
-        </div>
-            
-       {% include 'modals/leads/offre_gestion.html' %}
-
-        <!-- Bouton retour -->
-        <div class="mt-6">
-            <a href="{% url 'client_app:client-view' %}" class="btn btn-outline">◀ Retour à mon espace</a>
-        </div>
-
+        {% endfor %}
     </div>
-</div>
+    {% endif %}
 
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'leads_app:offre-list-client' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour à mes offres
+                </a>
+            </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Détail de l'offre</h1>
+            <div class="w-10"></div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-10 max-w-4xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            📄 Offre #{{ offre.id }}
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Créée le {{ offre.date_creation|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if offre.statut == 'acceptee' %}bg-green-500 text-white
+                        {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}bg-red-500 text-white
+                        {% elif offre.statut == 'envoyee' %}bg-yellow-500 text-white
+                        {% else %}bg-gray-500 text-white{% endif %}">
+                        {{ offre.get_statut_display }}
+                    </div>
+                </div>
+                {% if offre.statut == 'envoyee' %}
+                <p class="text-blue-100 text-sm mt-2 flex items-center gap-1">
+                    <i class="fas fa-hourglass-half"></i> Offre valable jusqu'au {{ offre.date_expiration|date:"d/m/Y" }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="p-6 space-y-6">
+                
+                <!-- Véhicule -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                    <i class="fas fa-car text-3xl text-blue-600"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Véhicule proposé</p>
+                        <p class="font-bold text-gray-800 text-lg">
+                            {{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }} ({{ offre.vehicule_propose.annee }})
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grille financement -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Prix du véhicule</p>
+                        <p class="font-bold text-gray-800">{{ offre.prix_vehicule|intcomma }} FCFA</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Apport demandé</p>
+                        <p class="font-bold text-gray-800">{{ offre.apport_demande|intcomma }} FCFA</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Montant financé</p>
+                        <p class="font-bold text-blue-600">{{ offre.montant_finance|intcomma }} FCFA</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Durée</p>
+                        <p class="font-bold text-gray-800">{{ offre.duree_mois }} mois</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Taux d'intérêt</p>
+                        <p class="font-bold text-gray-800">{{ offre.taux_interet }}%</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-xs text-gray-500">Mensualité</p>
+                        <p class="font-bold text-green-600">{{ offre.mensualite|intcomma }} FCFA</p>
+                    </div>
+                </div>
+
+                <!-- Frais et total -->
+                <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <div class="flex justify-between items-center flex-wrap gap-2">
+                        <span class="text-sm text-gray-600">Frais de dossier : {{ offre.frais_dossier|intcomma }} FCFA</span>
+                        <span class="text-sm text-gray-600">Frais de garantie : {{ offre.frais_garantie|intcomma }} FCFA</span>
+                        <span class="font-bold text-gray-800">Total à payer : <span class="text-blue-700">{{ offre.total_du|intcomma }} FCFA</span></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                {% if offre.statut == 'envoyee' %}
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <a href="{% url 'leads_app:accepter-offre' offre.id %}" class="btn-glow px-6 py-2 rounded-xl">
+                        <i class="fas fa-check-circle mr-2"></i>Accepter l'offre
+                    </a>
+                    <a href="{% url 'leads_app:refuser-offre' offre.id %}" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md">
+                        <i class="fas fa-times-circle mr-2"></i>Refuser l'offre
+                    </a>
+                    <a href="{% url 'leads_app:negocier-offre' offre.id %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition">
+                        <i class="fas fa-comment-dots mr-2"></i>Négocier
+                    </a>
+                </div>
+                {% elif offre.statut == 'acceptee' %}
+                <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4">
+                    <p class="font-semibold text-green-800">✅ Offre acceptée</p>
+                    <p class="text-sm text-green-700 mt-1">Un commercial vous contactera pour la finalisation.</p>
+                </div>
+                {% elif offre.statut == 'refusee' %}
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
+                    <p class="font-semibold text-red-800">❌ Offre refusée</p>
+                    <p class="text-sm text-red-700 mt-1">Vous pouvez contacter votre commercial pour une autre proposition.</p>
+                </div>
+                {% elif offre.statut == 'expiree' %}
+                <div class="bg-gray-100 border-l-4 border-gray-500 rounded-xl p-4">
+                    <p class="font-semibold text-gray-800">⏰ Offre expirée</p>
+                    <p class="text-sm text-gray-700 mt-1">Contactez votre commercial pour une nouvelle offre.</p>
+                </div>
+                {% endif %}
+
+                <div class="text-center pt-4">
+                    <a href="{% url 'leads_app:offre-list-client' %}" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à mes offres
+                    </a>
+                </div>
+            </div>
+        </div>
     </main>
-    <footer>
 
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
     </footer>
+
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
 </body>
 </html>

@@ -1,89 +1,209 @@
 {% load static %}
 {% load tailwind_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/client/client_demande_detail_style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes demandes </title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/client/client_demande_detail_style.css' %}">
+    <title>Suivi de demande - KOZ Services</title>
 </head>
-<body>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
-<nav>
-
-</nav>
-<header>
-{% if messages %}
-    <div class="messages mb-4">
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
-</header>
 
-<main>
-    <div class="bg-white shadow rounded p-6">
-        <h2 class="text-2xl font-bold mb-2">🚗 Votre demande de financement</h2>
-        <p><strong>Véhicule choisi :</strong> 
-            {% if demande.Vehicul_interested %}
-                {{ demande.Vehicul_interested.marque.nom }} {{ demande.Vehicul_interested.modele }}
-            {% else %}
-                {{ demande.other_Vehicul_interested|default:"Non renseigné" }}
-            {% endif %}
-        </p>
-
-        <p class="mt-2"><strong>📌 Évolution de votre dossier :</strong></p>
-        <div class="badge badge-lg 
-            {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}badge-success
-            {% elif demande.etape == 'demand_refusee' %}badge-error
-            {% elif demande.etape == 'en_attente' %}badge-warning
-            {% else %}badge-info{% endif %}">
-            {{ demande.get_etape_display }}
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'client_app:client-view' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour à l'accueil
+                </a>
+            </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Suivi de ma demande</h1>
+            <div class="w-10"></div>
         </div>
+    </nav>
 
-        <!-- Bloc conditionnel : upload de documents -->
-        {% if demande.etape == "en_attente" %}
-            <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-                <p class="font-semibold">📎 Des documents sont requis pour finaliser votre dossier.</p>
-                <button class="btn btn-primary mt-2" onclick="upload_doc_modal.showModal()">
-                    📤 Télécharger mes documents
-                </button>
-            </div>
-            {% include 'modals/leads/upload_doc.html' %}
-        {% endif %}
-
-        <!-- Bloc supplémentaire si demande refusée -->
-        {% if demande.etape == "demand_refusee" %}
-            <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded">
-                <p class="font-semibold text-red-700">❌ Votre demande a été refusée.</p>
-                <p>Contactez votre commercial pour plus d'informations.</p>
-            </div>
-        {% endif %}
-
-        <!-- Bloc supplémentaire si demande accordée -->
-        {% if demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" %}
-            <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded">
-                <p class="font-semibold text-green-700">✅ Félicitations ! Votre demande a été acceptée.</p>
-                <p>Un commercial vous contactera très prochainement pour la finalisation.</p>
-            </div>
-        {% endif %}
-
-        <div class="mt-6">
-            <a href="{% url 'client_app:client-view' %}" class="btn btn-outline">◀ Retour à mon espace</a>
-        </div>
-    </div>
-
-</main>
-    
-
-    <footer>
+    <main class="container mx-auto px-4 py-10 max-w-4xl">
         
+        <!-- Carte principale -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header avec dégradé -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            🚗 Demande #{{ demande.id }}
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Déposée le {{ demande.date_creation|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}bg-green-500 text-white
+                        {% elif demande.etape == 'demand_refusee' %}bg-red-500 text-white
+                        {% elif demande.etape == 'en_attente' %}bg-yellow-500 text-white
+                        {% elif demande.etape == 'envoye' %}bg-yellow-700 text-white
+                        {% else %}bg-gray-500 text-white{% endif %}">
+                        {{ demande.get_etape_display }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corps de la carte -->
+            <div class="p-6 space-y-6">
+                
+                <!-- Véhicule souhaité -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-4">
+                    <i class="fas fa-car text-3xl text-blue-600"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Véhicule souhaité</p>
+                        <p class="font-bold text-gray-800 text-lg">
+                            {% if demande.Vehicul_interested %}
+                                {{ demande.Vehicul_interested.marque.nom }} {{ demande.Vehicul_interested.modele }}
+                            {% else %}
+                                {{ demande.other_Vehicul_interested|default:"Non renseigné" }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grille des infos financières -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-gray-50 rounded-xl p-3 text-center">
+                        <i class="fas fa-hand-holding-usd text-blue-500 text-xl mb-1 block"></i>
+                        <p class="text-xs text-gray-500">Apport</p>
+                        <p class="font-bold text-gray-800">{{ demande.apport|default:"0" }} FCFA</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 text-center">
+                        <i class="fas fa-calendar-alt text-blue-500 text-xl mb-1 block"></i>
+                        <p class="text-xs text-gray-500">Durée souhaitée</p>
+                        <p class="font-bold text-gray-800">{{ demande.duree_mois }} mois</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-3 text-center">
+                        <i class="fas fa-chart-line text-blue-500 text-xl mb-1 block"></i>
+                        <p class="text-xs text-gray-500">Revenus mensuels</p>
+                        <p class="font-bold text-gray-800">{{ demande.revenus_mensuel|default:"0" }} FCFA</p>
+                    </div>
+                </div>
+
+                <!-- Financement (si renseigné) -->
+                {% if demande.financement_type %}
+                <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <p class="text-sm text-gray-600 flex items-center gap-2">
+                        <i class="fas fa-building text-blue-600"></i>
+                        <strong>Financement :</strong> 
+                        {% if demande.financement_type == "maison" %}
+                            KOZ Finance (interne)
+                        {% else %}
+                            Externe - {{ demande.get_financement_par_display|default:"En attente" }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Bloc conditionnel : en attente de documents -->
+                {% if demande.etape == "en_attente" %}
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-xl p-5">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div>
+                            <p class="font-semibold text-yellow-800 flex items-center gap-2">
+                                <i class="fas fa-file-alt"></i>Documents requis
+                            </p>
+                            <p class="text-sm text-yellow-700 mt-1">
+                                Des documents sont nécessaires pour finaliser votre dossier.
+                            </p>
+                        </div>
+                        <button onclick="document.getElementById('upload_doc_modal').showModal()" 
+                                class="btn-glow px-6 py-2 rounded-xl">
+                            <i class="fas fa-upload mr-2"></i>Télécharger mes documents
+                        </button>
+                    </div>
+                </div>
+                {% include 'modals/leads/upload_doc.html' %}
+                {% endif %}
+
+                <!-- Bloc demande accordée -->
+                {% if demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" %}
+                <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-5">
+                    <p class="font-semibold text-green-800 flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i>Félicitations !
+                    </p>
+                    <p class="text-sm text-green-700 mt-1">
+                        Votre demande a été acceptée. Un commercial vous contactera très prochainement.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Bloc demande refusée -->
+                {% if demande.etape == "demand_refusee" %}
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5">
+                    <p class="font-semibold text-red-800 flex items-center gap-2">
+                        <i class="fas fa-times-circle"></i>Demande refusée
+                    </p>
+                    <p class="text-sm text-red-700 mt-1">
+                        Contactez votre commercial pour plus d'informations.
+                    </p>
+                </div>
+                {% endif %}
+
+                <!-- Bouton retour -->
+                <div class="text-center pt-4 border-t border-gray-100">
+                    <a href="{% url 'client_app:client-view' %}" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à mon espace
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
     </footer>
 
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+
+    <script>
+        // Script de réouverture du modal en cas d'erreur
+        {% if open_upload_modal %}
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('upload_doc_modal').showModal();
+        });
+        {% endif %}
+    </script>
+
 </body>
+</html>

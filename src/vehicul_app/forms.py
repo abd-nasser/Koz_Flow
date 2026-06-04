@@ -23,7 +23,8 @@ class VehiculForm(forms.ModelForm):
         model = Vehicul
         fields = ["marque","modele", "annee",
                   "prix", "kilometrage", "carburant",
-                  "image_principale", "disponible", "description",
+                  "image_principale", "image_2", "image_3", "image_4", "image_5",
+                  "disponible", "description",
                   ]
         
         widgets = {
@@ -34,6 +35,10 @@ class VehiculForm(forms.ModelForm):
             "kilometrage": forms.NumberInput(attrs={"class":"input input-bordered w-full", "placeholder":"Saisir le kilométrage"}),
             "carburant": forms.Select(attrs={"class":"select select-bordered w-full"}),
             "image_principale": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
+            "image_2": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
+            "image_3": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
+            "image_4": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
+            "image_5": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
             "disponible": forms.CheckboxInput(attrs={"class":"checkbox checkbox-info"}),
             "description": forms.Textarea(attrs={"class":"textarea textarea-info w-full", "placeholder":"Saisir la description", "rows": 4}),
             }

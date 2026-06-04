@@ -31,6 +31,12 @@ class Vehicul(models.Model):
     # ImageField pour la photo principale de la voiture
     image_principale = models.ImageField(upload_to='vehicules/')
     
+    #Image pour details de la voiture
+    image_2 = models.ImageField(upload_to='vehicules/', null=True, blank=True)
+    image_3 = models.ImageField(upload_to='vehicules/', null=True, blank=True)
+    image_4 = models.ImageField(upload_to='vehicules/', null=True, blank=True)
+    image_5 = models.ImageField(upload_to='vehicules/', null=True, blank=True)
+    
     disponible = models.BooleanField(default=False)
     description = models.TextField(null=True, blank= True)
     date_ajout = models.DateTimeField(auto_now_add=True)

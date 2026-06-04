@@ -1,69 +1,259 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src= "{% static 'js/htmx.min.js' %}"></script>
-    <title> details Document</title>
-    {%tailwind_css%}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Mon dossier - KOZ Services</title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    {% tailwind_css %}
 </head>
-<body>
- {% if messages %}
-    <div class="messages">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
+
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- clients_templates/client_detail_doc.html -->
-<h1>📁 Mon dossier de financement</h1>
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'leads_app:documents-list' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour à mes documents
+                </a>
+            </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Mon dossier</h1>
+            <div class="w-10"></div>
+        </div>
+    </nav>
 
-<p><strong>Statut dossier :</strong> {{ document.get_statut_dossier_display }}</p>
+    <main class="container mx-auto px-4 py-10 max-w-4xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header avec statut -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            📁 Dossier de financement
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Envoyé le {{ document.date_upload|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if document.statut_dossier == 'valide' %}bg-green-500 text-white
+                        {% elif document.statut_dossier == 'rejete' %}bg-red-500 text-white
+                        {% elif document.statut_dossier == 'verification' %}bg-blue-500 text-white
+                        {% elif document.statut_dossier == 'modification' %}bg-orange-500 text-white
+                        {% else %}bg-yellow-500 text-white{% endif %}">
+                        {{ document.get_statut_dossier_display }}
+                    </div>
+                </div>
+            </div>
 
-<h3>📄 Documents fournis</h3>
-<ul>
-    <li>CNI/Passeport : {% if document.cni_passeport %}✅ Envoyé{% else %}❌ En attente{% endif %}</li>
-    <li>Justificatif domicile : {% if document.justificatif_domicile %}✅ Envoyé{% else %}❌ En attente{% endif %}</li>
-    <li>Quittance salaire : {% if document.quittance_salaire %}✅ Envoyé{% else %}❌ En attente{% endif %}</li>
-    <li>Relevé bancaire : {% if document.relevé_bancaire %}✅ Envoyé{% else %}❌ En attente{% endif %}</li>
-</ul>
+            <div class="p-6 space-y-6">
 
-<h3>📎 Documents supplémentaires</h3>
-<ul>
-    <li>Contrat travail : {% if document.contrat_travail %}✅ Envoyé{% else %}❌ Non fourni{% endif %}</li>
-    <li>Avis imposition : {% if document.avis_imposition %}✅ Envoyé{% else %}❌ Non fourni{% endif %}</li>
-    <li>Autres : {% if document.autres %}✅ Envoyé{% else %}❌ Non fourni{% endif %}</li>
-</ul>
+                <!-- Section documents obligatoires -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-check-circle text-blue-600"></i>Documents obligatoires
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">🆔 CNI / Passeport</span>
+                            {% if document.cni_passeport %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">🏠 Justificatif de domicile</span>
+                            {% if document.justificatif_domicile %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">💰 Quittance de salaire</span>
+                            {% if document.quittance_salaire %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">🏦 Relevé bancaire</span>
+                            {% if document.relevé_bancaire %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-<p><strong>Date d'envoi :</strong> {{ document.date_upload|date:"d/m/Y H:i" }}</p>
+                <!-- Section documents supplémentaires -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-paperclip text-blue-600"></i>Documents supplémentaires
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-sm text-gray-600">📄 Contrat travail</span>
+                            {% if document.contrat_travail %}
+                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-sm text-gray-600">📊 Avis imposition</span>
+                            {% if document.avis_imposition %}
+                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-sm text-gray-600">📎 Autres</span>
+                            {% if document.autres %}
+                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-<div>
-    
-   
-   {% if document.statut_dossier == "modification" %}
-     <button class="btn btn_mdf_doc" onclick="update_doc_modal.showModal()">📤 Ajouter/remplacer un document</button>
-    {% include 'modals/leads/update_doc.html' %}
-   {% endif %}
-    
-   
-    <a href="{% url 'leads_app:documents-list'%}">◀ Retour</a>
-</div>
+                <!-- Message rejet -->
+                {% if document.statut_dossier == 'rejete' %}
+                <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-times-circle text-red-500 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-red-800">Dossier rejeté</p>
+                            <p class="text-sm text-red-700 mt-1">Votre dossier a été rejeté. Contactez votre commercial pour plus d'informations.</p>
+                            <div class="flex gap-3 mt-3">
+                                <a href="{% url 'chat_app:chat-view' %}" class="btn btn-sm bg-blue-600 text-white px-4 py-2 rounded-xl">
+                                    <i class="fas fa-comment-dots mr-1"></i>Contacter mon commercial
+                                </a>
+                                <button onclick="document.getElementById('delete_doc_modal').showModal()" 
+                                        class="btn btn-sm bg-red-600 text-white px-4 py-2 rounded-xl">
+                                    <i class="fas fa-trash mr-1"></i>Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% include 'modals/leads/confirm_doc_delete.html' %}
+                {% endif %}
 
-{% if document.statut_dossier == 'rejete' %}
-    <p>❌ Votre dossier a été rejeté. Contactez votre commercial.</p>
-    <a href="{% url 'chat_app:chat-view' %}">💬 Envoyer un message</a>
+                <!-- Message modification -->
+                {% if document.statut_dossier == 'modification' %}
+                <div class="bg-orange-50 border-l-4 border-orange-500 rounded-xl p-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-edit text-orange-500 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-orange-800">Modification demandée</p>
+                            <p class="text-sm text-orange-700 mt-1">Des modifications sont nécessaires. Veuillez remplacer ou ajouter les documents demandés.</p>
+                            <button onclick="document.getElementById('update_doc_modal').showModal()" 
+                                    class="btn-glow mt-3 px-6 py-2 rounded-xl">
+                                <i class="fas fa-upload mr-2"></i>Ajouter / Remplacer un document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% include 'modals/leads/update_doc.html' %}
+                {% endif %}
 
-    <button class= "btn btn_supp" onclick="delete_doc_modal.showModal()">Supprimer</button>
-  {% include 'modals/leads/confirm_doc_delete.html' %}
+                <!-- Message validation -->
+                {% if document.statut_dossier == 'valide' %}
+                <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-green-800">Dossier validé</p>
+                            <p class="text-sm text-green-700 mt-1">Félicitations ! Votre dossier a été validé. La suite du processus va être déclenchée.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
-{% elif document.statut_dossier == 'valide' %}
-    <p>✅ Votre dossier est validé !</p>
-{% endif %}
-    
+                <!-- Message dossier en vérification -->
+                {% if document.statut_dossier == 'verification' %}
+                <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-5">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-spinner fa-pulse text-blue-500 text-xl"></i>
+                        <div>
+                            <p class="font-semibold text-blue-800">Dossier en vérification</p>
+                            <p class="text-sm text-blue-700 mt-1">Votre dossier est en cours d'analyse. Nous vous tiendrons informé dès qu'une décision sera prise.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Bouton retour -->
+                <div class="text-center pt-4 border-t border-gray-100">
+                    <a href="{% url 'leads_app:documents-list' %}" class="text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Retour à mes documents
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+
+    <script>
+        // Réouverture modale si besoin
+        {% if open_update_modal %}
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('update_doc_modal').showModal();
+        });
+        {% endif %}
+        {% if open_delete_modal %}
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('delete_doc_modal').showModal();
+        });
+        {% endif %}
+    </script>
 </body>
 </html>

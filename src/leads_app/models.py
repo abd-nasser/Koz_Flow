@@ -30,7 +30,7 @@ class demande_financement(models.Model):
         TABLE WHO STOCK REQUEST Financement
     """
     ETAPES = [
-        ("nouvelle", "Nouvelle demande"),
+        ("envoye", "envoyée"),
         ("en_attente", "en attente de document"),
         ("en_cours", "En cours de traitement"),
         ("demande_accordee_fidelis", "Demande accordée chez Fidelis"),
@@ -95,7 +95,7 @@ class demande_financement(models.Model):
     revenus_mensuel = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
     #------5.WORKFLOW(where is the dir ?)-------
-    etape = models.CharField(max_length=70, choices=ETAPES, default="nouvelle")
+    etape = models.CharField(max_length=70, choices=ETAPES, default="envoye")
     
     
     notes_commercial = models.TextField(blank=True)
