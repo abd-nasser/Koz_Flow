@@ -22,7 +22,7 @@ class Maintenance(models.Model):
     # ----- STATUTS -----
     STATUT_CHOICES = [
         ('planifiee', 'Planifiée'),
-        ('confirmee', 'Confirmée par client'),
+        ('confirmee', 'Confirmée'),
         ('en_cours', 'En cours'),
         ('effectuee', 'Effectuée'),
         ('depassee', 'Dépassée (non faite)'),

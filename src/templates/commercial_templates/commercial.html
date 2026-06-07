@@ -1,90 +1,233 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <script src="{% static 'js/htmx.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'css/commercial/commercial_style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commercial Dashboard</title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/commercial/commercial_style.css' %}">
+    <title>Tableau de bord - KOZ Services</title>
 </head>
-<body>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
+    <!-- Messages flash -->
     {% if messages %}
-    <div class="messages">
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
-{% endif %}
-    <nav>
+    {% endif %}
 
-    </nav>
-    <header>
-        
-    <button class="btn" onclick="change_pass_modal.showModal()">Changer Identifiants</button>
-    
-    <button class="btn" onclick="userregister_modal.showModal()">Ajouter Un client</button>
-
-    <a class="btn btn_dmd_financement" href="{% url 'leads_app:list-demande-financement' %}">Liste des demandes</a>
-
-    <a class="btn btn_all_dossier" href="{% url 'leads_app:documents-list' %}"> Voir tout les dossiers</a>
-      
-    <a class="btn btn_all_offre" href="{% url 'commercial_app:offre-list' %}"> Voir tout les offres</a>
-
-    <a class="btn btn_all_maintenance" href="{% url 'commercial_app:maintenance-list' %}">Voir toutes les maintenances</a>
-    <a class="btn btn_all_vente" href="{% url 'commercial_app:vente-list' %}">Voir toutes les ventes</a>
-    <a class='btn btn_dashboard' href="{% url 'dashboard_app:dashboard-view' %}">Chart/ Dashboard</a>
-   
-
-     <div class="flex items-center space-x-4">
-                    <span class="text-gray-600">{{ user.email }}</span>
-                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
-                        Déconnexion
-                    </button>
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
             </div>
-    </header>
-    
-    <main>
-        
-        {% for client in clients %}
-            <tr>
-                <td>
-                    {{client.nom_complet}}
-                    
-                    {% if client.nb_message_non_lus > 0 %}
-                        <span class="badge">{{ client.nb_message_non_lus }}</span>    
-                    {% endif %}
-                        
-                </td>
-                <td>{{ client.dernier_message.contenu|default:"—" }}</td>
-                <td>{{ client.dernier_message.date_envoi|timesince|default:"—" }}</td>
-                <a href="{% url 'chat_app:chat-view' client.id %}">💬 Discuter</a>
-                <br>
-                <a href="{% url 'client_app:client-detail' client.id %}">Voir le profil</a>
-            </tr>
-        {% endfor %}
-             {% include 'modals/auth/userregister.html' %}
-             {% include 'modals/auth/change_password.html' %}
-    </main>
-    <footer>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-600 text-sm hidden md:inline">{{ user.email }}</span>
+                <div class="relative">
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
+    <!-- Header avec bienvenue -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold">
+                        Bonjour, <span class="text-yellow-300">{{ user.nom_complet }}</span>
+                    </h1>
+                    <p class="text-blue-100 mt-1">Gérez vos clients et leurs demandes</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="document.getElementById('userregister_modal').showModal()" 
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2">
+                        <i class="fas fa-user-plus"></i> Ajouter un client
+                    </button>
+                    <button onclick="document.getElementById('change_pass_modal').showModal()" 
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2">
+                        <i class="fas fa-key"></i> Changer mot de passe
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section KPI (stats rapides) -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">👥 Clients</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ clients|length }}</p>
+                    </div>
+                    <i class="fas fa-users text-3xl text-blue-500 opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">📋 Demandes en cours</p>
+                        <p class="text-2xl font-bold text-gray-800">{{demande_financement_en_cours }}</p>
+                    </div>
+                    <i class="fas fa-file-alt text-3xl text-green-500 opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">💰 Offres acceptées</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ offres_acceptees }}</p>
+                    </div>
+                    <i class="fas fa-check-circle text-3xl text-green-500 opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">🔧 Maintenances à venir</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ maintenance_planifiee }}</p>
+                    </div>
+                    <i class="fas fa-tools text-3xl text-orange-500 opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">💬 Messages non lus</p>
+                        <p class="text-2xl font-bold text-red-600">{{ total_non_lus }}</p>
+                    </div>
+                    <i class="fas fa-comment-dots text-3xl text-red-500 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation rapide -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+            <a href="{% url 'leads_app:list-demande-financement' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-file-alt text-xl text-blue-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Demandes</p>
+            </a>
+            <a href="{% url 'leads_app:documents-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-folder-open text-xl text-yellow-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Dossiers</p>
+            </a>
+            <a href="{% url 'commercial_app:offre-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-tags text-xl text-purple-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Offres</p>
+            </a>
+            <a href="{% url 'commercial_app:maintenance-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-tools text-xl text-orange-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Maintenances</p>
+            </a>
+            <a href="{% url 'commercial_app:vente-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-chart-line text-xl text-green-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Ventes</p>
+            </a>
+            <a href="{% url 'dashboard_app:dashboard-view' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-chart-pie text-xl text-indigo-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Dashboard</p>
+            </a>
+        </div>
+
+        <!-- Liste des clients -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-users text-blue-600"></i> Mes clients
+                </h2>
+                <span class="text-sm text-gray-500">{{ clients|length }} client(s)</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dernier message</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for client in clients %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                                        {{ client.nom_complet|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-800">{{ client.nom_complet }}</p>
+                                        <p class="text-xs text-gray-500">{{ client.email }}</p>
+                                    </div>
+                                    {% if client.nb_message_non_lus > 0 %}
+                                    <span class="badge bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ client.nb_message_non_lus }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                                {{ client.dernier_message.contenu|default:"—"|truncatechars:40 }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ client.dernier_message.date_envoi|timesince|default:"—" }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2">
+                                    <a href="{% url 'chat_app:chat-view' client.id %}" class="text-blue-600 hover:text-blue-800 transition" title="Discuter">
+                                        <i class="fas fa-comment-dots text-lg"></i>
+                                    </a>
+                                    <a href="{% url 'client_app:client-detail' client.id %}" class="text-green-600 hover:text-green-800 transition" title="Profil">
+                                        <i class="fas fa-user-circle text-lg"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
+                                <p>Aucun client assigné pour le moment.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    {% include 'modals/auth/userregister.html' %}
+    {% include 'modals/auth/change_password.html' %}
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
     </footer>
 
-        
     <script>
         // Gestion de la déconnexion
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             const refresh = localStorage.getItem('refresh_token');
-            if (refresh) {
-                console.log('Refresh token found');
-                console.log('Refresh token:', refresh);
-            };
-
             await fetch('/api/auth/logout/', {
                 method: 'POST',
                 headers: {
@@ -93,28 +236,22 @@
                 },
                 body: JSON.stringify({refresh: refresh})
             });
-
-            localStorage.clear();  
-            window.location.href = 'http://127.0.0.1:8000/';
-
+            localStorage.clear();
+            window.location.href = '/';
         });
 
-        
-        // Vérifier que le token est toujours valide
+        // Vérification périodique du token
         setInterval(async () => {
             const token = localStorage.getItem('access_token');
             if (!token) return;
-            
             const response = await fetch('/api/auth/me/', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
-            
             if (response.status === 401) {
-                // Token expiré, rediriger vers login
                 localStorage.clear();
-                window.location.href = 'http://127.0.0.1:8000/';
+                window.location.href = '/';
             }
-        }, 60000); // Vérifier toutes les minutes
+        }, 60000);
     </script>
 </body>
 </html>

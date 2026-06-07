@@ -44,13 +44,14 @@ def creer_offre(request, demande_id):
     
     if hasattr(demande.client, 'offre'):
         messages.warning(request, "Une offre existe déjà pour ce client.")
-        return redirect('commercial_app:offre-detail', offre_id=demande.client.offre.id)
+        return redirect('commercial_app:offre-detail', demande.client.offre.id)
     
     if request.method == 'POST':
         form = OffreForm(request.POST)
         if form.is_valid():
             offre = form.save(commit=False)
             offre.client = demande.client
+            offre.demande_financement = demande
             offre.prix_vehicule = form.cleaned_data['prix_vehicule']
             offre.apport_demande = form.cleaned_data['apport_demande']
             offre.montant_finance = offre.prix_vehicule - offre.apport_demande
@@ -90,9 +91,9 @@ def creer_offre(request, demande_id):
             
             # Redirection selon le rôle
             if request.user.role == 'commercial':
-                return redirect('commercial_app:offre-detail', offre_id=offre.id)
+                return redirect('commercial_app:offre-detail', offre.pk)
             else:
-                return redirect('directeur_app:offre-detail', offre_id=offre.id)
+                return redirect('directeur_app:offre-detail', offre.pk)
         else:
             # Formulaire invalide
             template = 'commercial_templates/commercial_demande_detail.html' if request.user.role == 'commercial' else 'directeur_templates/directeur_demande_detail.html'
@@ -111,20 +112,21 @@ def accepter_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Cette offre ne peut pas être acceptée.")
-        return redirect('commercial_app:offre-detail', offre_id=offre.id)
+        return redirect('commercial_app:offre-detail', offre.pk)
     
     offre.statut = 'acceptee'
     offre.save()
     
     # Créer la vente associée
-    client = offre.client
+   
     vente = Vente.objects.create(
-        client=client,
-        demande_financement=client.demande_financement,
+        client=offre.client,
+        demande_financement=offre.demande_financement,
         statut='conclue_par_offre_acceptee',
         montant=offre.montant_finance
     )
     
+    client = offre.client
     # ✉️ EMAIL AU COMMERCIAL ASSIGNÉ
     commercial = client.assigned_commercial
     if commercial and commercial.email:
@@ -153,7 +155,7 @@ def accepter_offre(request, offre_id):
             print(f"Erreur envoi email au commercial: {e}")
     
     messages.success(request, "Offre acceptée. Vente enregistrée. Le commercial a été notifié.")
-    return redirect('commercial_app:offre-detail', offre_id=offre.id)
+    return redirect('commercial_app:offre-detail', offre.pk)
 
 @login_required
 def refuser_offre(request, offre_id):
@@ -161,7 +163,7 @@ def refuser_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Cette offre ne peut pas être refusée.")
-        return redirect('leads_app:offre-detail', offre_id=offre.id)
+        return redirect('leads_app:offre-detail', offre.pk)
     
     offre.statut = 'refusee'
     offre.save()
@@ -192,7 +194,7 @@ def refuser_offre(request, offre_id):
             print(f"Erreur envoi email au commercial: {e}")
     
     messages.info(request, "Offre refusée. Le commercial a été notifié.")
-    return redirect('leads_app:offre-detail', offre_id=offre.id)
+    return redirect('leads_app:offre-detail', offre.pk)
 
 @login_required
 def negocier_offre(request, offre_id):
@@ -200,7 +202,7 @@ def negocier_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Seules les offres envoyées peuvent être renégociées.")
-        return redirect('leads_app:offre-detail', offre_id=offre.id)
+        return redirect('leads_app:offre-detail', offre.pk)
     
     # 1️⃣ Changer le statut de l'offre
     offre.statut = 'brouillon'
@@ -238,9 +240,9 @@ def negocier_offre(request, offre_id):
     
     # 4️⃣ Redirection selon le rôle
     if request.user.role == 'client':
-        return redirect('leads_app:offre-detail', offre_id=offre.id)
+        return redirect('leads_app:offre-detail', offre.pk)
     else:
-        return redirect('commercial_app:offre-detail', offre_id=offre.id)
+        return redirect('commercial_app:offre-detail', offre.pk)
     
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
@@ -262,8 +264,33 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
             context["change_pass_form"] = ChangePasswordForm()
             
         #liste des clients assigné à ce commercial
-        client = self.request.user.clients_assignes.all()
-        context['clients'] = client 
+        clients = self.request.user.clients_assignes.all()
+        context['clients'] = clients
+        
+        # Compter les demandes en cours (requête efficace)
+        demandes_en_cours = demande_financement.objects.filter(
+            client__in=clients,
+            etape="en_cours"
+        ).count()
+        context['demande_financement_en_cours'] = demandes_en_cours
+        
+        #Compter les offres 
+        offres_acceptees = Offre.objects.filter(
+            client__in=clients,
+            statut="acceptee"
+            
+        ).count()
+        context["offres_acceptees"] = offres_acceptees
+        
+        #Maintenance planifié
+        maintenance_planifiee = Maintenance.objects.filter(
+            client__in=clients,
+            statut="planifiee"
+        ).count()
+        
+        context["maintenance_planifiee"] = maintenance_planifiee
+        
+        #message non lus
         context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
         
         return context
@@ -275,13 +302,19 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
     template_name = "clients_templates/client_detail.html"
     success_url = reverse_lazy("client_app:detail-client")
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "offre_simple_form" not in context:
+            context["offre_simple_form"] = OffreForm()
+        return context
+    
     def form_valid(self, form):
         client_id = self.kwargs.get("pk")
         client = get_object_or_404(kozUser, id=client_id)
         
         form.instance.client = client
         form.instance.type_offre = "simple"
-        form.instance.statut = "envoyee"  # ← Statut envoyé directement
+        form.instance.statut = "envoyee"
         offre = form.save()
         
         # ✉️ EMAIL AU CLIENT
@@ -315,12 +348,20 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
     
     def form_invalid(self, form):
+        """
+        En cas d'erreur dans le formulaire, on rouvre le modal
+        avec le formulaire contenant les erreurs
+        """
+        # Récupère la vue de détail client pour avoir le contexte
         detail_view = ClientDetailView()
         detail_view.request = self.request
         detail_view.kwargs = self.kwargs
         context = detail_view.get_context_data()
+        
+        # Remplace le formulaire par celui avec les erreurs
         context["offre_simple_form"] = form
-        context["open_offre_simple_modal"] = True
+        context["open_offre_simple_modal"] = True  # ← Flag pour rouvrir le modal
+        
         return self.render_to_response(context)
     
 class OffreView(LoginRequiredMixin, ListView):
@@ -494,7 +535,7 @@ def confirmer_maintenance(request, maintenance_id):
             print(f"Erreur envoi email: {e}")
     
     messages.success(request, "Votre maintenance a été confirmée. Un email a été envoyé à votre commercial.")
-    return redirect('client_app:maintenance-detail', pk=maintenance.id)
+    return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
 
     
 @login_required
@@ -738,10 +779,10 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context =  super().get_context_data(**kwargs)
         context["maintenance_form"] = MaintenanceForm()
-        context["type_maintenance_choices"] = Maintenance.TYPE_CHOICES
+        context["TYPE_CHOICES"] = Maintenance.TYPE_CHOICES
         context["priorite_choices"] = Maintenance.PRIORITE_CHOICES
         context["origine_choices"] = Maintenance.ORIGINE_CHOICES
-        context["statut_choices"] = Maintenance.STATUT_CHOICES
+        context["STATUT_CHOICES"] = Maintenance.STATUT_CHOICES
         return context
     
 class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -767,7 +808,7 @@ class MaintenanceDetailView(LoginRequiredMixin, DetailView):
             return ["partials/maintenance/partials_maintenance_detail.html" if is_htmx else "directeur_templates/directeur_maintenance_detail.html"]
         
         if self.request.user.role == "commercial" or self.request.user.is_staff: 
-            return ["partials/maintenance/partials_maintenance_detail.html" if is_htmx else "commercial_templates/maintenance_detail.html"]
+            return ["partials/maintenance/partials_maintenance_detail.html" if is_htmx else "commercial_templates/commercial_maintenance_detail.html"]
         
         return["partials/maintenance/partials_maintenance_detail.html" if is_htmx else 'clients_templates/client_maintenance_detail.html']
 

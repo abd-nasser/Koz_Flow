@@ -1,37 +1,98 @@
-
-
-<!-- Modal -->
+<!-- Modal de création de maintenance -->
 <dialog id="maintenanceModal" class="modal">
-    <div class="modal-box w-11/12 max-w-2xl">
-        <form method="post" action="{% url 'commercial_app:maintenance-create' %}" enctype="multipart/form-data">
+    <div class="modal-box w-full max-w-2xl p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
+        
+        <!-- Header avec dégradé -->
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-plus-circle mr-2"></i>Nouvelle maintenance
+                </h3>
+                <button type="button" class="text-white/80 hover:text-white text-2xl leading-none transition" 
+                        onclick="document.getElementById('maintenanceModal').close()">&times;</button>
+            </div>
+            <p class="text-blue-100 text-sm mt-1">Planifiez une intervention pour un client</p>
+        </div>
+
+        <!-- Corps du modal avec formulaire -->
+        <form method="post" action="{% url 'commercial_app:maintenance-create' %}" enctype="multipart/form-data" class="p-6">
             {% csrf_token %}
-            <h3 class="font-bold text-lg mb-4">🔧 Nouvelle maintenance</h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {% for field in maintenance_form %}
-                    <div class="form-group {% if field.name == 'notes_client' %}col-span-2{% endif %}">
-                        {{ field.label_tag }}
+                    <div class="form-group {% if field.name == 'notes_client' or field.name == 'notes_technicien' %}md:col-span-2{% endif %}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-red-500 ml-0.5">*</span>
+                            {% endif %}
+                        </label>
                         {{ field }}
+                        {% if field.help_text %}
+                            <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+                        {% endif %}
                         {% if field.errors %}
-                            <div class="text-red-500 text-sm mt-1">
-                                {{ field.errors }}
+                            <div class="mt-1 text-red-500 text-xs">
+                                {% for error in field.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
                             </div>
                         {% endif %}
                     </div>
                 {% endfor %}
             </div>
-            
-            <div class="modal-action mt-6">
-                <button type="submit" class="btn btn-primary">✅ Enregistrer</button>
-                <button type="button" class="btn" onclick="document.getElementById('maintenanceModal').close()">Annuler</button>
+
+            <!-- Actions -->
+            <div class="flex gap-3 justify-end mt-8 pt-4 border-t border-gray-100">
+                <button type="button" class="btn btn-ghost" onclick="document.getElementById('maintenanceModal').close()">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </button>
+                <button type="submit" class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
+                    <i class="fas fa-save"></i> Planifier la maintenance
+                </button>
             </div>
         </form>
     </div>
 </dialog>
 
+<!-- Script pour réouvrir le modal en cas d'erreur -->
 <script>
-    // Reopen modal if form was invalid
     {% if open_maintenance_modal %}
+    document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('maintenanceModal').showModal();
+    });
     {% endif %}
 </script>
+
+<style>
+    .btn-glow {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+    }
+    .btn-glow:hover {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        transform: translateY(-2px);
+        box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+    }
+    /* Style des champs de formulaire */
+    input, select, textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    /* Style spécifique pour les champs invalides */
+    input:invalid, select:invalid, textarea:invalid {
+        border-color: #ef4444;
+    }
+</style>

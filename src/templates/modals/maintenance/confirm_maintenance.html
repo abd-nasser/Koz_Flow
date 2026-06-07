@@ -1,11 +1,18 @@
 <dialog id="confirm_or_refuse_maintenance_modal" class="modal">
     <div class="modal-box">
-        <h3 class="font-bold text-lg">Confirmer ou refuser la maintenance</h3>
-        <a  class="btn btn_conf_maintenance" href="{% url 'commercial_app:confirmer-maintenance' maintenance.id %}"> Confirmer</a>
-        <a class="btn btn_refuse_maintenance" href="{% url 'commercial_app:refuser-maintenance' maintenance.id %}">Refuser</a>
-        
-            <button type="button" class="btn" onclick="confirm_or_refuse_maintenance_modal.close()">Annuler</button>
-        </form>
+    
+
+        <a  class="btn-glow btn-success px-6 py-2 rounded-xl m-2" href="{% url 'commercial_app:confirmer-maintenance' maintenance.id %}"><i class="fas fa-check-circle mr-2"></i> Confirmer ma venue</a>
+        <a class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md m-2" 
+            href="{% url 'commercial_app:refuser-maintenance' maintenance.id %}"><i class="fas fa-times-circle mr-2"></i>Annuler / Reporter</a>
+        <div class="modal-action">
+            <button type="button" class="btn btn-soft" onclick="confirm_or_refuse_maintenance_modal.close()">Annuler</button>
+        </div>
+            
         </div>
     </div>
 </dialog>
+
+
+
+                            

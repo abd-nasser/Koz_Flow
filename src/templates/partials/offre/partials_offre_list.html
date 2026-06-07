@@ -1,64 +1,112 @@
 {% load humanize %}
 
-<div class="grid grid-cols-1 gap-5">
-    {% for offre in offres %}
-    <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-        <div class="p-5">
-            <div class="flex flex-wrap justify-between items-start gap-4">
-                <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-3 flex-wrap">
-                        <h3 class="font-bold text-lg text-gray-800">
-                            Offre #{{ offre.id }}
-                        </h3>
-                        <span class="badge px-3 py-1 rounded-full text-xs font-semibold
-                            {% if offre.statut == 'acceptee' %}bg-green-100 text-green-700
-                            {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}bg-red-100 text-red-700
-                            {% elif offre.statut == 'envoyee' %}bg-yellow-100 text-yellow-700
-                            {% else %}bg-gray-100 text-gray-700{% endif %}">
-                            {{ offre.get_statut_display }}
-                        </span>
-                        {% if offre.statut == 'envoyee' %}
-                        <span class="text-xs text-yellow-600 flex items-center gap-1">
-                            <i class="fas fa-hourglass-half"></i> Expire le {{ offre.date_expiration|date:"d/m/Y" }}
-                        </span>
+<div id="offre-list">
+    <div class="grid grid-cols-1 gap-5">
+        {% for offre in offres %}
+        <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+            <div class="p-5">
+                <div class="flex flex-wrap justify-between items-start gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3 flex-wrap">
+                            <h3 class="font-bold text-lg text-gray-800">
+                                Offre #{{ offre.id }}
+                            </h3>
+                            <span class="badge px-3 py-1 rounded-full text-xs font-semibold
+                                {% if offre.statut == 'acceptee' %}bg-green-100 text-green-700
+                                {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}bg-red-100 text-red-700
+                                {% elif offre.statut == 'envoyee' %}bg-yellow-100 text-yellow-700
+                                {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                {{ offre.get_statut_display }}
+                            </span>
+                            {% if offre.statut == 'envoyee' %}
+                            <span class="text-xs text-yellow-600 flex items-center gap-1">
+                                <i class="fas fa-hourglass-half"></i> Expire le {{ offre.date_expiration|date:"d/m/Y" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            
+                            {% if user.role == "client" %}
+                                <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-user text-blue-500 w-5"></i>
+                                <span><strong>Votre offre personnelle</span>
+                            </div>
+                            
+                            {% else %}
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-user text-blue-500 w-5"></i>
+                                <span><strong>Client :</strong> {{ offre.client.nom_complet }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-car text-blue-500 w-5"></i>
+                                <span><strong>Véhicule :</strong> {{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-chart-line text-blue-500 w-5"></i>
+                                <span><strong>Montant financé :</strong> {{ offre.montant_finance|intcomma }} FCFA</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-coins text-blue-500 w-5"></i>
+                                <span><strong>Mensualité :</strong> {{ offre.mensualite|intcomma }} FCFA</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
+                                <span><strong>Durée :</strong> {{ offre.duree_mois }} mois</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-percent text-blue-500 w-5"></i>
+                                <span><strong>Taux :</strong> {{ offre.taux_interet }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'commercial_app:offre-detail' offre.id %}" 
+                           class="btn btn-sm btn-outline rounded-full px-5 py-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white transition">
+                            <i class="fas fa-eye mr-1"></i> Détail
+                        </a>
+                        {% if offre.statut == 'brouillon' %}
+                        <a href="{% url 'leads_app:offre-update' offre.id %}" 
+                           class="btn btn-sm btn-outline rounded-full px-5 py-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition mt-2 sm:mt-0 sm:ml-2 inline-block">
+                            <i class="fas fa-edit mr-1"></i> Modifier
+                        </a>
                         {% endif %}
                     </div>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                        <div class="flex items-center gap-2 text-gray-600">
-                            <i class="fas fa-car text-blue-500 w-5"></i>
-                            <span>{{ offre.vehicule_propose.marque.nom }} {{ offre.vehicule_propose.modele }}</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-gray-600">
-                            <i class="fas fa-chart-line text-blue-500 w-5"></i>
-                            <span><strong>Montant financé :</strong> {{ offre.montant_finance|intcomma }} FCFA</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-gray-600">
-                            <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
-                            <span><strong>Durée :</strong> {{ offre.duree_mois }} mois</span>
-                        </div>
-                        <div class="flex items-center gap-2 text-gray-600">
-                            <i class="fas fa-coins text-blue-500 w-5"></i>
-                            <span><strong>Mensualité :</strong> {{ offre.mensualite|intcomma }} FCFA</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <a href="{% url 'leads_app:offre-detail' offre.id %}" 
-                       class="btn btn-sm btn-outline rounded-full px-5 py-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white transition">
-                        <i class="fas fa-eye mr-1"></i> Détail
-                    </a>
                 </div>
             </div>
         </div>
+        {% empty %}
+        <div class="bg-white rounded-2xl shadow-md p-10 text-center">
+            <i class="fas fa-tags text-5xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">Aucune offre trouvée.</p>
+        </div>
+        {% endfor %}
     </div>
-    {% empty %}
-    <div class="bg-white rounded-2xl shadow-md p-10 text-center">
-        <i class="fas fa-tags text-5xl text-gray-300 mb-4"></i>
-        <p class="text-gray-500">Aucune offre trouvée.</p>
-        <a href="{% url 'vehicul_app:list-vehicul' %}" class="btn btn-primary mt-4">
-            <i class="fas fa-car mr-2"></i>Découvrir les véhicules
-        </a>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <div class="join">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="join-item btn btn-sm"
+                   hx-get="{% url 'commercial_app:offre-list' %}?page=1"
+                   hx-target="#offre-list">«</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm"
+                   hx-get="{% url 'commercial_app:offre-list' %}?page={{ page_obj.previous_page_number }}"
+                   hx-target="#offre-list">‹</a>
+            {% endif %}
+            <span class="join-item btn btn-sm btn-disabled">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-sm"
+                   hx-get="{% url 'commercial_app:offre-list' %}?page={{ page_obj.next_page_number }}"
+                   hx-target="#offre-list">›</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-sm"
+                   hx-get="{% url 'commercial_app:offre-list' %}?page={{ page_obj.paginator.num_pages }}"
+                   hx-target="#offre-list">»</a>
+            {% endif %}
+        </div>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>

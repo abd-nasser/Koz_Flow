@@ -1,92 +1,238 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{% static 'css/client/client_detail_style.css' %}">
-        
-    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
-    <title>Détail du client</title>
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/client/client_detail_style.css' %}">
+    <title>Détail client - KOZ Services</title>
 </head>
-<body>
-    
-<nav>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
-</nav>
-<header>
-
-</header>
-<main>
-<!-- clients_templates/client_detail.html -->
-<h1 class="text-2xl font-bold mb-4">👤 Détail du client</h1>
-
-<!-- Infos générales -->
-<div class="bg-white shadow rounded p-6 mb-6">
-    <h2 class="text-xl font-semibold mb-2">{{ client.nom_complet }}</h2>
-    <p><strong>Email :</strong> {{ client.email }}</p>
-    <p><strong>Téléphone :</strong> {{ client.telephone }}</p>
-    <p><strong>Adresse :</strong> {{ client.adresse|default:"Non renseignée" }}</p>
-    <p><strong>Commercial assigné :</strong> {{ client.assigned_commercial.nom_complet|default:"Aucun" }}</p>
-</div>
-
-<!-- Demandes de financement -->
-<div class="bg-white shadow rounded p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-2">📋 Demandes de financement</h3>
-    {% if client.demande_financement.all %}
-        <ul class="list-disc list-inside">
-            {% for demande in client.demande_financement.all %}
-                <li>
-                    Demande #{{ demande.id }} - Véhicule : {{ demande.Vehicul_interested|default:demande.other_Vehicul_interested }}
-                    - Statut : {{ demande.get_etape_display }}
-                    <a href="{% url 'leads_app:detail-demande' demande.id %}" class="text-blue-500 text-sm ml-2">Voir</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-gray-500">Aucune demande de financement.</p>
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
-</div>
 
-<!-- Dossier documentaire -->
-<div class="bg-white shadow rounded p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-2">📄 Dossier documentaire</h3>
-    {% if client.documents.all %}
-        <ul class="list-disc list-inside">
-            {% for doc in client.documents.all %}
-                <li>
-                    {{ doc.get_type_document_display }} - 
-                    {% if doc.fichier %}
-                        <a href="{{ doc.fichier.url }}" target="_blank" class="text-blue-500">Voir</a>
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'commercial_app:commercial-view' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au tableau de bord
+                </a>
+            </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Fiche client</h1>
+            <div class="w-10"></div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header avec dégradé -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            👤 {{ client.nom_complet }}
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Client depuis le {{ client.date_joined|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'chat_app:chat-view' client.id %}" 
+                           class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2 text-sm">
+                            <i class="fas fa-comment-dots"></i> Contacter
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <!-- Informations générales -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-600"></i>Informations générales
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Email :</span>
+                            <strong class="text-gray-800">{{ client.email }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-phone text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Téléphone :</span>
+                            <strong class="text-gray-800">{{ client.telephone|default:"—" }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2 col-span-2">
+                            <i class="fas fa-map-marker-alt text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Adresse :</span>
+                            <strong class="text-gray-800">{{ client.adresse|default:"Non renseignée" }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-tie text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Commercial assigné :</span>
+                            <strong class="text-gray-800">{{ client.assigned_commercial.nom_complet|default:"Aucun" }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Date d'inscription :</span>
+                            <strong class="text-gray-800">{{ client.date_joined|date:"d/m/Y" }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Demandes de financement -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-alt text-blue-600"></i>Demandes de financement
+                    </h3>
+                    {% if client.demande_financement.all %}
+                        <div class="space-y-2">
+                            {% for demande in client.demande_financement.all %}
+                            <div class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                                <div>
+                                    <p class="font-medium text-gray-800">Demande #{{ demande.id }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        Véhicule : {{ demande.Vehicul_interested|default:demande.other_Vehicul_interested|default:"—" }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">Statut : {{ demande.get_etape_display }}</p>
+                                </div>
+                                <a href="{% url 'leads_app:detail-demande' demande.id %}" 
+                                   class="text-blue-600 hover:text-blue-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
                     {% else %}
-                        ❌ Non fourni
+                        <p class="text-gray-500 text-center py-4">
+                            <i class="fas fa-inbox text-3xl opacity-50 mb-2 block"></i>
+                            Aucune demande de financement.
+                        </p>
                     {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p class="text-gray-500">Aucun document uploadé.</p>
-    {% endif %}
-</div>
+                </div>
 
-<!-- Offre de financement -->
-<div class="bg-white shadow rounded p-6 mb-6">
-    <h3 class="text-lg font-semibold mb-2">💰 Offre de financement</h3>
-    {% if client.offre %}
-        <p><strong>Véhicule proposé :</strong> {{ client.offre.vehicule_propose }}</p>
-        <p><strong>Mensualité :</strong> {{ client.offre.mensualite }} FCFA</p>
-        <p><strong>Durée :</strong> {{ client.offre.duree_mois }} mois</p>
-        <p><strong>Statut offre :</strong> {{ client.offre.get_statut_display }}</p>
-        <a href="#" class="text-blue-500">Voir l'offre</a> 
-    {% else %}
-        <p class="text-gray-500">Aucune offre de financement générée.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('simpleoffreModal').showModal()">✨ Générer une offre simple</button>
-        {% include "modals/leads/creer_simple_offre.html" %}
-    {% endif %}
-</div>
-</main>
+                <!-- Dossier documentaire -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-folder-open text-blue-600"></i>Dossier documentaire
+                    </h3>
+                    {% if client.documents.all %}
+                        <div class="space-y-2">
+                            {% for doc in client.documents.all %}
+                            <div class="flex justify-between items-center p-3 bg-white rounded-lg border">
+                                <div>
+                                    <p class="text-sm text-gray-500">Statut : {{ doc.get_statut_dossier_display }}</p>
+                                </div>
+                                 <a href="{% url 'leads_app:document-detail' doc.pk %}" class="text-blue-600 hover:text-blue-800 transition">
+                                <i class="fas fa-eye"></i> voir</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-center py-4">
+                            <i class="fas fa-folder-open text-3xl opacity-50 mb-2 block"></i>
+                            Aucun document uploadé.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Offre de financement -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-file-signature text-blue-600"></i>Offre de financement
+                    </h3>
+                    {% if client.offre %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-white rounded-lg border">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-car text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Véhicule :</span>
+                                <strong>{{ client.offre.vehicule_propose }}</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-coins text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Mensualité :</span>
+                                <strong>{{ client.offre.mensualite|intcomma }} FCFA</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Durée :</span>
+                                <strong>{{ client.offre.duree_mois }} mois</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-tag text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Statut :</span>
+                                <strong class="
+                                    {% if client.offre.statut == 'acceptee' %}text-green-600
+                                    {% elif client.offre.statut == 'refusee' or client.offre.statut == 'expiree' %}text-red-600
+                                    {% else %}text-yellow-600{% endif %}">
+                                    {{ client.offre.get_statut_display }}
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right">
+                            <a href="{% url 'commercial_app:offre-detail' client.offre.id %}" 
+                               class="text-blue-600 hover:text-blue-800 transition text-sm">
+                                <i class="fas fa-eye"></i> Voir le détail de l'offre
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-gray-500 mb-3">Aucune offre de financement générée.</p>
+                            <button onclick="document.getElementById('simpleoffreModal').showModal()" 
+                                    class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2 mx-auto">
+                                <i class="fas fa-plus-circle"></i> Générer une offre simple
+                            </button>
+                        </div>
+                        {% include "modals/leads/creer_simple_offre.html" %}
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+
 </body>
 </html>
-

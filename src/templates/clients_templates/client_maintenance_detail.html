@@ -33,7 +33,7 @@
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
                     <span class="text-white font-bold text-xl">K</span>
                 </div>
-                <a href="{% url 'client_app:maintenance-list' %}" class="text-gray-600 hover:text-blue-600 transition">
+                <a href="{% url 'commercial_app:maintenance-list' %}" class="text-gray-600 hover:text-blue-600 transition">
                     <i class="fas fa-arrow-left mr-2"></i>Retour à mes maintenances
                 </a>
             </div>
@@ -169,20 +169,16 @@
                 <div class="border-t pt-4">
                     {% if maintenance.statut == 'planifiee' %}
                     <div class="flex flex-wrap gap-3">
-                        <button onclick="document.getElementById('confirm_maintenance_modal').showModal()" 
+                        <button onclick="document.getElementById('confirm_or_refuse_maintenance_modal').showModal()" 
                                 class="btn-glow px-6 py-2 rounded-xl">
-                            <i class="fas fa-check-circle mr-2"></i>Confirmer ma venue
-                        </button>
-                        <button onclick="document.getElementById('refuse_maintenance_modal').showModal()" 
-                                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md">
-                            <i class="fas fa-times-circle mr-2"></i>Annuler / Reporter
+                            <i class="fas fa-check-circle mr-2"></i>gerer ma maintenance 
                         </button>
                     </div>
                     <p class="text-sm text-gray-500 mt-2">
                         📌 Merci de confirmer votre disponibilité pour cette maintenance.
                     </p>
                     {% include 'modals/maintenance/confirm_maintenance.html' %}
-                    {% include 'modals/maintenance/refuse_maintenance.html' %}
+                    
                     
                     {% elif maintenance.statut == 'confirmee' %}
                     <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-4">
@@ -224,7 +220,7 @@
 
                 <!-- Bouton retour -->
                 <div class="text-center pt-2">
-                    <a href="{% url 'client_app:maintenance-list' %}" class="text-gray-500 hover:text-blue-600 transition">
+                    <a href="{% url 'commercial_app:maintenance-list' %}" class="text-gray-500 hover:text-blue-600 transition">
                         <i class="fas fa-arrow-left mr-2"></i>Retour à mes maintenances
                     </a>
                 </div>

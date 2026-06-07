@@ -5,6 +5,7 @@ class Offre(models.Model):
     #Lien vers client
     client = models.OneToOneField("auth_app.kozUser", on_delete=models.CASCADE, related_name="offre")
     
+    demande_financement = models.OneToOneField("leads_app.demande_financement", on_delete=models.CASCADE, related_name="offre", null=True, blank=True)
     #La voiture proposée(peut etre différente de celle demandée initialement)
     vehicule_propose =  models.ForeignKey("vehicul_app.vehicul", related_name="offre", on_delete=models.CASCADE)
     
@@ -26,9 +27,9 @@ class Offre(models.Model):
     # Statut de l'offre
     STATUTS_OFFRE = [
         ('brouillon', 'En cours de rédaction'),
-        ('envoyee', 'Envoyée au client'),
-        ('acceptee', 'Acceptée par le client'),
-        ('refusee', 'Refusée par le client'),
+        ('envoyee', 'Envoyée'),
+        ('acceptee', 'Acceptée'),
+        ('refusee', 'Refusée'),
         ('expiree', 'Offre expirée'),
     ]
     TYPE_OFFRE_CHOICES = [

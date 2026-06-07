@@ -45,29 +45,38 @@
         </div>
     </nav>
 
-    <!-- ========== HEADER BIENVENUE ========== -->
-    <header >
-        <div class="container mx-auto px-4 py-8">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-bold">
-                        Bienvenue,
-                        {% if client.genre == "masculin" %}Mr
-                        {% elif client.genre == "féminin" %}Mme
-                        {% endif %}
-                        <em class="text-yellow-300">{{ client.nom_complet }}</em>
-                    </h2>
-                    <div class="flex items-center gap-2 mt-2 text-black">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Votre commercial :</span>
-                        <strong>{{ client.assigned_commercial.nom_complet|default:"En cours d'assignation" }}</strong>
-                        <a href="{% url 'chat_app:chat-view' %}" class="ml-3 text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-full text-sm transition">
-                            <i class="fas fa-comment-dots mr-1"></i>Message
-                        </a>
+      <!-- ========== HEADER BIENVENUE ========== -->
+    <header class="relative z-10 pt-6 pb-4">
+        <div class="container mx-auto px-4">
+            <div class="glass-card rounded-2xl p-6 animate-fade-in-up">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800">
+                            Bienvenue,
+                            {% if client.genre == "masculin" %}Mr
+                            {% elif client.genre == "féminin" %}Mme
+                            {% endif %}
+                            <span class="bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">{{ client.nom_complet }}</span>
+                        </h2>
+                        <div class="flex flex-wrap items-center gap-3 mt-3">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="fas fa-user-tie text-blue-500"></i>
+                                <span>Commercial :</span>
+                                <strong>{{ client.assigned_commercial.nom_complet|default:"En cours d'assignation" }}</strong>
+                            </div>
+                            <a href="{% url 'chat_app:chat-view' %}" class="inline-flex items-center gap-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-full transition shadow-sm">
+                                <i class="fas fa-comment-dots"></i> Message
+                            </a>
+                            <button onclick="document.getElementById('change_pass_modal').showModal()" 
+                                    class="inline-flex items-center cursor-pointer gap-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full transition">
+                                <i class="fas fa-key"></i> Changer mot de passe
+                            </button>
+                            {% include 'modals/auth/change_password.html' %}
+                        </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-black"><i class="fas fa-calendar-alt mr-1"></i>{% now "l d F Y" %}</p>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500"><i class="fas fa-calendar-alt mr-1 text-blue-500"></i>{% now "l d F Y" %}</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,7 +1,12 @@
 {% load static %}
 {% for vehicule in vehicul_list %}
 
-<div class="card">
+<div class="card"
+     data-marque-nom="{{ vehicule.marque.nom }}"
+     data-marque-logo="{% if vehicule.marque.logo %}{{ vehicule.marque.logo.url }}{% endif %}"
+     data-vehicule-count="{{ vehicule.marque.vehicul.count }}"
+     onmouseenter="updateHero(this.dataset.marqueNom, this.dataset.marqueLogo, this.dataset.vehiculeCount)"
+     onmouseleave="resetHero()">
     <div class="card-inner">
         <div class="content-card">
             <img src="{{ vehicule.image_principale.url }}" alt="{{ vehicule.marque.nom }}">
@@ -17,12 +22,11 @@
                     ❌ Indisponible
                 {% endif %}
             </p>
-          <a  href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}">voir plus</a>
+          <a href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}">voir plus</a>
         </div>
         <div class="glow"></div>
     </div>
 </div>
 
 {% endfor %}
-
 

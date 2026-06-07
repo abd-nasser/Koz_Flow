@@ -1,62 +1,224 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src= "{% static 'js/htmx.min.js' %}"></script>
-    <title>Detail document</title>
-    {%tailwind_css%}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    {% tailwind_css %}
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Détail dossier - KOZ Services</title>
 </head>
-<body>
- {% if messages %}
-    <div class="messages">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
+
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
+        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
+            <span>{{ message }}</span>
+        </div>
         {% endfor %}
     </div>
+    {% endif %}
 
-{% endif %}
+    <!-- Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <a href="{% url 'leads_app:documents-list' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour aux dossiers
+                </a>
+            </div>
+            <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Détail du dossier</h1>
+            <div class="w-10"></div>
+        </div>
+    </nav>
 
-    <!-- commercial_templates/commercial_detail_doc.html -->
-<h1>📁 Dossier de {{ document.client.nom_complet }}</h1>
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <!-- Header avec statut -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">
+                            📁 Dossier de {{ document.client.nom_complet }}
+                        </h2>
+                        <p class="text-blue-100 text-sm">
+                            Demande n°{{ document.demande_financement.id }} • Créé le {{ document.date_upload|date:"d/m/Y" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if document.statut_dossier == 'valide' %}bg-green-500 text-white
+                        {% elif document.statut_dossier == 'rejete' %}bg-red-500 text-white
+                        {% elif document.statut_dossier == 'verification' %}bg-blue-500 text-white
+                        {% else %}bg-yellow-500 text-white{% endif %}">
+                        {{ document.get_statut_dossier_display }}
+                    </div>
+                </div>
+            </div>
 
-<p><strong>Client :</strong> {{ document.client.nom_complet }}</p>
-<p><strong>Email :</strong> {{ document.client.email }}</p>
-<p><strong>Téléphone :</strong> {{ document.client.telephone }}</p>
-<p><strong>Demande n° :</strong> {{ document.demande_financement.id }}</p>
-<p><strong>Statut dossier :</strong> {{ document.get_statut_dossier_display }}</p>
-<p><strong>Date création :</strong> {{ document.date_upload|date:"d/m/Y H:i" }}</p>
+            <div class="p-6 space-y-6">
 
-<h3>📄 Documents obligatoires</h3>
-<ul>
-    <li>CNI/Passeport : {% if document.cni_passeport %}<a href="{{ document.cni_passeport.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-    <li>Justificatif domicile : {% if document.justificatif_domicile %}<a href="{{ document.justificatif_domicile.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-    <li>Quittance salaire : {% if document.quittance_salaire %}<a href="{{ document.quittance_salaire.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-    <li>Relevé bancaire : {% if document.relevé_bancaire %}<a href="{{ document.relevé_bancaire.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-</ul>
+                <!-- Informations client -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-user-circle text-blue-600"></i>Informations client
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Nom :</span>
+                            <strong class="text-gray-800">{{ document.client.nom_complet }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-envelope text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Email :</span>
+                            <strong class="text-gray-800">{{ document.client.email }}</strong>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-phone text-blue-500 w-5"></i>
+                            <span class="text-gray-600">Téléphone :</span>
+                            <strong class="text-gray-800">{{ document.client.telephone }}</strong>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Documents obligatoires -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-check-circle text-blue-600"></i>Documents obligatoires
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700"><i class="fas fa-id-card mr-2 text-blue-500"></i>CNI / Passeport</span>
+                            {% if document.cni_passeport %}
+                                <a href="{{ document.cni_passeport.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700"><i class="fas fa-home mr-2 text-blue-500"></i>Justificatif domicile</span>
+                            {% if document.justificatif_domicile %}
+                                <a href="{{ document.justificatif_domicile.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700"><i class="fas fa-file-invoice-dollar mr-2 text-blue-500"></i>Quittance salaire</span>
+                            {% if document.quittance_salaire %}
+                                <a href="{{ document.quittance_salaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700"><i class="fas fa-chart-line mr-2 text-blue-500"></i>Relevé bancaire</span>
+                            {% if document.relevé_bancaire %}
+                                <a href="{{ document.relevé_bancaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-<h3>📎 Documents supplémentaires</h3>
-<ul>
-    <li>Contrat travail : {% if document.contrat_travail %}<a href="{{ document.contrat_travail.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-    <li>Avis imposition : {% if document.avis_imposition %}<a href="{{ document.avis_imposition.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-    <li>Autres : {% if document.autres %}<a href="{{ document.autres.url }}" target="_blank">✅ Voir</a>{% else %}❌ Manquant{% endif %}</li>
-</ul>
+                <!-- Documents supplémentaires -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-paperclip text-blue-600"></i>Documents supplémentaires
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700 text-sm">📄 Contrat travail</span>
+                            {% if document.contrat_travail %}
+                                <a href="{{ document.contrat_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700 text-sm">📊 Avis imposition</span>
+                            {% if document.avis_imposition %}
+                                <a href="{{ document.avis_imposition.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700 text-sm">📎 Autres</span>
+                            {% if document.autres %}
+                                <a href="{{ document.autres.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-<div>
-     <button class="btn btn_gestion_doc" onclick="gestion_doc_modal.showModal()">Gestion du document</button>
+                <!-- Actions -->
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <button onclick="document.getElementById('gestion_doc_modal').showModal()" 
+                            class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
+                        <i class="fas fa-cog"></i> Gérer le dossier
+                    </button>
+                    <a href="{% url 'leads_app:documents-list' %}" 
+                       class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <!-- Modale -->
     {% include 'modals/leads/gestion_doc.html' %}
-    <a href="{% url 'leads_app:documents-list' %}">◀ Retour</a>
-</div>
 
-<p><strong>Date création :</strong> {{ document.date_upload|date:"d/m/Y H:i" }}</p>
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
 
-
-
-    
 </body>
 </html>

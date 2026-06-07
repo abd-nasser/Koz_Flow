@@ -42,6 +42,9 @@
     width: 280px;
     height: 380px;
     perspective: 1000px;
+    overflow: hidden;
+    border-radius: 25px;
+    margin-bottom: 1.5rem;
 }
 
 .card-inner {
@@ -50,6 +53,7 @@
     height: 100%;
     transition: transform 0.15s ease-out;
     transform-style: preserve-3d;
+    transform-origin: center center;
     border-radius: 25px;
 }
 
@@ -141,5 +145,6 @@ main{
     flex-wrap: wrap;
     justify-content: space-around;
     align-items: center;
+   
     
 }

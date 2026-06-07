@@ -1,0 +1,232 @@
+{% load static %}
+{% load tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/dashboard/directeur/dashboard.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>KPI Dashboard analytique</title>
+    {% tailwind_css %}
+</head>
+<body>
+    <nav>
+
+    </nav>
+    <header>
+         {% if messages %}
+        <div class="messages">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+    </header>
+    <body>
+    <main>
+
+
+
+          <!-- ==================== CLIENTS ==================== -->
+<a href="{% url 'dashboard_app:liste-filtree' 'client' 'demande_financement__isnull' 'False' %}" 
+   class="bg-white shadow rounded p-4 hover:shadow-lg transition block">
+    <p class="text-gray-500 text-sm">📝 Clients avec demande</p>
+    <p class="text-2xl font-bold">{{ clients_avec_demande }}</p>
+    <p class="text-xs text-gray-500">{{ nb_clients_mois }} nouveaux ce mois</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'client' 'offre__statut' 'acceptee' %}" 
+   class="bg-white shadow rounded p-4 hover:shadow-lg transition block">
+    <p class="text-gray-500 text-sm">✅ Clients avec offre acceptée</p>
+    <p class="text-2xl font-bold text-green-600">{{ clients_avec_offre }}</p>
+    <p class="text-xs text-blue-600">Taux conversion : {{ taux_conversion|floatformat:1 }}%</p>
+</a>
+
+<!-- ==================== DEMANDES ==================== -->
+<a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'etape' 'en_attente' %}" 
+   class="bg-gray-50 rounded p-3 hover:shadow transition block">
+    <p class="text-gray-500 text-sm">⏳ En attente</p>
+    <p class="text-2xl font-bold text-yellow-600">{{ demandes_en_attente }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'etape' 'en_cours' %}" 
+   class="bg-gray-50 rounded p-3 hover:shadow transition block">
+    <p class="text-gray-500 text-sm">🔄 En cours</p>
+    <p class="text-2xl font-bold text-blue-600">{{ demandes_en_cours }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'etape' 'demand_refusee' %}" 
+   class="bg-gray-50 rounded p-3 hover:shadow transition block">
+    <p class="text-gray-500 text-sm">❌ Refusées</p>
+    <p class="text-2xl font-bold text-red-600">{{ demandes_refuser }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'financement_par' 'fidelis' %}" 
+   class="bg-blue-50 rounded p-3 border border-blue-200 hover:shadow transition block">
+    <p class="text-blue-700 font-semibold">🏦 Fidelis</p>
+    <p class="text-2xl font-bold">{{ demandes_accorder_fidelis }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'financement_par' 'alios' %}" 
+   class="bg-purple-50 rounded p-3 border border-purple-200 hover:shadow transition block">
+    <p class="text-purple-700 font-semibold">🏦 Alios</p>
+    <p class="text-2xl font-bold">{{ demandes_accorder_alios }}</p>
+</a>
+
+<!-- ==================== DOCUMENTS ==================== -->
+<a href="{% url 'dashboard_app:liste-filtree' 'documents' 'statut_dossier' 'vide' %}" 
+   class="bg-gray-100 rounded p-2 text-center hover:shadow transition block">
+    <p class="text-xs text-gray-500">Vide</p>
+    <p class="text-xl font-bold">{{ dossier_vide }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'documents' 'statut_dossier' 'incomplet' %}" 
+   class="bg-yellow-50 rounded p-2 text-center hover:shadow transition block">
+    <p class="text-xs text-yellow-700">Incomplet</p>
+    <p class="text-xl font-bold text-yellow-700">{{ dossier_incomplet }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'documents' 'statut_dossier' 'valide' %}" 
+   class="bg-green-50 rounded p-2 text-center hover:shadow transition block">
+    <p class="text-xs text-green-700">Validé</p>
+    <p class="text-xl font-bold text-green-700">{{ dossier_valide }}</p>
+</a>
+
+<!-- ==================== OFFRES ==================== -->
+<a href="{% url 'dashboard_app:liste-filtree' 'offre' 'statut' 'acceptee' %}" 
+   class="bg-green-50 rounded p-3 hover:shadow transition block">
+    <p class="text-green-700 text-sm">✅ Acceptées</p>
+    <p class="text-2xl font-bold text-green-700">{{ offres_acceptee }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'offre' 'statut' 'refusee' %}" 
+   class="bg-red-50 rounded p-3 hover:shadow transition block">
+    <p class="text-red-700 text-sm">❌ Refusées</p>
+    <p class="text-2xl font-bold text-red-700">{{ offres_refusee }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'offre' 'statut' 'expiree' %}" 
+   class="bg-gray-100 rounded p-3 hover:shadow transition block">
+    <p class="text-gray-700 text-sm">⏰ Expirées</p>
+    <p class="text-2xl font-bold text-gray-700">{{ offres_expiree }}</p>
+</a>
+
+<!-- ==================== MAINTENANCE ==================== -->
+<a href="{% url 'dashboard_app:liste-filtree' 'maintenance' 'statut' 'effectuee' %}" 
+   class="bg-green-50 rounded p-3 hover:shadow transition block">
+    <p class="text-green-700 text-sm">✅ Effectuées</p>
+    <p class="text-2xl font-bold text-green-700">{{ maintenances_effectuee }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'maintenance' 'statut' 'planifiee' %}" 
+   class="bg-blue-50 rounded p-3 hover:shadow transition block">
+    <p class="text-blue-700 text-sm">📅 Planifiées</p>
+    <p class="text-2xl font-bold text-blue-700">{{ maintenances_planifiee }}</p>
+</a>
+
+<a href="{% url 'dashboard_app:liste-filtree' 'maintenance' 'statut' 'en_cours' %}" 
+   class="bg-yellow-50 rounded p-3 hover:shadow transition block">
+    <p class="text-yellow-700 text-sm">🔄 En cours</p>
+    <p class="text-2xl font-bold text-yellow-700">{{ maintenances_en_cours }}</p>
+</a>
+
+    <!-- Section du graphique (ajouter avant les cartes KPI) -->
+<div class="bg-white shadow rounded-lg p-6 mb-8">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold border-l-4 border-blue-500 pl-3">📈 Évolution du chiffre d'affaires</h2>
+        
+        <!-- Sélecteur de période -->
+        <div class="flex gap-2">
+            <a href="?period=1j" class="btn btn-sm {% if selected_period == '1j' %}btn-primary{% else %}btn-outline{% endif %}">1j</a>
+            <a href="?period=7j" class="btn btn-sm {% if selected_period == '7j' %}btn-primary{% else %}btn-outline{% endif %}">7j</a>
+            <a href="?period=1m" class="btn btn-sm {% if selected_period == '1m' %}btn-primary{% else %}btn-outline{% endif %}">1m</a>
+            <a href="?period=1y" class="btn btn-sm {% if selected_period == '1y' %}btn-primary{% else %}btn-outline{% endif %}">1y</a>
+        </div>
+    </div>
+    
+    <canvas id="caChart" height="300"></canvas>
+</div>
+
+
+    <script>
+        const ctx = document.getElementById('caChart').getContext('2d');
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Fidelis',
+                        data: {{ chart_fidelis|safe }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Alios',
+                        data: {{ chart_alios|safe }},
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139,92,246,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'KOZ Finance (Maison)',
+                        data: {{ chart_maison|safe }},
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Paiement cash',
+                        data: {{ chart_cash|safe }},
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + ' FCFA';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+
+        </main>
+    </body>
+    <footer>
+
+    </footer>
+</body>
+</html>

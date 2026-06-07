@@ -29,9 +29,9 @@ def demande_financement_view(request, vehicul_id):
     
     if request.user.role != "client":
         messages.error(request, "Seuls les clients peuvent faire une demande.")
-        return redirect("vehicul_app:detail-vehicul", vehicul_id=vehicul.id)
+        return redirect("vehicul_app:detail-vehicul", vehicul_id=vehicul.pk)
     
-    # Correction 1 : etape__in
+    # Vérifier si une demande existe déjà
     demande_existante = demande_financement.objects.filter(
         client=request.user,
         etape__in=["brouillon", "envoye", "en_attente", "demande_accorde", "demande_refuse"]
@@ -50,24 +50,25 @@ def demande_financement_view(request, vehicul_id):
             demande.etape = "envoye"
             demande.save()
             
-            # ✉️ ENVOI DE L'EMAIL DE CONFIRMATION
-           
-
+            # ✉️ ENVOI DE L'EMAIL AU COMMERCIAL
+            client = request.user  # ← Définir client ici
+            
             # Vérifier que le client a bien un commercial assigné
             if client.assigned_commercial and client.assigned_commercial.email:
                 try:
+                    # Préparer le contexte (avant de l'utiliser)
+                    context_email = {
+                        'client': client,
+                        'vehicule': f"{vehicul.marque.nom} {vehicul.modele} ({vehicul.annee})",
+                        'apport': form.cleaned_data.get('apport', 0),
+                        'duree': form.cleaned_data.get('duree_mois', 36),
+                        'revenus': form.cleaned_data.get('revenus_mensuel', 0),
+                        'lien_suivi': request.build_absolute_uri("/client/demandes/"),
+                    }
+                    
                     html_message = render_to_string('emails/demande_financement/demande_financement_envoyee.html', context_email)
                     plain_message = strip_tags(html_message)
-                    client = request.user
                     
-                    context_email = {
-                    'client': request.user,
-                    'vehicule': f"{vehicul.marque.nom} {vehicul.modele} ({vehicul.annee})",
-                    'apport': form.cleaned_data.get('apport', 0),
-                    'duree': form.cleaned_data.get('duree_mois', 36),
-                    'revenus': form.cleaned_data.get('revenus_mensuel', 0),
-                    'lien_suivi': request.build_absolute_uri("/client/demandes/"),
-                }
                     send_mail(
                         subject="🆕 Nouvelle demande de financement - KOZ Services",
                         message=plain_message,
@@ -81,14 +82,21 @@ def demande_financement_view(request, vehicul_id):
                     print(f"Erreur envoi email au commercial: {e}")
             else:
                 print(f"Client {client.email} n'a pas de commercial assigné")
-                context = {
-                            'vehicul': vehicul,
-                            'dmd_fin_form': form,
-                            'open_dmd_fin_modal': True,
-                        }
-                return render(request, 'vehicul_templates/vehicul_detail.html', context)
+                # Pas de notification, mais la demande est quand même créée
             
-            return redirect("vehicul_app:detail-vehicul")
+            return redirect("vehicul_app:detail-vehicul", vehicul.pk)
+        
+        else:
+            # Formulaire invalide : rouvrir le modal
+            context = {
+                'vehicul': vehicul,
+                'dmd_fin_form': form,
+                'open_dmd_fin_modal': True,
+            }
+            return render(request, 'vehicul_templates/vehicul_detail.html', context)
+    
+    # Si GET (pas POST)
+    return redirect("vehicul_app:detail-vehicul", vehicul.pk)
 
 @login_required
 def attente_document(request, demande_id):
@@ -170,7 +178,7 @@ def refuser_demande(request, demande_id):
 def accorder_demande(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id)
     
-    if demande.etape == "demande_accordee":
+    if demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison" :
         messages.info(request, "Cette demande est déjà accordée.")
     
     elif demande.etape == "demande_refusee":
@@ -185,9 +193,9 @@ def accorder_demande(request, demande_id):
             demande.etape = "demande_accordee_alios"
             partenaire = "Alios"
         else:
-            demande.etape = "demande_accordee"
+            demande.etape = "demande_accordee_maison"
             partenaire = "KOZ Finance"
-        
+            
         demande.save()
         
         # ✉️ Email au client
@@ -678,120 +686,83 @@ def verifier_dossier(request, dossier_id):
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
     context_object_name = "documents"
+    
     def get_template_names(self):
-        is_htmx = self.request.headers.get("HX-request") == "true"
+        is_htmx = self.request.headers.get("HX-Request") == "true"  # ← Correction : HX-Request (majuscule)
         
         if self.request.user.is_superuser or self.request.user.role == "directeur":
-            return ["partials/dir_list_doc.html" if is_htmx else "directeur_templates/directeur_list_doc.html"]
+            return ["partials/documents/dir_list_doc.html" if is_htmx else "directeur_templates/directeur_list_doc.html"]
         
         if self.request.user.is_staff or self.request.user.role == "commercial":
-            return ["partials/com_list_doc.html" if is_htmx else "commercial_templates/commercial_list_doc.html"]
+            return ["partials/documents/com_list_doc.html" if is_htmx else "commercial_templates/commercial_list_doc.html"]
         
-        return ["clients_templates/client_list_doc.html"]
+        return ["partials/documents/cli_list_doc.html" if is_htmx else "clients_templates/client_list_doc.html"]
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["statut_choices"] = Documents.STATUT_DOCS
         return context
     
-    def get_queryset(self):
-        if self.request.user.is_superuser or self.request.user.role =="directeur": 
-            queryset = Documents.objects.all().select_related("client", "demande_financement").order_by("-date_upload")
-            
-            q = self.request.GET.get("q")
-            statut = self.request.GET.get("statut")
-            client_name = self.request.GET.get("client_name")
-            date_from = self.request.GET.get("date_from")
-            date_to = self.request.GET.get("date_to")
-            
-            if q:
-                queryset = queryset.filter(
-                                           Q(statut_dossier__icontains=q)|
-                                           Q(client__nom_complet__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
-                                           Q(commentaires__icontains=q)|
-                                           Q(demande_financement__etape__icontains=q)|
-                                           Q(demande_financement__financement_type__icontains=q)|
-                                           Q(demande_financement__financement_par__icontains=q)
-                                           ).distinct()
-           
-            if statut:
-                queryset = queryset.filter(statut_dossier=statut)
-            if client_name:
-                queryset = queryset.filter(client__nom_complet__icontains=client_name)
-            if date_from:
-                queryset = queryset.filter(date_upload__gte=date_from)
-            if date_to:
-                queryset = queryset.filter(date_upload__lte=date_to)
-                
-            return queryset
+    def get_base_queryset(self):
+        """Détermine le queryset de base selon le rôle de l'utilisateur"""
+        user = self.request.user
         
-        if self.request.user.is_staff or self.request.user.role == "commercial":
-            queryset = Documents.objects.filter(client__in = self.request.user.clients_assignes.all()
-                                                ).select_related("client", "demande_financement").order_by("-date_upload")
-            q = self.request.GET.get("q")
-            statut = self.request.GET.get("statut")
-            client_name = self.request.GET.get("client_name")
-            date_from = self.request.GET.get("date_from")
-            date_to = self.request.GET.get("date_to")
-            
-            if q:
-                queryset = queryset.filter(
-                                           Q(statut_dossier__icontains=q)|
-                                           Q(client__nom_complet__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
-                                           Q(commentaires__icontains=q)|
-                                           Q(demande_financement__etape__icontains=q)|
-                                           Q(demande_financement__financement_type__icontains=q)|
-                                           Q(demande_financement__financement_par__icontains=q)
-                                           ).distinct()
-           
-            if statut:
-                queryset = queryset.filter(statut_dossier=statut)
-            if client_name:
-                queryset = queryset.filter(client__nom_complet__icontains=client_name)
-            if date_from:
-                queryset = queryset.filter(date_upload__gte=date_from)
-            if date_to:
-                queryset = queryset.filter(date_upload__lte=date_to)
-                
-            return queryset
+        if user.is_superuser or user.role == "directeur":
+            return Documents.objects.all()
         
-        if self.request.user.role == "client":
-            queryset = Documents.objects.filter(client=self.request.user).select_related("client", "demande_financement").order_by("-date_upload")
-            
-            q = self.request.GET.get("q")
-            statut = self.request.GET.get("statut")
-            client_name = self.request.GET.get("client_name")
-            date_from = self.request.GET.get("date_from")
-            date_to = self.request.GET.get("date_to")
-            
-            if q:
-                queryset = queryset.filter(
-                                           Q(statut_dossier__icontains=q)|
-                                           Q(client__nom_complet__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__marque__nom__icontains=q)|
-                                           Q(demande_financement__Vehicul_interested__modele__icontains=q)|
-                                           Q(commentaires__icontains=q)|
-                                           Q(demande_financement__etape__icontains=q)|
-                                           Q(demande_financement__financement_type__icontains=q)|
-                                           Q(demande_financement__financement_par__icontains=q)
-                                           ).distinct()
-           
-            if statut:
-                queryset = queryset.filter(statut_dossier=statut)
-            if client_name:
-                queryset = queryset.filter(client__nom_complet__icontains=client_name)
-            if date_from:
-                queryset = queryset.filter(date_upload__gte=date_from)
-            if date_to:
-                queryset = queryset.filter(date_upload__lte=date_to)
-                
-            return queryset
+        if user.is_staff or user.role == "commercial":
+            return Documents.objects.filter(client__in=user.clients_assignes.all())
+        
+        if user.role == "client":
+            return Documents.objects.filter(client=user)
         
         return Documents.objects.none()
+    
+    def apply_filters(self, queryset):
+        """Applique les filtres communs (GET parameters)"""
+        q = self.request.GET.get("q")
+        statut = self.request.GET.get("statut")
+        client_name = self.request.GET.get("client_name")
+        date_from = self.request.GET.get("date_from")
+        date_to = self.request.GET.get("date_to")
+        
+        if q:
+            queryset = queryset.filter(
+                Q(statut_dossier__icontains=q) |
+                Q(client__nom_complet__icontains=q) |
+                Q(demande_financement__Vehicul_interested__marque__nom__icontains=q) |
+                Q(demande_financement__Vehicul_interested__modele__icontains=q) |
+                Q(commentaire_rejet__icontains=q) |  # ← Correction : commentaire_rejet (pas commentaires)
+                Q(demande_financement__etape__icontains=q) |
+                Q(demande_financement__financement_type__icontains=q) |
+                Q(demande_financement__financement_par__icontains=q)
+            ).distinct()
+        
+        if statut:
+            queryset = queryset.filter(statut_dossier=statut)
+        
+        if client_name:
+            queryset = queryset.filter(client__nom_complet__icontains=client_name)
+        
+        if date_from:
+            queryset = queryset.filter(date_upload__gte=date_from)
+        
+        if date_to:
+            queryset = queryset.filter(date_upload__lte=date_to)
+        
+        return queryset
+    
+    def get_queryset(self):
+        # Base queryset selon le rôle
+        queryset = self.get_base_queryset()
+        
+        # Optimisation avec select_related
+        queryset = queryset.select_related("client", "demande_financement").order_by("-date_upload")
+        
+        # Application des filtres
+        queryset = self.apply_filters(queryset)
+        
+        return queryset
             
 class DocumentDetailView(LoginRequiredMixin, DetailView):
     model = Documents
