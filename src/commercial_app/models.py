@@ -22,7 +22,7 @@ class Offre(models.Model):
     frais_garantie = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     
     #total à payer(mensualité * duree + frais)
-    total_du = models.DecimalField(max_digits=12, decimal_places=0, blank=True)
+    total_du = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
     # Statut de l'offre
     STATUTS_OFFRE = [

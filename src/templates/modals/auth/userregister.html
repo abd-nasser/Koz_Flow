@@ -64,7 +64,44 @@
     });
 </script>
 {% endif %}
-
+<script>
+    // Récupérer le rôle de l'utilisateur connecté (depuis le contexte Django)
+    const userRole = "{{ user.role }}";
+    const isCommercial = (userRole === "commercial");
+    const isStaff = "{{ user.is_staff|yesno:'true,false' }}" === "true";
+    
+    // Fonction pour cacher/masquer les champs selon le rôle
+    function adaptFormForRole() {
+        if (isCommercial) {
+            // 1. Cacher le champ "rôle" (forcer à "client")
+            const roleField = document.querySelector('[name="role"]');
+            if (roleField) {
+                const roleWrapper = roleField.closest('.form-group');
+                if (roleWrapper) roleWrapper.style.display = 'none';
+                roleField.value = 'client';
+            }
+            
+            // 2. Cacher le champ "assigned_commercial" (forcer à l'ID du commercial connecté)
+            const assignedField = document.querySelector('[name="assigned_commercial"]');
+            if (assignedField) {
+                const assignedWrapper = assignedField.closest('.form-group');
+                if (assignedWrapper) assignedWrapper.style.display = 'none';
+                assignedField.value = "{{ user.id }}";
+            }
+        }
+    }
+    
+    // Exécuter l'adaptation au chargement du modal
+    document.addEventListener('DOMContentLoaded', adaptFormForRole);
+    
+    // Réadapter si le modal est ouvert dynamiquement
+    const modal = document.getElementById('userregister_modal');
+    if (modal) {
+        modal.addEventListener('click', function() {
+            setTimeout(adaptFormForRole, 50);
+        });
+    }
+</script>
 <style>
     .btn-glow {
         background: linear-gradient(135deg, #3b82f6, #2563eb);

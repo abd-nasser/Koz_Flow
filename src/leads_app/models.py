@@ -129,15 +129,16 @@ class Vente(models.Model):
     @property
     def type_vente(self):
         if self.demande_financement is None :
-            return 'cash' if self.statut == 'conclue' else 'non_classifie'
+            return 'cash' if self.statut in ['conclue', 'conclue_par_offre_acceptee'] else 'non_classifie'
         
         demande = self.demande_financement
         if demande.financement_type == 'maison':
-            return 'interne'
+            return 'maison'
         if demande.financement_type == 'externe':
             if demande.financement_par == 'fidelis':
                 return 'externe_fidelis'
             if demande.financement_par == 'alios':
                 return 'externe_alios'
+            
         return 'non_classifie'
         

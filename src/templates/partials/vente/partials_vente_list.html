@@ -3,12 +3,13 @@
 <div id="ventes-list-container">
     <div class="grid grid-cols-1 gap-5">
         {% for vente in ventes %}
-        <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden group">
             <div class="p-5">
                 <div class="flex flex-wrap justify-between items-start gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-3 mb-3 flex-wrap">
-                            <h3 class="font-bold text-lg text-gray-800">
+                            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-receipt text-blue-500"></i>
                                 Vente #{{ vente.id }}
                             </h3>
                             <span class="badge px-3 py-1 rounded-full text-xs font-semibold
@@ -17,6 +18,21 @@
                                 {% else %}bg-yellow-100 text-yellow-700{% endif %}">
                                 {{ vente.get_statut_display }}
                             </span>
+                            {% if vente.type_vente %}
+                            <span class="badge px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                {% if vente.type_vente == 'cash' %}
+                                    💰 Comptant
+                                {% elif vente.type_vente == 'maison' %}
+                                    🏠 KOZ Finance
+                                {% elif vente.type_vente == 'externe_fidelis' %}
+                                    🏦 Fidelis
+                                {% elif vente.type_vente == 'externe_alios' %}
+                                    🏦 Alios
+                                {% else %}
+                                    {{ vente.type_vente }}
+                                {% endif %}
+                            </span>
+                            {% endif %}
                         </div>
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -29,25 +45,30 @@
                                 <span class="truncate">{{ vente.client.email }}</span>
                             </div>
                             <div class="flex items-center gap-2 text-gray-600">
-                                <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
-                                <span><strong>Montant :</strong> {{ vente.montant|intcomma }} FCFA</span>
+                                <i class="fas fa-money-bill-wave text-green-600 w-5"></i>
+                                <span><strong>Montant :</strong> <span class="font-semibold text-green-700">{{ vente.montant|intcomma }} FCFA</span></span>
                             </div>
                             <div class="flex items-center gap-2 text-gray-600">
                                 <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
                                 <span><strong>Date :</strong> {{ vente.date_vente|date:"d/m/Y" }}</span>
                             </div>
                             {% if vente.demande_financement %}
-                            <div class="flex items-center gap-2 text-gray-600 col-span-2">
-                                <i class="fas fa-file-alt text-blue-500 w-5"></i>
+                            <div class="flex items-center gap-2 text-gray-600 sm:col-span-2">
+                                <i class="fas fa-link text-blue-500 w-5"></i>
                                 <span><strong>Liée à la demande :</strong> #{{ vente.demande_financement.id }}</span>
+                                <a href="{% url 'leads_app:demande-detail' vente.demande_financement.id %}" 
+                                   class="text-blue-500 hover:text-blue-700 transition ml-1">
+                                    <i class="fas fa-external-link-alt text-xs"></i>
+                                </a>
                             </div>
                             {% endif %}
                         </div>
                     </div>
                     <div>
-                        <a href="{% url 'commercial_app:vente-update' vente.id %}" 
-                           class="btn btn-sm btn-outline rounded-full px-5 py-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white transition flex items-center gap-2">
-                            <i class="fas fa-edit"></i> Modifier statut
+                        <a href="{% url 'commercial_app:vente-detail' vente.pk %}" 
+                           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition group-hover:shadow-sm">
+                            <i class="fas fa-eye"></i>
+                            <span class="text-sm font-medium">Détail</span>
                         </a>
                     </div>
                 </div>
@@ -86,3 +107,4 @@
     </div>
     {% endif %}
 </div>
+

@@ -33,9 +33,18 @@
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
                     <span class="text-white font-bold text-xl">K</span>
                 </div>
-                <a href="{% url 'commercial_app:commercial-view' %}" class="text-gray-600 hover:text-blue-600 transition">
+                
+                {% if user.role == "directeur" %}
+                    <a href="{% url 'directeur_app:directeur-view' %}" class="text-gray-600 hover:text-blue-600 transition">
                     <i class="fas fa-arrow-left mr-2"></i>Retour au tableau de bord
-                </a>
+                    </a>
+                {% else %}
+                    <a href="{% url 'commercial_app:commercial-view' %}" class="text-gray-600 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour au tableau de bord
+                    </a>
+                {% endif %}
+                    
+                
             </div>
             <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Fiche client</h1>
             <div class="w-10"></div>
@@ -57,12 +66,17 @@
                             Client depuis le {{ client.date_joined|date:"d/m/Y" }}
                         </p>
                     </div>
-                    <div class="flex gap-2">
+                    
+                    {% if user.role == "commercial" %}
+                         <div class="flex gap-2">
                         <a href="{% url 'chat_app:chat-view' client.id %}" 
                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2 text-sm">
                             <i class="fas fa-comment-dots"></i> Contacter
                         </a>
                     </div>
+                    {% endif %}
+                        
+                   
                 </div>
             </div>
 

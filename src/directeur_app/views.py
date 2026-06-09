@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin #
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
 from vehicul_app.forms import MarqueForm, VehiculForm
-
+from products_app.forms import CategorieProductsForm, ProductsForm
 class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView ):
     
     template_name = "directeur_templates/directeur.html"
@@ -34,6 +34,12 @@ class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView
         
         if "vehicul_form" not in context:
             context["vehicul_form"] = VehiculForm()
+            
+        if "create_product_form" not in context:
+            context["create_product_form"] = ProductsForm()
+        
+        if "create_categorie_form" not in context:
+            context["create_categorie_form"] = CategorieProductsForm()
             
         return context 
        

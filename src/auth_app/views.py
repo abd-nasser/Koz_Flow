@@ -192,10 +192,13 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return kwargs
     
     def form_valid(self, form):
-        response = super().form_valid(form)
+        # Modifications AVANT la sauvegarde
+        if self.request.user.role == 'commercial':
+            form.instance.role = 'client'
+            form.instance.assigned_commercial = self.request.user
         
-        # Ne jamais afficher le mot de passe dans l'interface
-        # Juste un message générique
+        response = super().form_valid(form)  # Sauvegarde avec les bonnes valeurs
+        
         messages.success(self.request, 
             f"✅ Utilisateur {form.cleaned_data.get('email')} créé !\n"
             f"📧 Les identifiants temporaires ont été envoyés par email."

@@ -300,7 +300,7 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
     model = Offre
     form_class = OffreForm
     template_name = "clients_templates/client_detail.html"
-    success_url = reverse_lazy("client_app:detail-client")
+    success_url = reverse_lazy("client_app:client-detail")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -312,10 +312,30 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         client_id = self.kwargs.get("pk")
         client = get_object_or_404(kozUser, id=client_id)
         
-        form.instance.client = client
-        form.instance.type_offre = "simple"
-        form.instance.statut = "envoyee"
-        offre = form.save()
+        offre = form.save(commit=False)
+        offre.client = client
+        offre.type_offre = "simple"
+        offre.statut = "envoyee"
+        
+        # Récupérer les valeurs du formulaire
+        prix_vehicule = form.cleaned_data.get('prix_vehicule')
+        apport_demande = form.cleaned_data.get('apport_demande')
+        offre.montant_finance = prix_vehicule - apport_demande
+        
+        # Calculer la mensualité
+        taux_mensuel = offre.taux_interet / 100 / 12 if offre.taux_interet > 0 else 0
+        
+        if offre.taux_interet > 0:
+            offre.mensualite = (offre.montant_finance * taux_mensuel) / (1 - (1 + taux_mensuel) ** -offre.duree_mois)
+        else:
+            offre.mensualite = offre.montant_finance / offre.duree_mois
+        
+        # Calculer le total dû
+        offre.total_du = (offre.mensualite * offre.duree_mois) + offre.frais_dossier + offre.frais_garantie
+        
+        offre.save()
+            
+        
         
         # ✉️ EMAIL AU CLIENT
         try:
@@ -453,7 +473,6 @@ def vente_update_statut(request, pk):
 
 class VenteListView(LoginRequiredMixin, ListView):
     model = Vente
-    template_name = "commercial_templates/vente_list.html"
     context_object_name = "ventes"
     paginate_by = 20
 
@@ -496,6 +515,11 @@ class VenteListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['statut_choices'] = Vente.STATUT_VENTE
         return context
+
+class VenteDetailView(LoginRequiredMixin, DetailView):
+    model = Vente
+    template_name = "commercial_templates/vente_detail.html"
+    context_object_name = "vente"
 
 ############################################# GESTION_MAINTENANCE_VIEW ##########################################################################
 

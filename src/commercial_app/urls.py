@@ -28,6 +28,7 @@ urlpatterns = [
     # commercial_app/urls.py
 
 path('ventes/',views.VenteListView.as_view(), name='vente-list'),
+path('ventes/<int:pk>/detail', views.VenteDetailView.as_view(), name="vente-detail"),
 path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
 path('ventes/<int:pk>/statut/',views.vente_update_statut, name='vente-update'),
 ]

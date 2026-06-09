@@ -1,0 +1,266 @@
+{% load static %}
+{% load tailwind_tags %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    {% tailwind_css %}
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Détail vente - KOZ Services</title>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s ease-out forwards;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .info-card {
+            transition: all 0.2s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-inter">
+
+    <!-- Messages flash -->
+    {% if messages %}
+    <div class="fixed top-20 right-5 z-50 space-y-2">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mr-2"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Navbar -->
+    <nav class="glass-nav sticky top-0 z-40 shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
+                    <span class="text-white font-bold text-xl">K</span>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">KOZ Services</span>
+            </div>
+            <a href="{% url 'commercial_app:vente-list' %}" class="text-gray-600 hover:text-blue-600 transition text-sm flex items-center gap-1">
+                <i class="fas fa-arrow-left"></i> Retour aux ventes
+            </a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up">
+            
+            <!-- Header gradient -->
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
+                <div class="flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h1 class="text-2xl font-bold text-white mb-1">
+                            💰 Vente #{{ vente.id }}
+                        </h1>
+                        <p class="text-blue-100 text-sm">
+                            Enregistrée le {{ vente.date_vente|date:"d/m/Y H:i" }}
+                        </p>
+                    </div>
+                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                        {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_offre_acceptee' %}bg-green-500 text-white
+                        {% elif vente.statut == 'perdue' or vente.statut == 'perdue_par_offre_refusee' %}bg-red-500 text-white
+                        {% elif vente.statut == 'en_cours' %}bg-yellow-500 text-white
+                        {% else %}bg-gray-500 text-white{% endif %}">
+                        {{ vente.get_statut_display }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <!-- Grille d'informations -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Informations client -->
+                    <div class="bg-gray-50 rounded-xl p-5 info-card">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-user-circle text-blue-600"></i> Client
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Nom :</span>
+                                <strong class="text-gray-800">{{ vente.client.nom_complet }}</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-envelope text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Email :</span>
+                                <strong class="text-gray-800">{{ vente.client.email }}</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-phone text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Téléphone :</span>
+                                <strong class="text-gray-800">{{ vente.client.telephone }}</strong>
+                            </div>
+                            {% if user.role != 'client' and vente.client.assigned_commercial %}
+                            <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                                <i class="fas fa-user-tie text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Commercial :</span>
+                                <strong class="text-gray-800">{{ vente.client.assigned_commercial.nom_complet }}</strong>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Informations vente -->
+                    <div class="bg-gray-50 rounded-xl p-5 info-card">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-blue-600"></i> Informations vente
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-tag text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Type :</span>
+                                <strong>
+                                    {% if vente.type_vente == 'cash' %}
+                                        <span class="text-green-600">💰 Paiement comptant</span>
+                                    {% elif vente.type_vente == 'interne' %}
+                                        <span class="text-blue-600">🏠 KOZ Finance</span>
+                                    {% elif vente.type_vente == 'externe_fidelis' %}
+                                        <span class="text-purple-600">🏦 Fidelis</span>
+                                    {% elif vente.type_vente == 'externe_alios' %}
+                                        <span class="text-indigo-600">🏦 Alios</span>
+                                    {% else %}
+                                        {{ vente.type_vente|default:"Non classifié" }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Montant :</span>
+                                <strong class="text-green-600 text-lg">{{ vente.montant|intcomma }} FCFA</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Date d'enregistrement :</span>
+                                <strong>{{ vente.date_vente|date:"d/m/Y H:i" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Demande associée (si existante) -->
+                    {% if vente.demande_financement %}
+                    <div class="bg-gray-50 rounded-xl p-5 info-card lg:col-span-2">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-file-alt text-blue-600"></i> Demande de financement associée
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-id-card text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Demande n° :</span>
+                                <strong>{{ vente.demande_financement.id }}</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-car text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Véhicule :</span>
+                                <strong>
+                                    {% if vente.demande_financement.Vehicul_interested %}
+                                        {{ vente.demande_financement.Vehicul_interested.marque.nom }} {{ vente.demande_financement.Vehicul_interested.modele }}
+                                    {% else %}
+                                        {{ vente.demande_financement.other_Vehicul_interested|default:"—" }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-tag text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Statut demande :</span>
+                                <strong class="
+                                    {% if vente.demande_financement.etape == 'demande_accordee_fidelis' or vente.demande_financement.etape == 'demande_accordee_alios' %}text-green-600
+                                    {% elif vente.demande_financement.etape == 'demand_refusee' %}text-red-600
+                                    {% else %}text-yellow-600{% endif %}">
+                                    {{ vente.demande_financement.get_etape_display }}
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-handshake text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Type financement :</span>
+                                <strong>
+                                    {% if vente.demande_financement.financement_type == 'maison' %}
+                                        KOZ Finance
+                                    {% else %}
+                                        {{ vente.demande_financement.get_financement_par_display|default:vente.demande_financement.get_financement_type_display }}
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right">
+                            <a href="{% url 'leads_app:demande-detail' vente.demande_financement.id %}" 
+                               class="text-blue-600 hover:text-blue-800 transition text-sm inline-flex items-center gap-1">
+                                <i class="fas fa-external-link-alt"></i> Voir la demande
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- Actions (pour commercial/directeur uniquement) -->
+                {% if user.role != 'client' %}
+                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    <a href="{% url 'commercial_app:vente-update' vente.id %}" 
+                       class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
+                        <i class="fas fa-edit"></i> Modifier le statut
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Bouton retour -->
+                <div class="flex justify-center pt-4">
+                    <a href="{% url 'commercial_app:vente-list' %}" 
+                       class="inline-flex items-center gap-2 text-gray-500 hover:text-blue-600 transition">
+                        <i class="fas fa-arrow-left"></i> Retour aux ventes
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        </div>
+    </footer>
+
+</body>
+</html>

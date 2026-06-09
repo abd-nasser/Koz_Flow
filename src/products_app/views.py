@@ -46,6 +46,24 @@ class CategorieProductsDeleteView(DeleteView):
     model = CategorieProducts
     template_name = 'products_templates/categorie_products_confirm_delete.html'
     success_url = reverse_lazy('products_app:categorie-products-list')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        # Vous pouvez ajouter des messages de succès ici si vous utilisez le framework de messages de Django
+        messages.success(self.request, "Nouvelle categorie ajoutée avec succès !")
+        return response
+    
+    def form_invalid(self, form):
+        listView = ProductsListView()
+        listView.request = self.request  # Simule une requête pour pouvoir accéder aux catégories
+        listView.object_list = listView.get_queryset() 
+        listView.kwargs = self.kwargs
+        context = listView.get_context_data()
+        context['create_categorie_form'] = form # Formulaire avec les erreurs
+        context["open_create_categorie_form"] = True # Indicateur pour ouvrir le modal
+        
+        messages.error(self.request, "Erreur lors de la création du catégories. Veuillez vérifier les informations saisies.")
+        return self.render_to_response(context)
 
 
 # ============================================================

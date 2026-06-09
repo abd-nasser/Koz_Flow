@@ -24,6 +24,8 @@ class Vehicul(models.Model):
     # IntegerField = nombre entier (ex: 2022 pour l'année)
     annee = models.IntegerField()
     
+    stock = models.IntegerField(null=True, blank=True)
+    
     prix = models.DecimalField(max_digits=12, decimal_places=0)
     kilometrage = models.IntegerField()
     carburant  = models.CharField(max_length=20, choices=TYPES_CARBURANT_CHOICES, default="essence")
