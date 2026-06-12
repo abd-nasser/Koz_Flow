@@ -11,6 +11,27 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>Détail dossier - KOZ Services</title>
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+        .info-card {
+            transition: all 0.2s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
@@ -53,7 +74,12 @@
                             📁 Dossier de {{ document.client.nom_complet }}
                         </h2>
                         <p class="text-blue-100 text-sm">
-                            Demande n°{{ document.demande_financement.id }} • Créé le {{ document.date_upload|date:"d/m/Y" }}
+                            {% if document.demande_financement %}
+                                Demande n°{{ document.demande_financement.id }}
+                            {% elif document.offre %}
+                                Offre n°{{ document.offre.id }}
+                            {% endif %}
+                            • Créé le {{ document.date_upload|date:"d/m/Y" }}
                         </p>
                     </div>
                     <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
@@ -69,7 +95,7 @@
             <div class="p-6 space-y-6">
 
                 <!-- Informations client -->
-                <div class="bg-gray-50 rounded-xl p-5">
+                <div class="bg-gray-50 rounded-xl p-5 info-card">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
                         <i class="fas fa-user-circle text-blue-600"></i>Informations client
                     </h3>
@@ -92,10 +118,10 @@
                     </div>
                 </div>
 
-                <!-- Documents obligatoires -->
-                <div class="bg-gray-50 rounded-xl p-5">
+                <!-- ==================== IDENTITÉ & RÉSIDENCE ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5 info-card">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-check-circle text-blue-600"></i>Documents obligatoires
+                        <i class="fas fa-id-card text-blue-600"></i> Identité & résidence
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
@@ -118,10 +144,19 @@
                                 <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
                             {% endif %}
                         </div>
+                    </div>
+                </div>
+
+                <!-- ==================== EMPLOI & REVENUS ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5 info-card">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-briefcase text-blue-600"></i> Emploi & revenus
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-                            <span class="text-gray-700"><i class="fas fa-file-invoice-dollar mr-2 text-blue-500"></i>Quittance salaire</span>
-                            {% if document.quittance_salaire %}
-                                <a href="{{ document.quittance_salaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                            <span class="text-gray-700">📄 Attestation de non-engagement</span>
+                            {% if document.attestation_non_engagement %}
+                                <a href="{{ document.attestation_non_engagement.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
                             {% else %}
@@ -129,9 +164,63 @@
                             {% endif %}
                         </div>
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-                            <span class="text-gray-700"><i class="fas fa-chart-line mr-2 text-blue-500"></i>Relevé bancaire</span>
-                            {% if document.relevé_bancaire %}
-                                <a href="{{ document.relevé_bancaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition flex items-center gap-1">
+                            <span class="text-gray-700">📄 Contrat de travail</span>
+                            {% if document.contrat_travail %}
+                                <a href="{{ document.contrat_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">📄 Attestation de travail (&lt;3 mois)</span>
+                            {% if document.attestation_travail %}
+                                <a href="{{ document.attestation_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">💰 3 derniers bulletins de paie</span>
+                            {% if document.quittance_salaire %}
+                                <a href="{{ document.quittance_salaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <h5 class="text-sm font-semibold text-gray-700 mt-4 mb-2">📄 Détail des bulletins de paie</h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">Bulletin -3 mois</span>
+                            {% if document.bulletin_1 %}
+                                <a href="{{ document.bulletin_1.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">Bulletin -2 mois</span>
+                            {% if document.bulletin_2 %}
+                                <a href="{{ document.bulletin_2.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">Bulletin -1 mois</span>
+                            {% if document.bulletin_3 %}
+                                <a href="{{ document.bulletin_3.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
                             {% else %}
@@ -141,44 +230,103 @@
                     </div>
                 </div>
 
-                <!-- Documents supplémentaires -->
-                <div class="bg-gray-50 rounded-xl p-5">
+                <!-- ==================== BANQUE ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5 info-card">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-paperclip text-blue-600"></i>Documents supplémentaires
+                        <i class="fas fa-university text-blue-600"></i> Relevés bancaires
                     </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-                            <span class="text-gray-700 text-sm">📄 Contrat travail</span>
-                            {% if document.contrat_travail %}
-                                <a href="{{ document.contrat_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
+                            <span class="text-gray-700">🏦 Relevé bancaire (12 mois) + RIB</span>
+                            {% if document.relevé_bancaire %}
+                                <a href="{{ document.relevé_bancaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
                             {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
                             {% endif %}
                         </div>
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-                            <span class="text-gray-700 text-sm">📊 Avis imposition</span>
-                            {% if document.avis_imposition %}
-                                <a href="{{ document.avis_imposition.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
+                            <span class="text-gray-700">✍️ Spécimen de signature</span>
+                            {% if document.specimen_signature %}
+                                <a href="{{ document.specimen_signature.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
                                     <i class="fas fa-eye"></i> Voir
                                 </a>
                             {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
-                            {% endif %}
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
-                            <span class="text-gray-700 text-sm">📎 Autres</span>
-                            {% if document.autres %}
-                                <a href="{{ document.autres.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition text-sm">
-                                    <i class="fas fa-eye"></i> Voir
-                                </a>
-                            {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
+
+                <!-- ==================== AUTRES JUSTIFICATIFS (optionnels) ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5 info-card">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-paperclip text-blue-600"></i> Autres justificatifs (optionnels)
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">📄 Certificat de présence au corps</span>
+                            {% if document.certificat_presence %}
+                                <a href="{{ document.certificat_presence.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">📍 Plan de géolocalisation</span>
+                            {% if document.geolocalisation %}
+                                <a href="{{ document.geolocalisation.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">🛡️ Garanties proposées</span>
+                            {% if document.garanties %}
+                                <a href="{{ document.garanties.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">💰 Reçu des frais d'acompte</span>
+                            {% if document.recu_acompte %}
+                                <a href="{{ document.recu_acompte.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <span class="text-gray-700">📋 Fiche de demande de financement</span>
+                            {% if document.fiche_demande %}
+                                <a href="{{ document.fiche_demande.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Commentaire de rejet (si applicable) -->
+                {% if document.commentaire_rejet %}
+                <div class="bg-red-50 rounded-xl p-4 border border-red-200">
+                    <p class="text-sm text-red-700">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <strong>Motif du rejet :</strong> {{ document.commentaire_rejet }}
+                    </p>
+                </div>
+                {% endif %}
 
                 <!-- Actions -->
                 <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
@@ -204,21 +352,6 @@
 
     <!-- Modale -->
     {% include 'modals/leads/gestion_doc.html' %}
-
-    <style>
-        .btn-glow {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-        }
-        .btn-glow:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
-        }
-    </style>
 
 </body>
 </html>

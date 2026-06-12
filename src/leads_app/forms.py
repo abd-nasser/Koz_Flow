@@ -29,10 +29,10 @@ class DemandeFinancementForm(forms.ModelForm):
         label="📈 Taux d'intérêt annuel (%)",
         widget=forms.Select(attrs={
             "class": "select select-bordered w-full",
-            'hx-get':'/leads/estimer-prix/', #URL de la vue qui traite la simulation
-            'hx-target': '#resultat-simulation',                #ID de l'élément où afficher le résultat de la simulation
-            'hx-trigger': 'changed',                             #Déclenche la requête lors du changement de sélection
-            'hx-include': "#simulation-fields"                  #Inclure les champs du formulaire dans la requête HTMX
+            'hx-get':'/leads/estimer-prix/', # URL de la vue qui traite la simulation
+            'hx-target': '#resultat-simulation',                # ID de l'élément où afficher le résultat de la simulation
+            'hx-trigger': 'change delay:300ms',                   # Déclenche la requête au changement de sélection
+            'hx-include': '#simulation-fields',                    # Inclure les champs du formulaire dans la requête HTMX
         })
     )
     
@@ -102,9 +102,55 @@ class GestionFinancementForm(forms.ModelForm):
 class DocumentsUploadForm(forms.ModelForm):
     class Meta:
         model = Documents
-        fields = ['cni_passeport', 'justificatif_domicile', 'quittance_salaire', 'relevé_bancaire', 
-                  'contrat_travail', 'avis_imposition', 'autres']
+        fields = [
+            'cni_passeport',
+            'justificatif_domicile',
+            'attestation_non_engagement',
+            'contrat_travail',
+            'attestation_travail',
+            'quittance_salaire',      # ← AJOUTER CETTE LIGNE
+            'bulletin_1',
+            'bulletin_2',
+            'bulletin_3',
+            'relevé_bancaire',
+            'specimen_signature',
+            'certificat_presence',
+            'geolocalisation',
+            'garanties',
+            'recu_acompte',
+            'fiche_demande',
+        ]
+        
         widgets = {
             field: forms.ClearableFileInput(attrs={'class': 'file-input file-input-bordered w-full'})
             for field in fields
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        missing_docs = []
+        
+        # Liste des documents obligatoires
+        required_fields = [
+            ('cni_passeport', 'CNI / Passeport'),
+            ('justificatif_domicile', 'Justificatif de domicile'),
+            ('attestation_non_engagement', 'Attestation de non-engagement'),
+            ('contrat_travail', 'Contrat de travail'),
+            ('attestation_travail', 'Attestation de travail'),
+            ('bulletin_1', 'Bulletin de paie -3 mois'),
+            ('bulletin_2', 'Bulletin de paie -2 mois'),
+            ('bulletin_3', 'Bulletin de paie -1 mois'),
+            ('relevé_bancaire', 'Relevé bancaire (12 mois) + RIB'),
+            ('specimen_signature', 'Spécimen de signature'),
+        ]
+        
+        for field_name, field_label in required_fields:
+            if not cleaned_data.get(field_name):
+                missing_docs.append(field_label)
+        
+        if missing_docs:
+            raise forms.ValidationError(
+                f"Documents obligatoires manquants : {', '.join(missing_docs)}"
+            )
+        
+        return cleaned_data

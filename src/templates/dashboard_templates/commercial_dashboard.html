@@ -132,7 +132,7 @@
                         </div>
                     </div>
                 </a>
-                <a href="{% url 'dashboard_app:liste-filtree' 'client' 'offre__statut' 'acceptee' %}" 
+                <a href="{% url 'dashboard_app:liste-filtree' 'client' 'offres__statut' 'acceptee' %}" 
                    class="kpi-card bg-white rounded-xl p-5 shadow-md border border-gray-100 hover:border-green-200">
                     <div class="flex justify-between items-start">
                         <div>
@@ -164,7 +164,7 @@
                     <p class="text-xs text-blue-700">🔄 En cours</p>
                     <p class="text-xl font-bold text-blue-700">{{ demandes_en_cours }}</p>
                 </a>
-                <a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'etape' 'demand_refusee' %}" 
+                <a href="{% url 'dashboard_app:liste-filtree' 'demande_financement' 'etape' 'demande_refusee' %}" 
                    class="kpi-card bg-red-50 rounded-xl p-3 text-center border border-red-100 hover:border-red-300">
                     <p class="text-xs text-red-700">❌ Refusées</p>
                     <p class="text-xl font-bold text-red-700">{{ demandes_refuser }}</p>

@@ -233,10 +233,7 @@ def estimer_prix_vehicule(request):
     duree_mois = int(request.GET.get('duree_mois', 36))
     apport = float(request.GET.get('apport', 0))
 
-    # 2. Si pas de mensualité, on ne calcule rien
-    if mensualite <= 0:
-        return JsonResponse({'prix_estime': 0})
-
+   
     # 3. Calcul du capital empruntable
     taux_mensuel = taux_annuel / 12  # ex: 0.08 / 12 = 0.006666
     # Math : C = M * (1 - (1 + t)^(-n)) / t
@@ -279,7 +276,7 @@ class DemandeFinView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         if self.request.user.role == "client":
-            queryset = self.request.user.demande_financement.all().select_related("Vehicul_interested", "client")
+            queryset = self.request.user.demande_financement.all().select_related("Vehicul_interested", "client").order_by("-date_creation")
             
             search_query = self.request.GET.get("q")
             etape = self.request.GET.get("etape")
@@ -307,7 +304,7 @@ class DemandeFinView(LoginRequiredMixin, ListView):
         if self.request.user.role == "commercial":
             queryset = demande_financement.objects.filter(
                 client__assigned_commercial=self.request.user
-            )
+            ).order_by("-date_creation")
             search_query = self.request.GET.get("q")
             etape = self.request.GET.get("etape")
             financement_type = self.request.GET.get("type_entreprise")
@@ -449,13 +446,33 @@ def upload_multiple_documents(request, demande_id):
                     except Exception as e:
                         print(f"Erreur envoi email au commercial: {e}")
                 
+                return redirect('leads_app:detail-demande', demande.pk)
             else:
+                # ❌ Dossier incomplet (documents manquants)
                 dossier.statut_dossier = "incomplet"
                 dossier.save()
                 messages.warning(request, "Veuillez uploader tous les documents obligatoires.")
+                
+                # Réouvrir le modal avec le formulaire (conserve les fichiers déjà uploadés)
+                context = {
+                    'demande': demande,
+                    'upload_doc_form': form,
+                    'open_upload_doc_modal': True,
+                }
+                return render(request, 'clients_templates/client_demande_detail.html', context)
         else:
-            messages.error(request, "Erreur dans l'upload des fichiers.")
+            # ❌ Formulaire invalide (erreur de validation)
+            messages.error(request, "Erreur dans l'upload des fichiers. Vérifiez les champs.")
+            
+            # Réouvrir le modal avec le formulaire invalide
+            context = {
+                'demande': demande,
+                'upload_doc_form': form,
+                'open_upload_doc_modal': True,
+            }
+            return render(request, 'clients_templates/client_demande_detail.html', context)
     
+    # Si GET (pas POST), rediriger vers la page de détail
     return redirect('leads_app:detail-demande', demande.pk)
 
 @login_required
@@ -477,6 +494,15 @@ def valide_dossier(request, dossier_id):
     # 2️⃣ Mettre à jour la demande et créer la vente
     demande = dossier.demande_financement
     
+     # ✅ Vérifier que le financement est configuré
+    if not demande.financement_type:
+        messages.error(request, "Veuillez d'abord configurer le type de financement.")
+        return redirect("leads_app:detail-demande", demande.pk)
+    
+    if demande.financement_type == "externe" and not demande.financement_par:
+        messages.error(request, "Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
+        return redirect("leads_app:detail-demande", demande.pk)
+    
     if demande.financement_type == "externe":
         if demande.financement_par == "fidelis":
             demande.etape = "demande_accordee_fidelis"
@@ -490,7 +516,7 @@ def valide_dossier(request, dossier_id):
             client=demande.client,
             demande_financement=demande,
             statut='conclue',
-            montant=demande.montant_souhaite
+            montant=demande.Vehicul_interested.prix
         )
         
     elif demande.financement_type == "maison":
@@ -502,7 +528,7 @@ def valide_dossier(request, dossier_id):
             client=demande.client,
             demande_financement=demande,
             statut='conclue',
-            montant=demande.montant_souhaite
+            montant=demande.Vehicul_interested.prix
         )
     
     # ✉️ Email au client pour l'informer de l'accord
@@ -683,6 +709,54 @@ def verifier_dossier(request, dossier_id):
     
     return redirect("leads_app:document-detail", dossier.pk)
        
+@login_required
+def reverifier_document(request, dossier_id):
+    """
+    Remet un dossier en vérification (après correction par le client)
+    Utilisable uniquement pour les dossiers liés à une demande
+    """
+    dossier = get_object_or_404(Documents, id=dossier_id)
+    
+    # Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "Action non autorisée.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Vérifier que le dossier est lié à une demande (pas à une offre simple)
+    if not dossier.demande_financement:
+        messages.error(request, "Cette action n'est disponible que pour les dossiers liés à une demande de financement.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Vérifier que le dossier est dans un état valide pour être revérifié
+    if dossier.statut_dossier not in ['rejete', 'modification']:
+        messages.warning(request, "Ce dossier ne peut pas être remis en vérification.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Remettre en vérification
+    dossier.statut_dossier = "verification"
+    dossier.commentaire_rejet = ""  # Effacer le commentaire de rejet
+    dossier.save()
+    
+    # Mettre à jour l'étape de la demande si nécessaire
+    demande = dossier.demande_financement
+    if demande and demande.etape in ['demand_refusee']:
+        demande.etape = "en_cours"
+        demande.save()
+    
+    # ✉️ Email au client
+    try:
+        send_mail(
+            subject="🔄 Votre dossier est à nouveau en vérification - KOZ Services",
+            message=f"Bonjour {dossier.client.nom_complet},\n\nVotre dossier a été remis en vérification. Nous vous tiendrons informé.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[dossier.client.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email: {e}")
+    
+    messages.success(request, f"Le dossier de {dossier.client.nom_complet} est à nouveau en vérification.")
+    return redirect("leads_app:document-detail", dossier.pk)
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
     context_object_name = "documents"
@@ -708,13 +782,13 @@ class DocumentListView(LoginRequiredMixin, ListView):
         user = self.request.user
         
         if user.is_superuser or user.role == "directeur":
-            return Documents.objects.all()
+            return Documents.objects.all().order_by("-date_upload")
         
         if user.is_staff or user.role == "commercial":
-            return Documents.objects.filter(client__in=user.clients_assignes.all())
+            return Documents.objects.filter(client__in=user.clients_assignes.all()).order_by("-date_upload")
         
         if user.role == "client":
-            return Documents.objects.filter(client=user)
+            return Documents.objects.filter(client=user).order_by("-date_upload")
         
         return Documents.objects.none()
     
@@ -754,13 +828,13 @@ class DocumentListView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         # Base queryset selon le rôle
-        queryset = self.get_base_queryset()
+        queryset = self.get_base_queryset().order_by("-date_upload")
         
         # Optimisation avec select_related
         queryset = queryset.select_related("client", "demande_financement").order_by("-date_upload")
         
         # Application des filtres
-        queryset = self.apply_filters(queryset)
+        queryset = self.apply_filters(queryset).order_by("-date_upload")
         
         return queryset
             
@@ -786,20 +860,30 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     model = Documents
     form_class = DocumentsUploadForm
     template_name = "clients_templates/client_detail_doc.html"
+    
     def get_success_url(self):
-        return reverse_lazy("leads_app:document-detail", kwargs={"pk": self.object.pk})  
+        return reverse_lazy("leads_app:document-detail", kwargs={"pk": self.object.pk})
     
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, "Vos documents on on été mise à jour")
+        dossier = self.object
+        
+        if dossier.verifier_completude():
+            dossier.statut_dossier = "complet"
+            dossier.save()
+            if dossier.demande_financement:
+                dossier.demande_financement.etape = "en_cours"
+                dossier.demande_financement.save()
+        
+        messages.success(self.request, "Vos documents ont été mis à jour")
         return response
-     
+    
     def form_invalid(self, form):
         doc_detail_view = DocumentDetailView()
         doc_detail_view.request = self.request
         doc_detail_view.kwargs = self.kwargs
         context = doc_detail_view.get_context_data()
-        context["open_update_doc_modal"]= True
+        context["open_update_doc_modal"] = True
         context["update_doc_form"] = form
         return self.render_to_response(context)
     

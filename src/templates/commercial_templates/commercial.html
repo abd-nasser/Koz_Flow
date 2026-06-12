@@ -224,15 +224,16 @@
         </div>
     </footer>
 
+   
     <script>
         // Gestion de la déconnexion
         document.getElementById('logoutBtn').addEventListener('click', async () => {
-            const refresh = localStorage.getItem('refresh_token');
+            const refresh = localStorage.getItem('access');
             await fetch('/api/auth/logout/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('access')}`
                 },
                 body: JSON.stringify({refresh: refresh})
             });
@@ -240,16 +241,46 @@
             window.location.href = '/';
         });
 
-        // Vérification périodique du token
+        // Refresh du token avant qu'il n'expire
+        async function refreshToken() {
+            const refresh = localStorage.getItem('access');
+            if (!refresh) return false;
+            
+            try {
+                const response = await fetch('/api/auth/refresh/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({refresh: refresh})
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access', data.access);
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (error) {
+                console.error('Refresh failed:', error);
+                return false;
+            }
+        }
+
+        // Vérification périodique du token avec refresh automatique
         setInterval(async () => {
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('access');
             if (!token) return;
+            
             const response = await fetch('/api/auth/me/', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
+            
             if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = '/';
+                const refreshed = await refreshToken();
+                if (!refreshed) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
             }
         }, 60000);
     </script>

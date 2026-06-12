@@ -56,7 +56,7 @@
                             <div class="flex items-center gap-2 text-gray-600 sm:col-span-2">
                                 <i class="fas fa-link text-blue-500 w-5"></i>
                                 <span><strong>Liée à la demande :</strong> #{{ vente.demande_financement.id }}</span>
-                                <a href="{% url 'leads_app:demande-detail' vente.demande_financement.id %}" 
+                                <a href="{% url 'leads_app:detail-demande' vente.demande_financement.id %}" 
                                    class="text-blue-500 hover:text-blue-700 transition ml-1">
                                     <i class="fas fa-external-link-alt text-xs"></i>
                                 </a>

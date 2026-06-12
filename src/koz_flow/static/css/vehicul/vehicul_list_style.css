@@ -39,7 +39,7 @@
 
 /* =============== VEHICULE CARD ================= */
 .card {
-    width: 280px;
+    width: 100%;
     height: 380px;
     perspective: 1000px;
     overflow: hidden;
@@ -147,4 +147,48 @@ main{
     align-items: center;
    
     
+}
+
+
+
+
+@media (max-width: 640px) {
+   .catalogue-layout {
+    display: flex;
+    gap: 1.5rem;
+    min-height: auto;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    flex-direction: column;
+   }
+
+   .hero-column {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: 320px;
+        margin: 0 auto;
+    }
+
+    .card {
+        width: min(100%, 280px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media(max-width: 480px){
+    .catalogue-layout {
+        gap: 1rem;
+    }
+
+    .hero-column {
+        min-height: 260px;
+    }
+
+    .card {
+        width: 100%;
+        max-width: 100%;
+    }
 }

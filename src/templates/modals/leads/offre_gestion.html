@@ -1,52 +1,130 @@
 <dialog id="gestion_offre_modal" class="modal">
-  <div class="modal-box">
-   
-         <!-- Actions selon statut -->
-        {% if offre.statut == 'envoyee' %}
-        <div class="flex flex-wrap gap-3 mt-4 pt-3 border-t">
-            <a href="{% url 'leads_app:accepter-offre' offre.id %}" 
-               class="btn btn-success">✅ Accepter l'offre</a>
-            <a href="{% url 'leads_app:refuser-offre' offre.id %}" 
-               class="btn btn-danger">❌ Refuser l'offre</a>
-            <a href="{% url 'leads_app:negocier-offre' offre.id %}" 
-               class="btn btn-warning">💬 Négocier / Discuter</a>
-        </div>
-        {% elif offre.statut == 'acceptee' %}
-        <div class="bg-green-50 border border-green-200 rounded p-4 mt-4 text-center">
-            <p class="text-green-700 font-semibold">✅ Offre acceptée. Félicitations !</p>
-            <p class="text-sm text-gray-600 mt-1">Un commercial vous contactera pour la finalisation.</p>
-        </div>
-        {% elif offre.statut == 'refusee' %}
-        <div class="bg-red-50 border border-red-200 rounded p-4 mt-4 text-center">
-            <p class="text-red-700 font-semibold">❌ Offre refusée.</p>
-            <p class="text-sm text-gray-600 mt-1">Vous pouvez contacter votre commercial pour une autre proposition.</p>
-        </div>
-        {% elif offre.statut == 'expiree' %}
-        <div class="bg-gray-100 border border-gray-300 rounded p-4 mt-4 text-center">
-            <p class="text-gray-700 font-semibold">⏰ Offre expirée.</p>
-            <p class="text-sm text-gray-600 mt-1">Contactez votre commercial pour une nouvelle offre.</p>
-        </div>
-        {% endif %}
+    <div class="modal-box w-full max-w-md p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
         
-      <div class="modal-action">
-        <button type="submit" class="btn btn-primary">envoyer</button>
-        <button type="button" class="btn" onclick="document.getElementById('gestion_offre_modal').close()">Annuler</button>
-      </div>
-  </div>
+        <!-- Header avec dégradé -->
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">
+                    <i class="fas fa-cog mr-2"></i>Gérer l'offre
+                </h3>
+                <button type="button" class="text-white/80 hover:text-white text-2xl leading-none transition" 
+                        onclick="document.getElementById('gestion_offre_modal').close()">&times;</button>
+            </div>
+            <p class="text-blue-100 text-sm mt-1">Choisissez une action pour cette offre</p>
+        </div>
+
+        <!-- Corps du modal -->
+        <div class="p-6 space-y-4">
+            
+            {% if offre.statut == 'envoyee' %}
+            <!-- Actions pour offre envoyée -->
+            <div class="space-y-3">
+                <a href="{% url 'commercial_app:accepter-offre' offre.id %}" 
+                   class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition">
+                        <i class="fas fa-check-circle text-green-700 text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">Accepter l'offre</p>
+                        <p class="text-sm text-gray-500">Valider cette offre de financement</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-green-600 transition"></i>
+                </a>
+
+                <a href="{% url 'commercial_app:refuser-offre' offre.id %}" 
+                   class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
+                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
+                        <i class="fas fa-times-circle text-red-700 text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">Refuser l'offre</p>
+                        <p class="text-sm text-gray-500">Rejeter cette proposition</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-red-600 transition"></i>
+                </a>
+
+                <a href="{% url 'commercial_app:negocier-offre' offre.id %}" 
+                   class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group">
+                    <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition">
+                        <i class="fas fa-comment-dots text-yellow-700 text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold text-gray-800">Négocier / Discuter</p>
+                        <p class="text-sm text-gray-500">Discuter des conditions avec votre commercial</p>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-yellow-600 transition"></i>
+                </a>
+            </div>
+
+            {% elif offre.statut == 'acceptee' %}
+            <!-- Message offre acceptée -->
+            <div class="bg-green-50 rounded-xl p-5 text-center border border-green-200">
+                <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+                <p class="font-semibold text-green-800 text-lg">Offre acceptée</p>
+                <p class="text-sm text-green-700 mt-1">Félicitations ! Un commercial vous contactera pour la finalisation.</p>
+            </div>
+
+            {% elif offre.statut == 'refusee' %}
+            <!-- Message offre refusée -->
+            <div class="bg-red-50 rounded-xl p-5 text-center border border-red-200">
+                <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-times-circle text-red-600 text-2xl"></i>
+                </div>
+                <p class="font-semibold text-red-800 text-lg">Offre refusée</p>
+                <p class="text-sm text-red-700 mt-1">Vous pouvez contacter votre commercial pour une autre proposition.</p>
+                <a href="{% url 'chat_app:chat-view' %}" class="btn-glow mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm">
+                    <i class="fas fa-comment-dots"></i> Contacter mon commercial
+                </a>
+            </div>
+
+            {% elif offre.statut == 'expiree' %}
+            <!-- Message offre expirée -->
+            <div class="bg-gray-100 rounded-xl p-5 text-center border border-gray-300">
+                <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-hourglass-end text-gray-600 text-2xl"></i>
+                </div>
+                <p class="font-semibold text-gray-800 text-lg">Offre expirée</p>
+                <p class="text-sm text-gray-700 mt-1">Cette offre n'est plus disponible. Contactez votre commercial pour une nouvelle proposition.</p>
+                <a href="{% url 'chat_app:chat-view' %}" class="btn-glow mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm">
+                    <i class="fas fa-comment-dots"></i> Contacter mon commercial
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Footer avec bouton de fermeture -->
+        <div class="bg-gray-50 px-6 py-4 flex justify-end">
+            <button type="button" class="btn btn-ghost" onclick="document.getElementById('gestion_offre_modal').close()">
+                <i class="fas fa-times mr-2"></i>Fermer
+            </button>
+        </div>
+
+    </div>
 </dialog>
 
-
+<!-- Script pour réouvrir le modal si besoin -->
 {% if open_gestion_offre_modal %}
 <script>
-  document.getElementById('gestion_offre_modal').showModal();
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('gestion_offre_modal').showModal();
+    });
 </script>
-  
 {% endif %}
 
-
-<script>
-  // Fonction pour fermer la modale après soumission (optionnel)
-  function closeModal() {
-    document.getElementById('gestion_offre_modal').close();
-  }
-</script>
+<style>
+    .btn-glow {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+    }
+    .btn-glow:hover {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        transform: translateY(-2px);
+        box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+    }
+</style>

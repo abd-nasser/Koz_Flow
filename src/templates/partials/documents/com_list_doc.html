@@ -32,6 +32,12 @@
                             <div class="flex items-center gap-2 text-gray-600">
                                 <i class="fas fa-id-card text-blue-500 w-5"></i>
                                 <span><strong>Demande # :</strong> {{ doc.demande_financement.id }}</span>
+                                 <span class="badge px-3 py-1 rounded-full text-xs font-semibold
+                                {% if doc.demande_financement.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' or doc.demande_financement.etape == 'demande_accordee_maison'%}bg-green-100 text-green-700
+                                {% elif doc.demande_financement.etape == 'demand_refusee' %}bg-red-100 text-red-700
+                                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                {{doc.demande_financement.get_etape_display }}
+                            </span>
                             </div>
                             <div class="flex items-center gap-2 text-gray-600">
                                 <i class="fas fa-car text-blue-500 w-5"></i>

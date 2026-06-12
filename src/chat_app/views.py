@@ -42,21 +42,20 @@ def envoyer_message(request, client_id=None):
 
 @login_required
 def chat_view(request, client_id=None):
-   if request.user.role == "client":
-      messages = Message.objects.filter(client=request.user).order_by('-date_envoi')
-      destinataire = request.user.assigned_commercial
-      context = {
+    if request.user.role == "client":
+        messages = Message.objects.filter(client=request.user).order_by('date_envoi')  # ← plus de '-'
+        destinataire = request.user.assigned_commercial
+        context = {
             'messages': messages,
             'destinataire': destinataire,
             'client_id': request.user.id,
-      }
-   
-   else:
-      client = get_object_or_404(kozUser, id=client_id, role="client")
-      messages = Message.objects.filter(client=client).order_by('-date_envoi')
-      context = {
+        }
+    else:
+        client = get_object_or_404(kozUser, id=client_id, role="client")
+        messages = Message.objects.filter(client=client).order_by('date_envoi')  # ← plus de '-'
+        context = {
             'messages': messages,
             'client': client,
             'client_id': client.id,
         }
-   return render( request, "chat_templates/chat.html", context)
+    return render(request, "chat_templates/chat.html", context)

@@ -195,6 +195,7 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         # Modifications AVANT la sauvegarde
         if self.request.user.role == 'commercial':
             form.instance.role = 'client'
+            form.instance.is_active = True
             form.instance.assigned_commercial = self.request.user
         
         response = super().form_valid(form)  # Sauvegarde avec les bonnes valeurs

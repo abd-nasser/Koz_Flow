@@ -40,7 +40,11 @@
             <div class="w-10"></div>
         </div>
     </nav>
-
+<style>
+    main{
+        min-height: 75vh;
+    }
+</style>
     <main class="container mx-auto px-4 py-8 max-w-5xl">
         
         <!-- ========== FILTRES ========== -->
@@ -74,11 +78,10 @@
                             hx-target="#offre-list-container"
                             hx-include=".filters-container select, .filters-container input"
                             class="select select-bordered w-full">
-                        <option value="">Tous les statuts</option>
-                        <option value="envoyee">Envoyée</option>
-                        <option value="acceptee">Acceptée</option>
-                        <option value="refusee">Refusée</option>
-                        <option value="expiree">Expirée</option>
+                        <option value="">Tous les statut</option>
+                        {% for value, label in STATUTS_OFFRE %}
+                        <option value="{{ value }}" {% if request.GET.statut == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

@@ -67,12 +67,9 @@
                            class="btn btn-sm btn-outline rounded-full px-5 py-2 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white transition">
                             <i class="fas fa-eye mr-1"></i> Détail
                         </a>
-                        {% if offre.statut == 'brouillon' %}
-                        <a href="{% url 'leads_app:offre-update' offre.id %}" 
-                           class="btn btn-sm btn-outline rounded-full px-5 py-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition mt-2 sm:mt-0 sm:ml-2 inline-block">
-                            <i class="fas fa-edit mr-1"></i> Modifier
-                        </a>
-                        {% endif %}
+                        
+                       
+                       
                     </div>
                 </div>
             </div>

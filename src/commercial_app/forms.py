@@ -16,12 +16,12 @@ class OffreForm(forms.ModelForm):
         ]
         widgets = {
             'vehicule_propose': forms.Select(attrs={'class': 'select select-bordered w-full'}),
-            'prix_vehicule': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 10000}),
-            'apport_demande': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 10000}),
+            'prix_vehicule': forms.NumberInput(attrs={'class': 'input input-bordered w-full'}),
+            'apport_demande': forms.NumberInput(attrs={'class': 'input input-bordered w-full'}),
             # 'duree_mois' PAS de widget ici → Django utilise le select par défaut avec les choices
-            'taux_interet': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 0.1}),
-            'frais_dossier': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 1000}),
-            'frais_garantie': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'step': 1000}),
+            'taux_interet': forms.NumberInput(attrs={'class': 'input input-bordered w-full'}),
+            'frais_dossier': forms.NumberInput(attrs={'class': 'input input-bordered w-full',}),
+            'frais_garantie': forms.NumberInput(attrs={'class': 'input input-bordered w-full',}),
             'date_expiration': forms.DateInput(attrs={'class': 'input input-bordered w-full', 'type': 'date'}),
         }
 

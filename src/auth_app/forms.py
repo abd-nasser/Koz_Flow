@@ -18,7 +18,7 @@ class UserRegisterForm(forms.ModelForm):
     class Meta:
         model = kozUser
         fields = ['email', 'nom_complet', 'telephone', 'adresse', 
-                  'role', 'is_active', "profession_choisie", 
+                  'role', "profession_choisie", 
                   "profession", "genre", "pays", "ville", 
                   "assigned_commercial"]
         
@@ -28,7 +28,7 @@ class UserRegisterForm(forms.ModelForm):
             'telephone': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
             'adresse': forms.Textarea(attrs={'class': 'textarea textarea-info w-full', 'rows': 3}),
             'role': forms.Select(attrs={'class': 'select select-bordered w-full'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'checkbox checkbox-info'}),
+            
         }
     
     def __init__(self, *args, **kwargs):

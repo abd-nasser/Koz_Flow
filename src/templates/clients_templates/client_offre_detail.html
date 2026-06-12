@@ -33,7 +33,7 @@
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
                     <span class="text-white font-bold text-xl">K</span>
                 </div>
-                <a href="{% url 'leads_app:offre-list-client' %}" class="text-gray-600 hover:text-blue-600 transition">
+                <a href="{% url 'commercial_app:offre-list' %}" class="text-gray-600 hover:text-blue-600 transition">
                     <i class="fas fa-arrow-left mr-2"></i>Retour à mes offres
                 </a>
             </div>
@@ -122,38 +122,23 @@
                     </div>
                 </div>
 
-                <!-- Actions -->
-                {% if offre.statut == 'envoyee' %}
-                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                    <a href="{% url 'leads_app:accepter-offre' offre.id %}" class="btn-glow px-6 py-2 rounded-xl">
-                        <i class="fas fa-check-circle mr-2"></i>Accepter l'offre
-                    </a>
-                    <a href="{% url 'leads_app:refuser-offre' offre.id %}" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md">
-                        <i class="fas fa-times-circle mr-2"></i>Refuser l'offre
-                    </a>
-                    <a href="{% url 'leads_app:negocier-offre' offre.id %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition">
-                        <i class="fas fa-comment-dots mr-2"></i>Négocier
-                    </a>
-                </div>
-                {% elif offre.statut == 'acceptee' %}
-                <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4">
-                    <p class="font-semibold text-green-800">✅ Offre acceptée</p>
-                    <p class="text-sm text-green-700 mt-1">Un commercial vous contactera pour la finalisation.</p>
-                </div>
-                {% elif offre.statut == 'refusee' %}
-                <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
-                    <p class="font-semibold text-red-800">❌ Offre refusée</p>
-                    <p class="text-sm text-red-700 mt-1">Vous pouvez contacter votre commercial pour une autre proposition.</p>
-                </div>
-                {% elif offre.statut == 'expiree' %}
-                <div class="bg-gray-100 border-l-4 border-gray-500 rounded-xl p-4">
-                    <p class="font-semibold text-gray-800">⏰ Offre expirée</p>
-                    <p class="text-sm text-gray-700 mt-1">Contactez votre commercial pour une nouvelle offre.</p>
-                </div>
-                {% endif %}
+               <!-- ==================== ACTIONS ==================== -->
+
+{% if offre.statut == 'envoyee' %}
+<!-- Offre envoyée : le client peut accepter/refuser/négocier -->
+<div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+    <button onclick="document.getElementById('gestion_offre_modal').showModal()" 
+            class="btn-glow px-6 py-2.5 rounded-xl flex items-center gap-2 shadow-md transition-all duration-300 hover:scale-105">
+        <i class="fas fa-cog"></i>
+        <span>Gérer l'offre</span>
+    </button>
+    {% include 'modals/leads/offre_gestion.html' %}
+</div>
+{% endif %}
+
 
                 <div class="text-center pt-4">
-                    <a href="{% url 'leads_app:offre-list-client' %}" class="text-gray-500 hover:text-blue-600 transition">
+                    <a href="{% url 'commercial_app:offre-list' %}" class="text-gray-500 hover:text-blue-600 transition">
                         <i class="fas fa-arrow-left mr-2"></i>Retour à mes offres
                     </a>
                 </div>
@@ -181,5 +166,6 @@
             box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
         }
     </style>
+
 </body>
 </html>

@@ -111,35 +111,50 @@ class Maintenance(models.Model):
             models.Index(fields=['priorite', 'statut']),
         ]
 
-
 class Documents(models.Model):
-    client = models.ForeignKey(kozUser, on_delete=models.CASCADE, related_name="documents")
-    demande_financement = models.OneToOneField('leads_app.demande_financement', on_delete=models.CASCADE, related_name="documents")
+    client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='documents')
+    demande_financement = models.OneToOneField('leads_app.demande_financement', on_delete=models.CASCADE, related_name='documents', null=True, blank=True)
+   
     
-    # 📌 Documents obligatoires (pour toute demande)
-    cni_passeport = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="CNI ou Passeport",)
-    justificatif_domicile = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Justificatif de domicile")
-    quittance_salaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Quittance de salaire")
-    relevé_bancaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Relevé bancaire")
+    # === IDENTITÉ & RÉSIDENCE ===
+    cni_passeport = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Photocopie CNIB")
+    justificatif_domicile = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Justificatif de résidence (eau, électricité, bail, certificat)")
     
-    # 📌 Documents supplémentaires (optionnels, selon profil)
-    contrat_travail = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Contrat de travail")
-    avis_imposition = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Avis d'imposition")
-    autres = models.FileField(upload_to='documents/%Y/%m/%d/', blank=True, null=True, verbose_name="Autres documents")
+    # === EMPLOI & REVENUS ===
+    attestation_non_engagement = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Attestation de non-engagement")
+    contrat_travail = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Contrat de travail")
+    attestation_travail = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Attestation de travail (<3 mois)")
+    quittance_salaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="03 derniers bulletins de paie")
     
-    # Statut global du dossier de documents
+    # === BANQUE ===
+    relevé_bancaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Relevé bancaire (12 mois) + RIB")
+    specimen_signature = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Spécimen de recueil de signature")
+    
+      # ===== EMPLOI & REVENUS =====
+    bulletin_1 = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Bulletin de paie (mois -3)", blank=True, null=True)
+    bulletin_2 = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Bulletin de paie (mois -2)", blank=True, null=True)
+    bulletin_3 = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Bulletin de paie (mois -1)", blank=True, null=True)
+    
+    
+    # === AUTRES JUSTIFICATIFS ===
+    certificat_presence = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Certificat de présence au corps (âge départ retraite)", blank=True, null=True)
+    geolocalisation = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Plan de géolocalisation", blank=True, null=True)
+    garanties = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Garanties proposées (supports)", blank=True, null=True)
+    recu_acompte = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Reçu des frais d'acompte de dossier", blank=True, null=True)
+    fiche_demande = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Fiche de demande de financement", blank=True, null=True)
+    
+    # Statut (inchangé)
     STATUT_DOCS = [
-        ('vide', 'Dossier vide'),
+        ("vide", "Dossier vide"),
         ('incomplet', 'Dossier incomplet'),
         ('complet', 'Dossier complet'),
         ('verification', 'En cours de vérification'),
-        ('modification', 'Des changements ou modifications sont nécessaires'),
         ('valide', 'Documents validés'),
         ('rejete', 'Documents rejetés'),
     ]
-    statut_dossier = models.CharField(max_length=70, choices=STATUT_DOCS, default='vide')
+    statut_dossier = models.CharField(max_length=20, choices=STATUT_DOCS, default='vide')
     
-    commentaires = models.TextField(blank=True, null=True,
+    commentaire_rejet = models.TextField(blank=True, null=True,
                                     verbose_name="Commentaires du commercial ou de l'analyste",
                                     help_text="Utilisez ce champ pour indiquer les documents manquants, les erreurs à corriger, ou toute autre remarque pertinente pour le client.")        
                                     
@@ -151,8 +166,20 @@ class Documents(models.Model):
         return f"Dossier {self.client.nom_complet} - {self.statut_dossier}"
     
     def verifier_completude(self):
-        """Vérifie si tous les documents obligatoires sont présents"""
-        requis = [self.cni_passeport, self.justificatif_domicile, self.quittance_salaire, self.relevé_bancaire]
+        """Vérifie si les documents OBLIGATOIRES sont présents"""
+        requis = [
+            self.cni_passeport,
+            self.justificatif_domicile,
+            self.attestation_non_engagement,
+            self.contrat_travail,
+            self.attestation_travail,
+            self.quittance_salaire,
+            self.relevé_bancaire,
+            self.specimen_signature,
+            self.bulletin_1,
+            self.bulletin_2,
+            self.bulletin_3
+        ]
         if all(requis):
             self.statut_dossier = 'complet'
             self.save()

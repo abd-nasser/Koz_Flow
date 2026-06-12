@@ -12,14 +12,55 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/offre_detail_style.css' %}">
     <title>Détail offre - KOZ Services</title>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .animate-slide-in-right {
+            animation: slideInRight 0.4s ease-out forwards;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+        .info-card {
+            transition: all 0.2s ease;
+        }
+        .info-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
+<body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-inter">
 
     <!-- Messages flash -->
     {% if messages %}
     <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
+        <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} mr-2"></i>
             <span>{{ message }}</span>
         </div>
         {% endfor %}
@@ -27,15 +68,14 @@
     {% endif %}
 
     <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+    <nav class="glass-nav sticky top-0 z-40 shadow-sm">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
                     <span class="text-white font-bold text-xl">K</span>
                 </div>
-                <a href="{% url 'commercial_app:offre-list' %}" 
-                   class="text-gray-600 hover:text-blue-600 transition">
-                    <i class="fas fa-arrow-left mr-2"></i>Retour aux offres
+                <a href="{% url 'commercial_app:offre-list' %}" class="text-gray-600 hover:text-blue-600 transition flex items-center gap-1 text-sm">
+                    <i class="fas fa-arrow-left"></i> Retour aux offres
                 </a>
             </div>
             <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Détail de l'offre</h1>
@@ -45,49 +85,51 @@
 
     <main class="container mx-auto px-4 py-8 max-w-5xl">
         
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up">
             
-            <!-- Header avec dégradé -->
+            <!-- Header gradient -->
             <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-5">
                 <div class="flex justify-between items-center flex-wrap gap-3">
                     <div>
                         <h2 class="text-2xl font-bold text-white mb-1">
-                            📄 Offre de financement #{{ offre.id }}
+                            📄 Offre #{{ offre.id }}
                         </h2>
-                        
                         {% if user.role != "client" %}
                             <p class="text-blue-100 text-sm">
-                            Client : <strong>{{ offre.client.nom_complet }}</strong> ({{ offre.client.email }})
-                        </p>
+                                <i class="fas fa-user mr-1"></i> Client : <strong>{{ offre.client.nom_complet }}</strong> ({{ offre.client.email }})
+                            </p>
                         {% endif %}
-                            
-                        
                     </div>
                     
                     {% if user.role == "client" and offre.statut == 'envoyee' %}
-                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
-                    bg-yellow-500 text-white
-                        ">
-                        Bon plan pour vous
-                    </div>
+                        <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm bg-amber-500 text-white">
+                            <i class="fas fa-star mr-1"></i> Bon plan pour vous
+                        </div>
                     {% else %}
-                    <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
-                        {% if offre.statut == 'acceptee' %}bg-green-500 text-white
-                        {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}bg-red-500 text-white
-                        {% elif offre.statut == 'envoyee' %}bg-yellow-500 text-white
-                        {% else %}bg-gray-500 text-white{% endif %}">
-                        {{ offre.get_statut_display }}
-                    </div>
+                        <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
+                            {% if offre.statut == 'acceptee' %}bg-green-500 text-white
+                            {% elif offre.statut == 'refusee' or offre.statut == 'expiree' %}bg-red-500 text-white
+                            {% elif offre.statut == 'envoyee' %}bg-yellow-500 text-white
+                            {% elif offre.statut == 'en_attente_document' %}bg-amber-500 text-white
+                            {% else %}bg-gray-500 text-white{% endif %}">
+                            {{ offre.get_statut_display }}
+                        </div>
                     {% endif %}
                 </div>
+                {% if offre.statut == 'envoyee' %}
+                    <p class="text-blue-100 text-sm mt-2 flex items-center gap-1">
+                        <i class="fas fa-hourglass-half"></i> Offre valable jusqu'au {{ offre.date_expiration|date:"d/m/Y" }}
+                    </p>
+                {% endif %}
             </div>
 
             <div class="p-6 space-y-6">
 
-                <!-- Section véhicule -->
-                <a href="{% url 'vehicul_app:detail-vehicul' offre.vehicule_propose.pk %}" class="bg-gray-50 rounded-xl p-5">
+                <!-- Véhicule proposé -->
+                <a href="{% url 'vehicul_app:detail-vehicul' offre.vehicule_propose.pk %}" class="info-card bg-gray-50 rounded-xl p-5 hover:shadow-md transition block">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-car text-blue-600"></i>Véhicule proposé
+                        <i class="fas fa-car text-blue-600"></i> Véhicule proposé
+                        <span class="text-xs text-blue-500 ml-auto"><i class="fas fa-external-link-alt"></i> Voir détails</span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div class="flex items-center gap-2">
@@ -103,10 +145,10 @@
                     </div>
                 </a>
 
-                <!-- Section détails du financement -->
-                <div class="bg-gray-50 rounded-xl p-5">
+                <!-- Détails du financement -->
+                <div class="info-card bg-gray-50 rounded-xl p-5 hover:shadow-md transition">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-chart-line text-blue-600"></i>Détails du financement
+                        <i class="fas fa-chart-line text-blue-600"></i> Détails du financement
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                         <div class="flex items-center gap-2">
@@ -144,23 +186,23 @@
                             <span class="text-gray-600">Frais garantie :</span>
                             <strong class="text-gray-800">{{ offre.frais_garantie|intcomma }} FCFA</strong>
                         </div>
-                        <div class="flex items-center gap-2 col-span-1 sm:col-span-2 lg:col-span-3">
+                        <div class="flex items-center gap-2 col-span-1 sm:col-span-2 lg:col-span-3 pt-2 border-t border-gray-200">
                             <i class="fas fa-calculator text-blue-500 w-5"></i>
-                            <span class="text-gray-600">Total dû :</span>
+                            <span class="text-gray-600 font-semibold">Total dû :</span>
                             <strong class="text-blue-700 text-lg">{{ offre.total_du|intcomma }} FCFA</strong>
                         </div>
                     </div>
                 </div>
 
-                <!-- Section dates -->
-                <div class="bg-gray-50 rounded-xl p-5">
+                <!-- Dates et validité -->
+                <div class="info-card bg-gray-50 rounded-xl p-5 hover:shadow-md transition">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-calendar-alt text-blue-600"></i>Dates et validité
+                        <i class="fas fa-calendar-alt text-blue-600"></i> Dates et validité
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-plus-circle text-blue-500 w-5"></i>
-                            <span class="text-gray-600">Date création :</span>
+                            <span class="text-gray-600">Création :</span>
                             <strong class="text-gray-800">{{ offre.date_creation|date:"d/m/Y H:i" }}</strong>
                         </div>
                         <div class="flex items-center gap-2">
@@ -173,100 +215,50 @@
                         {% if offre.signature_client %}
                         <div class="flex items-center gap-2 col-span-2">
                             <i class="fas fa-signature text-green-500 w-5"></i>
-                            <span class="text-gray-600">Signature client :</span>
+                            <span class="text-gray-600">Signature :</span>
                             <strong class="text-green-600">✅ Signée le {{ offre.date_signature|date:"d/m/Y H:i"|default:"date inconnue" }}</strong>
                         </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <!-- ========== ACTIONS SELON LE RÔLE ========== -->
-                
-                <!-- Pour le client (offre envoyée) -->
-                {% if user.role == 'client' and offre.statut == 'envoyee' %}
-                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                    <a href="{% url 'commercial_app:accepter-offre' offre.id %}" 
-                       class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-check-circle"></i> Accepter l'offre
-                    </a>
-                    <a href="{% url 'commercial_app:refuser-offre' offre.id %}" 
-                       class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-times-circle"></i> Refuser l'offre
-                    </a>
-                    <a href="{% url 'commercial_app:negocier-offre' offre.id %}" 
-                       class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-comment-dots"></i> Négocier
-                    </a>
-                </div>
-                
-                <!-- Pour le client (offre acceptée/refusée/expirée) -->
-                {% elif user.role == 'client' %}
-                    {% if offre.statut == 'acceptee' %}
-                    <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-4">
-                        <p class="text-green-700 font-semibold">✅ Offre acceptée</p>
-                        <p class="text-sm text-green-600 mt-1">Un commercial vous contactera pour la finalisation.</p>
-                    </div>
-                    {% elif offre.statut == 'refusee' %}
-                    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-4">
-                        <p class="text-red-700 font-semibold">❌ Offre refusée</p>
-                        <p class="text-sm text-red-600 mt-1">Vous pouvez contacter votre commercial pour une autre proposition.</p>
-                    </div>
-                    {% elif offre.statut == 'expiree' %}
-                    <div class="bg-gray-100 border-l-4 border-gray-500 rounded-xl p-4">
-                        <p class="text-gray-700 font-semibold">⏰ Offre expirée</p>
-                        <p class="text-sm text-gray-600 mt-1">Contactez votre commercial pour une nouvelle offre.</p>
-                    </div>
-                    {% endif %}
-                {% endif %}
-
-                <!-- Pour le commercial / directeur (offre brouillon) -->
-                {% if user.role != 'client' and offre.statut == 'brouillon' %}
-                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                    <a href="{% url 'commercial_app:offre-update' offre.id %}" 
-                       class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
-                        <i class="fas fa-edit"></i> Modifier l'offre
-                    </a>
-                    <a href="{% url 'commercial_app:offre-envoyer' offre.id %}" 
-                       class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Envoyer au client
-                    </a>
-                </div>
-                {% endif %}
-
-                <!-- Bouton fiche client (commercial/directeur uniquement) -->
-                {% if user.role != 'client' %}
-                <div class="flex flex-wrap gap-3">
-                    <a href="{% url 'client_app:client-detail' offre.client.id %}" 
-                       class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-user"></i> Voir fiche client
-                    </a>
-                </div>
-                {% endif %}
-
-            </div>
+                                 
+        <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            {% if offre.statut == "brouillon" %}
+            <!-- Modifier (bouton avec modal) -->
+            <button onclick="document.getElementById('update_offre_Modal').showModal()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
+                <i class="fas fa-edit"></i> Modifier
+            </button>
+            {% endif %}
+       
+            <!-- Supprimer (bouton avec modal) -->
+            <button onclick="document.getElementById('delete_offre_modal').showModal()" 
+                    class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl transition shadow-md flex items-center gap-2">
+                <i class="fas fa-trash-alt"></i> Supprimer
+            </button>
+            
+           
         </div>
-    </main>
 
-    <footer class="bg-gray-800 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
-            <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+        <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100">
+            <a href="{% url 'client_app:client-detail' offre.client.id %}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition shadow-md flex items-center gap-2">
+                <i class="fas fa-user"></i> Voir fiche client
+            </a>
         </div>
-    </footer>
 
-    <style>
-        .btn-glow {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-        }
-        .btn-glow:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
-        }
-    </style>
+    </div>
+</div>
+</main>
 
+<footer class="bg-gray-800 text-white py-6 mt-12">
+    <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+        <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
+    </div>
+</footer>
+
+<!-- Modales -->
+{% include 'modals/leads/confirm_offre_delete.html' %}
+{% include 'modals/leads/update_offre.html' %}
 </body>
 </html>

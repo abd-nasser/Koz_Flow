@@ -40,7 +40,7 @@ class VehiculForm(forms.ModelForm):
             "image_3": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
             "image_4": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
             "image_5": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
-            "disponible": forms.CheckboxInput(attrs={"class":"checkbox checkbox-info"}),
+            "disponible": forms.CheckboxInput(attrs={"class":"checkbox checkbox-primary"}),
             "description": forms.Textarea(attrs={"class":"textarea textarea-info w-full", "placeholder":"Saisir la description", "rows": 4}),
             }
         
@@ -51,7 +51,7 @@ class VehiculForm(forms.ModelForm):
         config = {
             forms.TextInput: 'input input-bordered w-full',
             forms.Select: 'select select-bordered w-full',
-            forms.CheckboxInput: 'checkbox checkbox-info',
+            forms.CheckboxInput: 'checkbox checkbox-primary',
             forms.ClearableFileInput: 'file-input file-input-bordered w-full',
             forms.NumberInput: 'input input-bordered w-full',
             forms.Textarea: 'textarea textarea-info w-full',

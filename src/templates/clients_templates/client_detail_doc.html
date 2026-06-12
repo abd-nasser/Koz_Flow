@@ -11,6 +11,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     {% tailwind_css %}
+    <style>
+        .btn-glow {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-glow:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
@@ -69,10 +83,10 @@
 
             <div class="p-6 space-y-6">
 
-                <!-- Section documents obligatoires -->
+                <!-- ==================== IDENTITÉ & RÉSIDENCE ==================== -->
                 <div class="bg-gray-50 rounded-xl p-5">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-check-circle text-blue-600"></i>Documents obligatoires
+                        <i class="fas fa-id-card text-blue-600"></i> Identité & résidence
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
@@ -91,17 +105,95 @@
                                 <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
                             {% endif %}
                         </div>
+                    </div>
+                </div>
+
+                <!-- ==================== EMPLOI & REVENUS ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-briefcase text-blue-600"></i> Emploi & revenus
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
-                            <span class="text-gray-700">💰 Quittance de salaire</span>
+                            <span class="text-gray-700">📄 Attestation de non-engagement</span>
+                            {% if document.attestation_non_engagement %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">📄 Contrat de travail</span>
+                            {% if document.contrat_travail %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">📄 Attestation de travail (<3 mois)</span>
+                            {% if document.attestation_travail %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">💰 3 derniers bulletins de paie</span>
                             {% if document.quittance_salaire %}
                                 <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
                             {% else %}
                                 <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
                             {% endif %}
                         </div>
+                    </div>
+                    
+                    <h5 class="text-sm font-semibold text-gray-700 mt-4 mb-2">📄 Détail des bulletins de paie</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
-                            <span class="text-gray-700">🏦 Relevé bancaire</span>
+                            <span class="text-gray-700">Bulletin -3 mois</span>
+                            {% if document.bulletin_1 %}
+                                <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">Bulletin -2 mois</span>
+                            {% if document.bulletin_2 %}
+                                <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">Bulletin -1 mois</span>
+                            {% if document.bulletin_3 %}
+                                <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                                <span class="text-red-500"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== BANQUE ==================== -->
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                        <i class="fas fa-university text-blue-600"></i> Relevés bancaires
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">🏦 Relevé bancaire (12 mois) + RIB</span>
                             {% if document.relevé_bancaire %}
+                                <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
+                            {% else %}
+                                <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">✍️ Spécimen de signature</span>
+                            {% if document.specimen_signature %}
                                 <span class="text-green-600 font-semibold"><i class="fas fa-check-circle"></i> Envoyé</span>
                             {% else %}
                                 <span class="text-red-500 font-semibold"><i class="fas fa-times-circle"></i> En attente</span>
@@ -110,54 +202,77 @@
                     </div>
                 </div>
 
-                <!-- Section documents supplémentaires -->
+                <!-- ==================== AUTRES JUSTIFICATIFS (optionnels) ==================== -->
                 <div class="bg-gray-50 rounded-xl p-5">
                     <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-paperclip text-blue-600"></i>Documents supplémentaires
+                        <i class="fas fa-paperclip text-blue-600"></i> Autres justificatifs (optionnels)
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div class="flex items-center justify-between p-2">
-                            <span class="text-sm text-gray-600">📄 Contrat travail</span>
-                            {% if document.contrat_travail %}
-                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">📄 Certificat de présence au corps</span>
+                            {% if document.certificat_presence %}
+                                <span class="text-green-600">✅ Envoyé</span>
                             {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                                <span class="text-gray-400">❌ Non fourni</span>
                             {% endif %}
                         </div>
-                        <div class="flex items-center justify-between p-2">
-                            <span class="text-sm text-gray-600">📊 Avis imposition</span>
-                            {% if document.avis_imposition %}
-                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">📍 Plan de géolocalisation</span>
+                            {% if document.geolocalisation %}
+                                <span class="text-green-600">✅ Envoyé</span>
                             {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                                <span class="text-gray-400">❌ Non fourni</span>
                             {% endif %}
                         </div>
-                        <div class="flex items-center justify-between p-2">
-                            <span class="text-sm text-gray-600">📎 Autres</span>
-                            {% if document.autres %}
-                                <span class="text-green-600 text-sm">✅ Envoyé</span>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">🛡️ Garanties proposées</span>
+                            {% if document.garanties %}
+                                <span class="text-green-600">✅ Envoyé</span>
                             {% else %}
-                                <span class="text-gray-400 text-sm">❌ Non fourni</span>
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">💰 Reçu des frais d'acompte</span>
+                            {% if document.recu_acompte %}
+                                <span class="text-green-600">✅ Envoyé</span>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
+                            <span class="text-gray-700">📋 Fiche de demande de financement</span>
+                            {% if document.fiche_demande %}
+                                <span class="text-green-600">✅ Envoyé</span>
+                            {% else %}
+                                <span class="text-gray-400">❌ Non fourni</span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- Message rejet -->
+                <!-- ==================== MESSAGES D'ÉTAT ==================== -->
+                
                 {% if document.statut_dossier == 'rejete' %}
                 <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-5">
                     <div class="flex items-start gap-3">
                         <i class="fas fa-times-circle text-red-500 text-xl"></i>
                         <div>
                             <p class="font-semibold text-red-800">Dossier rejeté</p>
-                            <p class="text-sm text-red-700 mt-1">Votre dossier a été rejeté. Contactez votre commercial pour plus d'informations.</p>
+                            <p class="text-sm text-red-700 mt-1">
+                                {% if document.commentaire_rejet %}
+                                    <strong>Motif :</strong> {{ document.commentaire_rejet }}
+                                {% else %}
+                                    Votre dossier a été rejeté. Contactez votre commercial pour plus d'informations.
+                                {% endif %}
+                            </p>
                             <div class="flex gap-3 mt-3">
                                 <a href="{% url 'chat_app:chat-view' %}" class="btn btn-sm bg-blue-600 text-white px-4 py-2 rounded-xl">
-                                    <i class="fas fa-comment-dots mr-1"></i>Contacter mon commercial
+                                    <i class="fas fa-comment-dots mr-1"></i> Contacter mon commercial
                                 </a>
                                 <button onclick="document.getElementById('delete_doc_modal').showModal()" 
                                         class="btn btn-sm bg-red-600 text-white px-4 py-2 rounded-xl">
-                                    <i class="fas fa-trash mr-1"></i>Supprimer
+                                    <i class="fas fa-trash mr-1"></i> Supprimer
                                 </button>
                             </div>
                         </div>
@@ -166,7 +281,6 @@
                 {% include 'modals/leads/confirm_doc_delete.html' %}
                 {% endif %}
 
-                <!-- Message modification -->
                 {% if document.statut_dossier == 'modification' %}
                 <div class="bg-orange-50 border-l-4 border-orange-500 rounded-xl p-5">
                     <div class="flex items-start gap-3">
@@ -176,7 +290,7 @@
                             <p class="text-sm text-orange-700 mt-1">Des modifications sont nécessaires. Veuillez remplacer ou ajouter les documents demandés.</p>
                             <button onclick="document.getElementById('update_doc_modal').showModal()" 
                                     class="btn-glow mt-3 px-6 py-2 rounded-xl">
-                                <i class="fas fa-upload mr-2"></i>Ajouter / Remplacer un document
+                                <i class="fas fa-upload mr-2"></i> Ajouter / Remplacer un document
                             </button>
                         </div>
                     </div>
@@ -184,7 +298,6 @@
                 {% include 'modals/leads/update_doc.html' %}
                 {% endif %}
 
-                <!-- Message validation -->
                 {% if document.statut_dossier == 'valide' %}
                 <div class="bg-green-50 border-l-4 border-green-500 rounded-xl p-5">
                     <div class="flex items-start gap-3">
@@ -197,7 +310,6 @@
                 </div>
                 {% endif %}
 
-                <!-- Message dossier en vérification -->
                 {% if document.statut_dossier == 'verification' %}
                 <div class="bg-blue-50 border-l-4 border-blue-500 rounded-xl p-5">
                     <div class="flex items-start gap-3">
@@ -213,7 +325,7 @@
                 <!-- Bouton retour -->
                 <div class="text-center pt-4 border-t border-gray-100">
                     <a href="{% url 'leads_app:documents-list' %}" class="text-gray-500 hover:text-blue-600 transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Retour à mes documents
+                        <i class="fas fa-arrow-left mr-2"></i> Retour à mes documents
                     </a>
                 </div>
 
@@ -227,23 +339,7 @@
         </div>
     </footer>
 
-    <style>
-        .btn-glow {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-        }
-        .btn-glow:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
-        }
-    </style>
-
     <script>
-        // Réouverture modale si besoin
         {% if open_update_modal %}
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('update_doc_modal').showModal();
@@ -255,5 +351,6 @@
         });
         {% endif %}
     </script>
+
 </body>
 </html>

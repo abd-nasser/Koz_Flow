@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -81,15 +81,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    
     # DEFAULT_PERMISSION_CLASSES = qui à le droit d'appeler les APIs ?
     
     #pour désactiver CSRF sur les APIs
     
-    #'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.TokenAuthentication',
-    #),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    ),
    
-    # IsAuthenticated = SEUL les utilisateurs connectés peuvent appeler l'API
+    #IsAuthenticated = SEUL les utilisateurs connectés peuvent appeler l'API
     # Si tu n'es pas connecté → erreur 401 (Non autorisé)
 }
 
@@ -159,9 +160,19 @@ WSGI_APPLICATION = 'koz_flow.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR /"db" /'db.sqlite3',
     }
 }
+
+
+# URL de redirection APRÈS login réussi
+LOGIN_REDIRECT_URL = '/'  # Ou '/dashboard/', '/home/', etc.
+
+# URL de la page de login
+LOGIN_URL = '/login/'  # ✅ Correct si tu as une vue à /login/
+
+# Optionnel: URL de logout
+LOGOUT_REDIRECT_URL = '/logout/'  # Où rediriger après logout
 
 
 # Password validation
@@ -186,13 +197,20 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# Internationalization
+# https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'fr-fr'
+TIME_ZONE = 'Africa/Dakar'  # ou ton fuseau
 USE_I18N = True
+USE_L10N = True
+USE_TZ = True  # TRÈS IMPORTANT !
 
-USE_TZ = True
+# Format d'affichage par défaut
+DATETIME_FORMAT = 'd/m/Y H:i:s'
+DATE_FORMAT = 'd/m/Y'
+TIME_FORMAT = 'H:i:s'
+
 
 #AUTHENTICATION
 AUTH_USER_MODEL = "auth_app.kozUser"
@@ -209,6 +227,13 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR/"koz_flow/static/")]
 
 #Taiwlind configurations
 TAILWIND_APP_NAME = "theme"
+INTERNAL_IPS = [
+    "127.0.0.1"
+                ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"
+
 NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 
 #Email configuration
@@ -218,4 +243,21 @@ EMAIL_PORT = 465  # Port SSL
 EMAIL_USE_SSL = True  # Au lieu de TLS
 EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+# Sécurité CSRF pour HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://KOZ-CORPORATE.pro',
+    'https://www.KOZ-CORPORATE.pro',
+]
+
+# Cookies sécurisés pour HTTPS uniquement
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Optionnel: protection additionnelle
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'

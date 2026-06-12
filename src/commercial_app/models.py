@@ -3,7 +3,7 @@ from datetime import datetime
 
 class Offre(models.Model):
     #Lien vers client
-    client = models.OneToOneField("auth_app.kozUser", on_delete=models.CASCADE, related_name="offre")
+    client = models.ForeignKey("auth_app.kozUser", on_delete=models.CASCADE, related_name="offres")
     
     demande_financement = models.OneToOneField("leads_app.demande_financement", on_delete=models.CASCADE, related_name="offre", null=True, blank=True)
     #La voiture proposée(peut etre différente de celle demandée initialement)
@@ -27,6 +27,10 @@ class Offre(models.Model):
     # Statut de l'offre
     STATUTS_OFFRE = [
         ('brouillon', 'En cours de rédaction'),
+        ("verification_document", "Dossier de l'offre en verification "),
+        ('en_attente_document', 'En attente de documents'),
+        ("offre_document_invalid", "documents de l'offre sont invalide"),
+        ("offre_document_valide", "documents de l'offre sont validé"),
         ('envoyee', 'Envoyée'),
         ('acceptee', 'Acceptée'),
         ('refusee', 'Refusée'),

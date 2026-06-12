@@ -15,15 +15,7 @@
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
 
     <!-- Messages flash -->
-    {% if messages %}
-    <div class="fixed top-5 right-5 z-50 space-y-2">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} shadow-lg rounded-xl text-sm">
-            <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+   
 
     <!-- Navbar -->
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">

@@ -18,6 +18,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from auth_app.models import kozUser
 from client_app.views import ClientDetailView
+from client_app.models import Documents
 from leads_app.models import Vente, demande_financement
 from client_app.models import Maintenance
 from commercial_app.models import Offre
@@ -25,7 +26,7 @@ from chat_app.models import Message
 
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
-from leads_app.forms import GestionFinancementForm
+from leads_app.forms import GestionFinancementForm, DocumentsUploadForm
 from client_app.forms import MaintenanceForm
 from .forms import OffreForm
 
@@ -40,7 +41,7 @@ def creer_offre(request, demande_id):
     
     if request.user.role not in ['commercial', 'directeur']:
         messages.error(request, "Vous n'avez pas l'autorisation de créer une offre.")
-        return redirect('leads_app:demande-detail', demande.pk)
+        return redirect('leads_app:detail-demande', demande.pk)
     
     if hasattr(demande.client, 'offre'):
         messages.warning(request, "Une offre existe déjà pour ce client.")
@@ -104,7 +105,7 @@ def creer_offre(request, demande_id):
                 'open_offre_modal': True
             })
     
-    return redirect('leads_app:demande-detail', demande.pk)
+    return redirect('leads_app:detail-demande', demande.pk)
 
 @login_required
 def accepter_offre(request, offre_id):
@@ -114,37 +115,35 @@ def accepter_offre(request, offre_id):
         messages.warning(request, "Cette offre ne peut pas être acceptée.")
         return redirect('commercial_app:offre-detail', offre.pk)
     
+    # 1️⃣ Changer le statut de l'offre
     offre.statut = 'acceptee'
     offre.save()
     
-    # Créer la vente associée
-   
+    # 2️⃣ Créer une vente avec statut "gestion_de_statut" (à gérer manuellement par le commercial)
     vente = Vente.objects.create(
-        client=offre.client,
-        demande_financement=offre.demande_financement,
-        statut='conclue_par_offre_acceptee',
-        montant=offre.montant_finance
+        client=request.user,
+        statut="gestion_de_statut",  # ← statut temporaire, le commercial le modifiera
+        montant=offre.montant_finance,
+        offre=offre
     )
     
-    client = offre.client
-    # ✉️ EMAIL AU COMMERCIAL ASSIGNÉ
-    commercial = client.assigned_commercial
+    # ✉️ Email au commercial
+    commercial = offre.client.assigned_commercial
     if commercial and commercial.email:
         try:
             context_email = {
-                'client': client,
+                'client': offre.client,
                 'offre_id': offre.id,
                 'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
                 'montant_finance': offre.montant_finance,
-                'date_acceptation': timezone.now(),
-                'lien_vente': request.build_absolute_uri(f"/commercial/ventes/{vente.id}/"),
-                'lien_client': request.build_absolute_uri(f"/commercial/client/{client.id}/"),
+                'lien_vente': request.build_absolute_uri(f"/commercial/vente/{vente.id}/modifier/"),
+                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
             }
             html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
             plain_message = strip_tags(html_message)
             
             send_mail(
-                subject="✅ Un client a accepté son offre de financement - KOZ Services",
+                subject="✅ Un client a accepté son offre - KOZ Services",
                 message=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[commercial.email],
@@ -152,10 +151,10 @@ def accepter_offre(request, offre_id):
                 fail_silently=False,
             )
         except Exception as e:
-            print(f"Erreur envoi email au commercial: {e}")
+            print(f"Erreur envoi email: {e}")
     
-    messages.success(request, "Offre acceptée. Vente enregistrée. Le commercial a été notifié.")
-    return redirect('commercial_app:offre-detail', offre.pk)
+    messages.success(request, "Offre acceptée. Une vente a été créée. Le commercial a été notifié.")
+    return redirect('commercial_app:offre-detail', offre.id)
 
 @login_required
 def refuser_offre(request, offre_id):
@@ -163,7 +162,7 @@ def refuser_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Cette offre ne peut pas être refusée.")
-        return redirect('leads_app:offre-detail', offre.pk)
+        return redirect('commercial_app:offre-detail', offre.pk)
     
     offre.statut = 'refusee'
     offre.save()
@@ -194,7 +193,7 @@ def refuser_offre(request, offre_id):
             print(f"Erreur envoi email au commercial: {e}")
     
     messages.info(request, "Offre refusée. Le commercial a été notifié.")
-    return redirect('leads_app:offre-detail', offre.pk)
+    return redirect('commercial_app:offre-detail', offre.pk)
 
 @login_required
 def negocier_offre(request, offre_id):
@@ -202,7 +201,7 @@ def negocier_offre(request, offre_id):
     
     if offre.statut != 'envoyee':
         messages.warning(request, "Seules les offres envoyées peuvent être renégociées.")
-        return redirect('leads_app:offre-detail', offre.pk)
+        return redirect('commercial_app:offre-detail', offre.pk)
     
     # 1️⃣ Changer le statut de l'offre
     offre.statut = 'brouillon'
@@ -240,10 +239,34 @@ def negocier_offre(request, offre_id):
     
     # 4️⃣ Redirection selon le rôle
     if request.user.role == 'client':
-        return redirect('leads_app:offre-detail', offre.pk)
+        return redirect('commercial_app:offre-detail', offre.pk)
     else:
         return redirect('commercial_app:offre-detail', offre.pk)
     
+# commercial_app/views.py
+
+@login_required
+def changer_statut_vente(request, vente_id):
+    """Change le statut d'une vente"""
+    vente = get_object_or_404(Vente, id=vente_id)
+    
+    # Vérifier que l'utilisateur a le droit (commercial ou directeur)
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "Action non autorisée.")
+        return redirect('commercial_app:vente-detail', vente.pk)
+    
+    if request.method == 'POST':
+        nouveau_statut = request.POST.get('statut')
+        
+        if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
+            vente.statut = nouveau_statut
+            vente.save()
+            messages.success(request, f"Statut de la vente mis à jour : {vente.get_statut_display()}")
+        else:
+            messages.error(request, "Statut invalide.")
+    
+    return redirect('commercial_app:vente-detail', vente.pk)
+
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
     template_name = "commercial_templates/commercial.html"
@@ -300,7 +323,6 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
     model = Offre
     form_class = OffreForm
     template_name = "clients_templates/client_detail.html"
-    success_url = reverse_lazy("client_app:client-detail")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -333,9 +355,7 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         # Calculer le total dû
         offre.total_du = (offre.mensualite * offre.duree_mois) + offre.frais_dossier + offre.frais_garantie
         
-        offre.save()
-            
-        
+        offre.save()  # ✅ Sauvegarde manuelle
         
         # ✉️ EMAIL AU CLIENT
         try:
@@ -365,8 +385,10 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
             print(f"Erreur envoi email au client: {e}")
         
         messages.success(self.request, f"Offre simple créée pour {client.nom_complet}. Un email a été envoyé au client.")
-        return super().form_valid(form)
-    
+        
+        # ✅ Pas de super().form_valid(form) car on a déjà sauvegardé
+        return redirect("client_app:client-detail", client_id )  # ou reverse_lazy
+        
     def form_invalid(self, form):
         """
         En cas d'erreur dans le formulaire, on rouvre le modal
@@ -412,7 +434,7 @@ class OffreView(LoginRequiredMixin, ListView):
             if statut:
                 queryset = queryset.filter(statut=statut)
                 
-            return queryset
+            return queryset.order_by("-date_creation")
             
         elif self.request.user.role == "commercial" or (self.request.user.is_staff and not self.request.user.is_superuser):
             queryset = Offre.objects.filter(client__assigned_commercial=self.request.user).select_related("client")
@@ -428,11 +450,13 @@ class OffreView(LoginRequiredMixin, ListView):
             if statut:
                 queryset = queryset.filter(statut=statut)
                 
-            return queryset
+            return queryset.order_by("-date_creation")
+        
         else:
             queryset = Offre.objects.filter(client=self.request.user)
             q = self.request.GET.get("q")
             statut = self.request.GET.get("statut")
+           
             if q:
                 queryset = queryset.filter(
                     Q(client__nom_complet__icontains=q) |Q(client__email__icontains=q)|
@@ -442,8 +466,8 @@ class OffreView(LoginRequiredMixin, ListView):
                 )
             if statut:
                 queryset = queryset.filter(statut=statut)
-                
-            return queryset
+          
+            return queryset.order_by("-date_creation")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -453,7 +477,119 @@ class OffreView(LoginRequiredMixin, ListView):
 class OffreDetailView(LoginRequiredMixin, DetailView):
     model = Offre
     context_object_name = "offre"
-    template_name = "commercial_templates/offre_detail.html"
+    
+    def get_template_names(self):
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            return['directeur_templates/directeur_offre_detail.html']
+        
+        elif self.request.user.is_staff or self.request.user.role == "commercial":
+            return["commercial_templates/commercial_offre_detail.html"]
+        
+        return ["clients_templates/client_offre_detail.html"] 
+    
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        if "upload_doc_form" not in context:
+            context["upload_doc_form"] = DocumentsUploadForm()
+        if self.request.user.role != "client":
+            if "update_offre_form" not in context:
+                context["update_offre_form"] = OffreForm(instance=self.object)
+            return context
+        
+        return context
+
+class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Offre
+    form_class = OffreForm
+    
+    def get_success_url(self):
+        return reverse_lazy("commercial_app:offre-detail", kwargs={"pk": self.object.pk})
+    
+    def get_template_names(self):
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            return ["directeur_templates/directeur_offre_detail.html"]
+        return ["commercial_templates/commercial_offre_detail.html"]
+    
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+    
+    
+    def form_valid(self, form):
+        offre = form.save(commit=False)
+        
+        # Vérifier si l'offre était en brouillon et va être envoyée
+        was_brouillon = offre.statut == 'brouillon'
+        
+        if was_brouillon:
+            offre.statut = 'envoyee'
+        
+        offre.save()
+        
+        # ✉️ Envoyer un email au client si l'offre vient d'être envoyée
+        if was_brouillon:
+            try:
+                context_email = {
+                    'client': offre.client,
+                    'offre_id': offre.id,
+                    'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                    'montant_finance': offre.montant_finance,
+                    'mensualite': offre.mensualite,
+                    'duree_mois': offre.duree_mois,
+                    'apport': offre.apport_demande,
+                    'date_expiration': offre.date_expiration,
+                    'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+                }
+                html_message = render_to_string('emails/offres/offre_envoyee_client.html', context_email)
+                plain_message = strip_tags(html_message)
+                
+                send_mail(
+                    subject="📄 Une offre de financement vous attend - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[offre.client.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                messages.success(self.request, "Offre mise à jour et envoyée au client.")
+            except Exception as e:
+                print(f"Erreur envoi email: {e}")
+                messages.warning(self.request, "Offre mise à jour mais l'email n'a pas pu être envoyé.")
+        else:
+            messages.success(self.request, "Offre mise à jour avec succès.")
+        
+        return super().form_valid(form)
+    
+    def form_invalid(self, form):
+        # Récupérer le contexte de OffreDetailView
+        detail_view = OffreDetailView()
+        detail_view.request = self.request
+        detail_view.kwargs = self.kwargs
+        context = detail_view.get_context_data()
+        
+        # Ajouter le formulaire invalide et le flag pour rouvrir le modal
+        context["update_offre_form"] = form
+        context["open_update_offre_modal"] = True  # ← nom cohérent avec le modal
+        
+        return self.render_to_response(context)
+    
+class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Offre
+    
+    def get_success_url(self):
+        return reverse_lazy("commercial_app:offre-list")
+    
+    def get_template_names(self):
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            return["directeur_templates/directeur_offre.detail.html"]
+        return ["commercial_templates/commercial_offre.detail.html"]
+    
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, "Offre supprimée.")
+        return super().delete(request, *args, **kwargs)
     
 ######################################___________VENTE/GESTION_View__________________#########################################################""""""
 
@@ -520,6 +656,10 @@ class VenteDetailView(LoginRequiredMixin, DetailView):
     model = Vente
     template_name = "commercial_templates/vente_detail.html"
     context_object_name = "vente"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["STATUT_VENTE"] = Vente.STATUT_VENTE
+        return context
 
 ############################################# GESTION_MAINTENANCE_VIEW ##########################################################################
 
@@ -714,7 +854,7 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
             if effectue_par:
                 queryset = queryset.filter(effectue_par=effectue_par)
 
-            return queryset
+            return queryset.order_by
             
         
         #Si client: Voir ses maintenance 
@@ -756,7 +896,7 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
             if effectue_par:
                 queryset = queryset.filter(effectue_par=effectue_par)
 
-            return queryset
+            return queryset.order_by("-date_creation")
             
 
         else:
@@ -797,7 +937,7 @@ class MaintenanceListView(LoginRequiredMixin, ListView):
             if effectue_par:
                 queryset = queryset.filter(effectue_par=effectue_par)
 
-            return queryset
+            return queryset.order_by("-date_creation")
             
     
     def get_context_data(self, **kwargs):

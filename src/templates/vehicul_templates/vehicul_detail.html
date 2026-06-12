@@ -15,7 +15,10 @@
 <body class="bg-gradient-to-br from-gray-50 to-blue-400 font-inter">
     
 <div id="particles"></div>
-    <!-- Messages flash -->
+ 
+    <!-- ========== NAVBAR MINIMALISTE ========== -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
+               <!-- Messages flash -->
     {% if messages %}
     <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
@@ -25,9 +28,6 @@
         {% endfor %}
     </div>
     {% endif %}
-
-    <!-- ========== NAVBAR MINIMALISTE ========== -->
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
@@ -45,7 +45,8 @@
 
     <!-- ========== MAIN CONTENT ========== -->
     <main>
-        
+    
+
         <!-- Grille principale : image principale + infos -->
         <div class="image_principale_infos">
             

@@ -9,9 +9,13 @@ urlpatterns = [
     path("générer/<int:pk>/simple/offre/", views.offreSimpleCreateView.as_view(), name="creer-offre-simple"),
     path("offres/", views.OffreView.as_view(), name="offre-list"),
     path("offre/<int:pk>/", views.OffreDetailView.as_view(), name="offre-detail"),  
+    path('offre/<int:pk>/modifier/', views.OffreUpdateView.as_view(), name="update-offre"),
+    path('offre/<int:pk>/supprimer/',views.OffreDeleteView.as_view(), name='offre-delete'),
     path("offre/<int:offre_id>/accepter/", views.accepter_offre, name="accepter-offre"),
     path("offre/<int:offre_id>/refuser/", views.refuser_offre, name="refuser-offre"),
     path('offre/<int:offre_id>/negocier/',views.negocier_offre, name='negocier-offre'),
+
+
     
     #######################________Maintenance____________#############################
     path('maintenances/',views.MaintenanceListView.as_view(), name='maintenance-list'),
@@ -30,5 +34,5 @@ urlpatterns = [
 path('ventes/',views.VenteListView.as_view(), name='vente-list'),
 path('ventes/<int:pk>/detail', views.VenteDetailView.as_view(), name="vente-detail"),
 path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
-path('ventes/<int:pk>/statut/',views.vente_update_statut, name='vente-update'),
+path('vente/<int:vente_id>/changer-statut/',views.changer_statut_vente, name='changer-statut-vente'),
 ]

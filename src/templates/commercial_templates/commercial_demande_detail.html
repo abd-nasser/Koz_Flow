@@ -135,75 +135,251 @@
                 </div>
 
                 <!-- Section documents -->
-                <div class="bg-gray-50 rounded-xl p-5">
-                    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <i class="fas fa-folder-open text-blue-600"></i>Dossier documentaire
-                    </h3>
-                    {% with dossier=demande.documents %}
-                        {% if dossier and dossier.statut_dossier != "vide" %}
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-3">
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border">
-                                    <i class="fas fa-id-card text-blue-500"></i>
-                                    <span>CNI/Passeport :</span>
-                                    {% if dossier.cni_passeport %}
-                                        <span class="text-green-600 font-semibold">✅ Téléchargé</span>
-                                    {% else %}
-                                        <span class="text-red-500 font-semibold">❌ Manquant</span>
-                                    {% endif %}
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border">
-                                    <i class="fas fa-home text-blue-500"></i>
-                                    <span>Justificatif domicile :</span>
-                                    {% if dossier.justificatif_domicile %}
-                                        <span class="text-green-600 font-semibold">✅ Téléchargé</span>
-                                    {% else %}
-                                        <span class="text-red-500 font-semibold">❌ Manquant</span>
-                                    {% endif %}
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border">
-                                    <i class="fas fa-file-invoice-dollar text-blue-500"></i>
-                                    <span>Quittance salaire :</span>
-                                    {% if dossier.quittance_salaire %}
-                                        <span class="text-green-600 font-semibold">✅ Téléchargé</span>
-                                    {% else %}
-                                        <span class="text-red-500 font-semibold">❌ Manquant</span>
-                                    {% endif %}
-                                </div>
-                                <div class="flex items-center gap-2 p-2 bg-white rounded-lg border">
-                                    <i class="fas fa-chart-line text-blue-500"></i>
-                                    <span>Relevé bancaire :</span>
-                                    {% if dossier.relevé_bancaire %}
-                                        <span class="text-green-600 font-semibold">✅ Téléchargé</span>
-                                    {% else %}
-                                        <span class="text-red-500 font-semibold">❌ Manquant</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center mt-3 pt-3 border-t">
-                                <p class="text-sm text-gray-600">
-                                    <strong>Statut dossier :</strong> 
-                                    <span class="badge px-2 py-1 rounded-full text-xs
-                                        {% if dossier.statut_dossier == 'valide' %}bg-green-100 text-green-700
-                                        {% elif dossier.statut_dossier == 'rejete' %}bg-red-100 text-red-700
-                                        {% elif dossier.statut_dossier == 'verification' %}bg-blue-100 text-blue-700
-                                        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-                                        {{ dossier.get_statut_dossier_display }}
-                                    </span>
-                                </p>
-                                <a href="{% url 'leads_app:document-detail' dossier.pk %}" 
-                                   class="text-blue-600 hover:text-blue-800 transition text-sm flex items-center gap-1">
-                                    <i class="fas fa-external-link-alt"></i> Voir détails documents
-                                </a>
-                            </div>
+<div class="bg-gray-50 rounded-xl p-5">
+    <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <i class="fas fa-folder-open text-blue-600"></i>Dossier documentaire
+    </h3>
+    
+    {% with dossier=demande.documents %}
+        {% if dossier and dossier.statut_dossier != "vide" %}
+            
+            <!-- ==================== IDENTITÉ & RÉSIDENCE ==================== -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-id-card text-blue-500"></i> Identité & résidence
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span><i class="fas fa-id-card mr-2 text-blue-500"></i>CNI / Passeport</span>
+                        {% if dossier.cni_passeport %}
+                            <a href="{{ dossier.cni_passeport.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
                         {% else %}
-                            <p class="text-gray-500 text-center py-4">
-                                <i class="fas fa-folder-open text-3xl mb-2 opacity-50 block"></i>
-                                📭 Aucun document déposé pour cette demande.
-                            </p>
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
                         {% endif %}
-                    {% endwith %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span><i class="fas fa-home mr-2 text-blue-500"></i>Justificatif domicile</span>
+                        {% if dossier.justificatif_domicile %}
+                            <a href="{{ dossier.justificatif_domicile.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== EMPLOI & REVENUS ==================== -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-briefcase text-blue-500"></i> Emploi & revenus
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📄 Attestation de non-engagement</span>
+                        {% if dossier.attestation_non_engagement %}
+                            <a href="{{ dossier.attestation_non_engagement.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📄 Contrat de travail</span>
+                        {% if dossier.contrat_travail %}
+                            <a href="{{ dossier.contrat_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📄 Attestation de travail (&lt;3 mois)</span>
+                        {% if dossier.attestation_travail %}
+                            <a href="{{ dossier.attestation_travail.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>💰 3 derniers bulletins de paie</span>
+                        {% if dossier.quittance_salaire %}
+                            <a href="{{ dossier.quittance_salaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
                 </div>
 
+                <h5 class="text-sm font-semibold text-gray-700 mt-3 mb-2">📄 Détail des bulletins de paie</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>Bulletin -3 mois</span>
+                        {% if dossier.bulletin_1 %}
+                            <a href="{{ dossier.bulletin_1.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>Bulletin -2 mois</span>
+                        {% if dossier.bulletin_2 %}
+                            <a href="{{ dossier.bulletin_2.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>Bulletin -1 mois</span>
+                        {% if dossier.bulletin_3 %}
+                            <a href="{{ dossier.bulletin_3.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== BANQUE ==================== -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-university text-blue-500"></i> Relevés bancaires
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>🏦 Relevé bancaire (12 mois) + RIB</span>
+                        {% if dossier.relevé_bancaire %}
+                            <a href="{{ dossier.relevé_bancaire.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>✍️ Spécimen de signature</span>
+                        {% if dossier.specimen_signature %}
+                            <a href="{{ dossier.specimen_signature.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-red-500"><i class="fas fa-times-circle"></i> Manquant</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== AUTRES JUSTIFICATIFS (optionnels) ==================== -->
+            <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class="fas fa-paperclip text-blue-500"></i> Autres justificatifs (optionnels)
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📄 Certificat de présence au corps</span>
+                        {% if dossier.certificat_presence %}
+                            <a href="{{ dossier.certificat_presence.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">❌ Non fourni</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📍 Plan de géolocalisation</span>
+                        {% if dossier.geolocalisation %}
+                            <a href="{{ dossier.geolocalisation.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">❌ Non fourni</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>🛡️ Garanties proposées</span>
+                        {% if dossier.garanties %}
+                            <a href="{{ dossier.garanties.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">❌ Non fourni</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>💰 Reçu des frais d'acompte</span>
+                        {% if dossier.recu_acompte %}
+                            <a href="{{ dossier.recu_acompte.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">❌ Non fourni</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-between p-2 bg-white rounded-lg border">
+                        <span>📋 Fiche de demande de financement</span>
+                        {% if dossier.fiche_demande %}
+                            <a href="{{ dossier.fiche_demande.url }}" target="_blank" class="text-green-600 hover:text-green-800 transition">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                        {% else %}
+                            <span class="text-gray-400">❌ Non fourni</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commentaire de rejet (si applicable) -->
+            {% if dossier.commentaire_rejet %}
+            <div class="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <p class="text-sm text-red-700">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <strong>Motif :</strong> {{ dossier.commentaire_rejet }}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Statut global du dossier -->
+            <div class="flex justify-between items-center mt-4 pt-3 border-t">
+                <p class="text-sm text-gray-600">
+                    <strong>Statut dossier :</strong> 
+                    <span class="badge px-2 py-1 rounded-full text-xs
+                        {% if dossier.statut_dossier == 'valide' %}bg-green-100 text-green-700
+                        {% elif dossier.statut_dossier == 'rejete' %}bg-red-100 text-red-700
+                        {% elif dossier.statut_dossier == 'verification' %}bg-blue-100 text-blue-700
+                        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ dossier.get_statut_dossier_display }}
+                    </span>
+                </p>
+                <a href="{% url 'leads_app:document-detail' dossier.pk %}" 
+                   class="text-blue-600 hover:text-blue-800 transition text-sm flex items-center gap-1">
+                    <i class="fas fa-external-link-alt"></i> Voir détails complets
+                </a>
+            </div>
+
+        {% else %}
+            <p class="text-gray-500 text-center py-4">
+                <i class="fas fa-folder-open text-3xl mb-2 opacity-50 block"></i>
+                📭 Aucun document déposé pour cette demande.
+            </p>
+        {% endif %}
+    {% endwith %}
+</div>
+               
             </div>
         </div>
     </main>

@@ -64,7 +64,11 @@
 </head>
 <body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-inter">
 
-    <!-- Messages flash -->
+ 
+
+    <!-- Navbar premium -->
+    <nav class="glass-nav sticky top-0 z-40 shadow-sm">
+           <!-- Messages flash -->
     {% if messages %}
     <div class="fixed top-20 right-5 z-50 space-y-2">
         {% for message in messages %}
@@ -74,9 +78,6 @@
         {% endfor %}
     </div>
     {% endif %}
-
-    <!-- Navbar premium -->
-    <nav class="glass-nav sticky top-0 z-40 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
@@ -242,19 +243,19 @@
     <footer class="bg-gray-800 text-white py-6 mt-12">
         <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-400">
             <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
-            <p class="mt-1 text-xs">Designed for leaders</p>
+            <p class="mt-1 text-xs">Interface Directeur</p>
         </div>
     </footer>
 
-    <script>
+   <script>
         // Gestion de la déconnexion
         document.getElementById('logoutBtn').addEventListener('click', async () => {
-            const refresh = localStorage.getItem('refresh_token');
+            const refresh = localStorage.getItem('access');
             await fetch('/api/auth/logout/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('access')}`
                 },
                 body: JSON.stringify({refresh: refresh})
             });
@@ -262,16 +263,46 @@
             window.location.href = '/';
         });
 
-        // Vérification périodique du token
+        // Refresh du token avant qu'il n'expire
+        async function refreshToken() {
+            const refresh = localStorage.getItem('access');
+            if (!refresh) return false;
+            
+            try {
+                const response = await fetch('/api/auth/refresh/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({refresh: refresh})
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access', data.access);
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (error) {
+                console.error('Refresh failed:', error);
+                return false;
+            }
+        }
+
+        // Vérification périodique du token avec refresh automatique
         setInterval(async () => {
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('access');
             if (!token) return;
+            
             const response = await fetch('/api/auth/me/', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
+            
             if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = '/';
+                const refreshed = await refreshToken();
+                if (!refreshed) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
             }
         }, 60000);
     </script>

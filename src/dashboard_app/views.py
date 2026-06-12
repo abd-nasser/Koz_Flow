@@ -57,7 +57,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             # Clients avec offre acceptée
             clients_avec_offre = kozUser.objects.filter(
                 role='client', 
-                offre__statut='acceptee'
+                offres__statut='acceptee'
             ).count()
             
             # Taux de conversion (clients → offre acceptée)
@@ -66,9 +66,9 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             # Top 5 clients (par montant financé)
             top_clients = kozUser.objects.filter(
                 role='client', 
-                offre__statut='acceptee'
+                offres__statut='acceptee'
             ).annotate(
-                montant_total=Sum('offre__montant_finance')
+                montant_total=Sum('offres__montant_finance')
             ).order_by('-montant_total')[:5]
 
             context.update({
@@ -224,8 +224,8 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             nb_clients_semaine_queryset = kozUser.objects.filter(   role='client', date_inscription__date__gte=datetime.now().date() - timedelta(days=7))
             nb_clients_mois_queryset = kozUser.objects.filter(   role='client', date_inscription__date__gte=datetime.now().date() - timedelta(days=30))
             clients_avec_demande_queryset = kozUser.objects.filter(   role='client', demande_financement__isnull=False).distinct()
-            clients_avec_offre_queryset = kozUser.objects.filter(   role='client', offre__statut='acceptee')
-            top_clients_queryset = kozUser.objects.filter(   role='client', offre__statut='acceptee').annotate(montant_total=Sum('offre__montant_finance')).order_by('-montant_total')[:5]
+            clients_avec_offre_queryset = kozUser.objects.filter(   role='client', offres__statut='acceptee')
+            top_clients_queryset = kozUser.objects.filter(   role='client', offres__statut='acceptee').annotate(montant_total=Sum('offres__montant_finance')).order_by('-montant_total')[:5]
             
             context.update({
                 'total_clients_queryset': total_clients_queryset,
@@ -346,14 +346,14 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             clients_avec_demande = clients.filter(demande_financement__isnull=False).distinct().count()
             
             # Clients avec offre acceptée
-            clients_avec_offre = clients.filter(offre__statut='acceptee').count()
+            clients_avec_offre = clients.filter(offres__statut='acceptee').count()
             
             # Taux de conversion
             taux_conversion = (clients_avec_offre / total_clients * 100) if total_clients > 0 else 0
             
             # Top 5 clients
-            top_clients = clients.filter(offre__statut='acceptee').annotate(
-                montant_total=Sum('offre__montant_finance')
+            top_clients = clients.filter(offres__statut='acceptee').annotate(
+                montant_total=Sum('offres__montant_finance')
             ).order_by('-montant_total')[:5]
             
             context.update({
@@ -664,9 +664,40 @@ class ListeFiltreeView(ListView):
                 queryset = queryset.filter(client__assigned_commercial=user)
             return queryset
         
-        if model_name == 'client':
+        if model_name in  ['client', "clients"]:
             queryset = kozUser.objects.filter(**{filter_nom: filter_valeur})
             # Pour les clients, pas de filtrage supplémentaire
             return queryset
         
         return []
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        model_name = self.kwargs.get('model_name')
+        filter_nom = self.kwargs.get('filter_nom')
+        filter_valeur = self.kwargs.get('filter_valeur')
+
+        context['model_name'] = model_name
+        context['filter_nom'] = filter_nom
+        context['filter_valeur'] = filter_valeur
+        context['titre'] = self._build_title(model_name, filter_nom, filter_valeur)
+        return context
+
+    def _build_title(self, model_name, filter_nom, filter_valeur):
+        labels = {
+            'offre': 'offres',
+            'offres': 'offres',
+            'demande_financement': 'demandes de financement',
+            'documents': 'dossiers documentaires',
+            'maintenance': 'maintenances',
+            'client': 'clients',
+            'clients': 'clients',
+        }
+        model_label = labels.get(model_name, model_name.replace('_', ' ').capitalize())
+        if filter_nom and filter_valeur is not None:
+            if filter_nom.endswith('__isnull'):
+                if str(filter_valeur).lower() in ('true', '1', 'yes', 'y', 't'):
+                    return f"{model_label.capitalize()} filtrés : champ '{filter_nom}' vide"
+                return f"{model_label.capitalize()} filtrés : champ '{filter_nom}' non vide"
+            return f"{model_label.capitalize()} filtrés par {filter_nom.replace('_', ' ')} = {filter_valeur}"
+        return f"{model_label.capitalize()} filtrés"

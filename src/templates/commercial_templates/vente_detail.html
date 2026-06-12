@@ -224,7 +224,7 @@
                             </div>
                         </div>
                         <div class="mt-3 text-right">
-                            <a href="{% url 'leads_app:demande-detail' vente.demande_financement.id %}" 
+                            <a href="{% url 'leads_app:detail-demande' vente.demande_financement.id %}" 
                                class="text-blue-600 hover:text-blue-800 transition text-sm inline-flex items-center gap-1">
                                 <i class="fas fa-external-link-alt"></i> Voir la demande
                             </a>
@@ -235,14 +235,17 @@
                 </div>
 
                 <!-- Actions (pour commercial/directeur uniquement) -->
-                {% if user.role != 'client' %}
-                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-                    <a href="{% url 'commercial_app:vente-update' vente.id %}" 
-                       class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
-                        <i class="fas fa-edit"></i> Modifier le statut
-                    </a>
-                </div>
-                {% endif %}
+              {% if vente.statut == 'gestion_de_statut' %}
+        <div class="mt-6">
+            <button onclick="document.getElementById('gestion_statut_modal').showModal()" 
+                    class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
+                <i class="fas fa-exchange-alt"></i> Gérer le statut de la vente
+            </button>
+        </div>
+        {% endif %}
+
+<!-- Inclusion du modal -->
+{% include 'modals/vente/gestion_statut.html' with statut_choices=statut_choices %}
 
                 <!-- Bouton retour -->
                 <div class="flex justify-center pt-4">

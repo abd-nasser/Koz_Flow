@@ -5,7 +5,7 @@ app_name = "leads_app"
 urlpatterns = [
     path('demande/de/financement/<int:vehicul_id>/',views.demande_financement_view, name="demande-financement"),
     path("attente/de/document/<int:demande_id>/",views.attente_document, name="attente-document" ),
-    path("upload/document/<int:demande_id>",views.upload_multiple_documents, name="upload-document"),
+    path("upload/document/<int:demande_id>/",views.upload_multiple_documents, name="upload-document"),
     path('demande/<int:demande_id>/accorder/', views.accorder_demande, name='accorder-demande'),
     path('demande/<int:demande_id>/refuser/', views.refuser_demande, name='refuser-demande'),
     
@@ -25,7 +25,9 @@ urlpatterns = [
     path("document/<int:dossier_id>/rejeter/", views.rejete_dossier, name="rejeter-document"),
     path("document/<int:dossier_id>/verifier/", views.verifier_dossier, name="verifier-document"),
     path("document/<int:dossier_id>/modifier/", views.modifier_dossier, name="modifier-document"),
+    path('document/<int:dossier_id>/reverifier/',views.reverifier_document, name='reverifier-document'),
     
+   
     ################################SIMULATEUR DE CREDIT##############################
     path('estimer-prix/', views.estimer_prix_vehicule, name='simulateur-credit'),
 ]
