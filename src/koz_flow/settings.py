@@ -169,10 +169,10 @@ DATABASES = {
 LOGIN_REDIRECT_URL = '/'  # Ou '/dashboard/', '/home/', etc.
 
 # URL de la page de login
-LOGIN_URL = '/login/'  # ✅ Correct si tu as une vue à /login/
+LOGIN_URL = '/'  # ✅ Correct si tu as une vue à /login/
 
 # Optionnel: URL de logout
-LOGOUT_REDIRECT_URL = '/logout/'  # Où rediriger après logout
+LOGOUT_REDIRECT_URL = '/'  # Où rediriger après logout
 
 
 # Password validation

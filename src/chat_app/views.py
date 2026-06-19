@@ -8,42 +8,11 @@ from django.http import HttpResponse
 from auth_app.models import kozUser
 from .models import Message
 
-@login_required
-def envoyer_message(request, client_id=None):
-   if request.method == "POST":   
-      contenu = request.POST.get("contenu")  
-      if not contenu or not contenu.strip():
-         return HttpResponse('')
-      
-      if request.user.role == "client":
-         client = request.user
-         commercial = client.assigned_commercial
-         
-         message = Message.objects.create(
-            client=client,
-            commercial=commercial,
-            contenu=contenu.strip(),
-            est_client=True
-         )
-         
-      else:
-         commercial = request.user
-         client = get_object_or_404(kozUser, id=client_id, role="client")
-         message = Message.objects.create(
-            client=client,
-            commercial=commercial,
-            contenu=contenu,
-            est_client=False
-         )
-    
-   return render(request, "partials/chat/message.html", {'message': message,
-                                                               'client': client,})
-
 
 @login_required
 def chat_view(request, client_id=None):
     if request.user.role == "client":
-        messages = Message.objects.filter(client=request.user).order_by('date_envoi')  # ← plus de '-'
+        messages = Message.objects.filter(client=request.user).order_by('date_envoi')
         destinataire = request.user.assigned_commercial
         context = {
             'messages': messages,
@@ -51,11 +20,53 @@ def chat_view(request, client_id=None):
             'client_id': request.user.id,
         }
     else:
-        client = get_object_or_404(kozUser, id=client_id, role="client")
-        messages = Message.objects.filter(client=client).order_by('date_envoi')  # ← plus de '-'
+        # ✅ Commercial : voir tous les messages de tous les clients
+        if client_id:
+            client = get_object_or_404(kozUser, id=client_id, role="client")
+            messages = Message.objects.filter(client=client).order_by('date_envoi')
+        else:
+            # Si aucun client sélectionné, on affiche la liste des clients
+            clients = kozUser.objects.filter(role="client")
+            messages = None
+            client = None
+        
         context = {
             'messages': messages,
-            'client': client,
-            'client_id': client.id,
+            'clients': clients if not client_id else None,
+            'client': client if client_id else None,
+            'client_id': client_id,
         }
+    
     return render(request, "chat_templates/chat.html", context)
+ 
+ 
+@login_required
+@require_http_methods(["POST"])
+def envoyer_message(request, client_id=None):
+    contenu = request.POST.get("contenu")
+    if not contenu or not contenu.strip():
+        return HttpResponse('')
+    
+    if request.user.role == "client":
+        client = request.user
+        commercial = client.assigned_commercial
+        message = Message.objects.create(
+            client=client,
+            commercial=commercial,
+            contenu=contenu.strip(),
+            est_client=True
+        )
+    else:
+        # ✅ Commercial peut répondre à n'importe quel client
+        client = get_object_or_404(kozUser, id=client_id, role="client")
+        message = Message.objects.create(
+            client=client,
+            commercial=request.user,  # ← On garde le commercial qui répond
+            contenu=contenu.strip(),
+            est_client=False
+        )
+    
+    return render(request, "partials/chat/message.html", {
+        'message': message,
+        'client': client,
+    })
