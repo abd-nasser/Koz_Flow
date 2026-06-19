@@ -1,3 +1,4 @@
+{% load humanize %}
 <div class="grid grid-cols-1 gap-5">
     {% for demande in list_demande_financement %}
     <div class="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
@@ -6,7 +7,7 @@
                 <div class="flex-1">
                     <div class="flex items-center gap-3 mb-3 flex-wrap">
                         <h3 class="font-bold text-lg text-gray-800">
-                            Demande #{{ demande.id }}
+                            Demande de financement
                         </h3>
                         <span class="badge px-3 py-1 rounded-full text-xs font-semibold
                             {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' %}bg-green-100 text-green-700
@@ -29,7 +30,7 @@
                         </div>
                         <div class="flex items-center gap-2 text-gray-600">
                             <i class="fas fa-hand-holding-usd text-blue-500 w-5"></i>
-                            <span><strong>Apport :</strong> {{ demande.apport|default:"0" }} FCFA</span>
+                            <span><strong>Apport :</strong> {{ demande.apport|default:"0"|intcomma }} FCFA</span>
                         </div>
                         <div class="flex items-center gap-2 text-gray-600">
                             <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
@@ -37,7 +38,7 @@
                         </div>
                         <div class="flex items-center gap-2 text-gray-600">
                             <i class="fas fa-chart-line text-blue-500 w-5"></i>
-                            <span><strong>Revenus :</strong> {{ demande.revenus_mensuel|default:"0" }} FCFA</span>
+                            <span><strong>Revenus :</strong> {{ demande.revenus_mensuel|default:"0"|intcomma }} FCFA</span>
                         </div>
                     </div>
                 </div>

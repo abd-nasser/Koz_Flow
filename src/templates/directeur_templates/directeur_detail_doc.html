@@ -318,14 +318,17 @@
                     </div>
                 </div>
 
-                <!-- Commentaire de rejet (si applicable) -->
-                {% if document.commentaire_rejet %}
-                <div class="bg-red-50 rounded-xl p-4 border border-red-200">
-                    <p class="text-sm text-red-700">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        <strong>Motif du rejet :</strong> {{ document.commentaire_rejet }}
-                    </p>
-                </div>
+              {% if document.statut_dossier == 'rejete' %}
+                        <!-- Commentaire de rejet (si applicable) -->
+                    {% if document.commentaire_rejet %}
+                    <div class="bg-red-50 rounded-xl p-4 border border-red-200">
+                        <p class="text-sm text-red-700">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <strong>Motif du rejet :</strong> {{ document.commentaire_rejet }}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
                 {% endif %}
 
                 <!-- Actions -->

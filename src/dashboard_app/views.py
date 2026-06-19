@@ -1,6 +1,6 @@
 from multiprocessing import context
 
-from django.db.models import Sum
+from django.db.models import Sum, Count
 import json
 import re
 from django.utils import timezone
@@ -527,11 +527,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             date_vente__gte=start_date
         ).select_related('demande_financement')
 
-        # 🔍 Debug (optionnel, à supprimer en production)
-        print(f"Nombre total de ventes: {ventes.count()}")
-        for v in ventes:
-            print(f"Vente #{v.id} - statut: {v.statut} - demande: {v.demande_financement} - montant: {v.montant}")
-
+       
         # --------------------------------
         # 4. Regroupement des données
         # --------------------------------
@@ -602,6 +598,13 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             context['chart_maison'] = json.dumps([ventes_par_jour[j]['maison'] for j in labels])
             context['chart_cash'] = json.dumps([ventes_par_jour[j]['cash'] for j in labels])
             context['selected_period'] = selected_period
+            
+            #TOTAL CA et Nombre de vente
+            stats = Vente.objects.filter(statut__in=["conclue_par_offre_acceptee", "conclue"], date_vente__gte=start_date).select_related("demande_financement").aggregate(total=Sum("montant"),
+                                                                                                         nombre = Count("id")
+                                                                                                         )
+            context["total_ca"] = stats["total"] or 0
+            context["nb_ventes"] = stats['nombre']
 
         return context
                 

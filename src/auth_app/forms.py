@@ -106,7 +106,7 @@ class UserRegisterForm(forms.ModelForm):
                     ⚠️ Ce mot de passe est temporaire.
                     Veuillez le user lors de votre première connexion.
 
-                    🔗 Accéder à votre espace : http://127.0.0.1:8000/login/
+                    🔗 Accéder à votre espace : https://koz-corporate.pro/
 
                     Ce message est automatique, merci de ne pas y répondre.
 

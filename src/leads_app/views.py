@@ -1,4 +1,5 @@
 from datetime import timedelta, timezone, datetime
+from decimal import Decimal, InvalidOperation
 
 from django.db.models import Q
 from django.http import JsonResponse
@@ -9,7 +10,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.conf import settings
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
@@ -63,7 +64,7 @@ def demande_financement_view(request, vehicul_id):
                         'apport': form.cleaned_data.get('apport', 0),
                         'duree': form.cleaned_data.get('duree_mois', 36),
                         'revenus': form.cleaned_data.get('revenus_mensuel', 0),
-                        'lien_suivi': request.build_absolute_uri("/client/demandes/"),
+                        'lien_dashboard': request.build_absolute_uri(reverse('commercial_app:commercial-view'))
                     }
                     
                     html_message = render_to_string('emails/demande_financement/demande_financement_envoyee.html', context_email)
@@ -101,6 +102,17 @@ def demande_financement_view(request, vehicul_id):
 @login_required
 def attente_document(request, demande_id):
     demande = get_object_or_404(demande_financement, id=demande_id)
+    
+    # === 1. VÉRIFICATION DU FINANCEMENT ===
+    if not demande.financement_type:
+        messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
+        return redirect("leads_app:detail-demande", pk=demande.pk)
+    
+    if demande.financement_type == "externe" and not demande.financement_par:
+        messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
+        return redirect("leads_app:detail-demande", pk=demande.pk)
+    
+    # === 2. VÉRIFICATION DE L'ETAPE ===
     if demande.etape == "en_attente":
         messages.info(request, "cette demande de financement est déjà en attente de document")
     elif demande.etape == "demande_accordee":
@@ -117,7 +129,7 @@ def attente_document(request, demande_id):
             context_email = {
                 'client': demande.client,
                 'demande_id': demande.id,
-                'lien_upload': request.build_absolute_uri(f"/client/documents/upload/{demande.id}/"),
+                'lien_upload': request.build_absolute_uri(reverse("leads_app:detail-demande", args=[demande.pk])),
             }
             html_message = render_to_string('emails/demande_financement/demande_attente_documents.html', context_email)
             plain_message = strip_tags(html_message)
@@ -154,6 +166,7 @@ def refuser_demande(request, demande_id):
                 'client': demande.client,
                 'demande_id': demande.id,
                 'raison': request.POST.get('raison_refus', 'Non conforme aux critères de financement'),
+                'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
             }
             html_message = render_to_string('emails/demande_financement/demande_refusee.html', context_email)
             plain_message = strip_tags(html_message)
@@ -174,78 +187,42 @@ def refuser_demande(request, demande_id):
     
     return redirect("leads_app:detail-demande", demande_id=demande.pk)    
 
-@login_required
-def accorder_demande(request, demande_id):
-    demande = get_object_or_404(demande_financement, id=demande_id)
-    
-    if demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison" :
-        messages.info(request, "Cette demande est déjà accordée.")
-    
-    elif demande.etape == "demande_refusee":
-        messages.warning(request, "Cette demande a été refusée, vous ne pouvez pas l'accorder.")
-    
-    else:
-        # Déterminer le type d'accord
-        if demande.financement_type == "externe" and demande.financement_par == "fidelis":
-            demande.etape = "demande_accordee_fidelis"
-            partenaire = "Fidelis"
-        elif demande.financement_type == "externe" and demande.financement_par == "alios":
-            demande.etape = "demande_accordee_alios"
-            partenaire = "Alios"
-        else:
-            demande.etape = "demande_accordee_maison"
-            partenaire = "KOZ Finance"
-            
-        demande.save()
-        
-        # ✉️ Email au client
-        try:
-            context_email = {
-                'client': demande.client,
-                'demande_id': demande.id,
-                'partenaire': partenaire,
-                'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné",
-                'lien_offre': request.build_absolute_uri(f"/client/offres/{demande.id}/"),
-            }
-            html_message = render_to_string('emails/demande_financement/demande_accordee.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="✅ Félicitations ! Votre demande de financement a été acceptée - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[demande.client.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Erreur envoi email: {e}")
-        
-        messages.success(request, f"La demande de {demande.client.nom_complet} a été accordée ({partenaire}). Un email a été envoyé au client.")
-    
-    return redirect("leads_app:detail-demande", demande.pk)
 
 @login_required
 def estimer_prix_vehicule(request):
     # 1. On récupère les données GET (envoyées par HTMX)
-    mensualite = float(request.GET.get('mensualite_souhaitee', 0)) 
-    taux_annuel = float(request.GET.get('taux_interet', 8)) / 100  # 8% → 0.08
-    duree_mois = int(request.GET.get('duree_mois', 36))
-    apport = float(request.GET.get('apport', 0))
-
-   
-    # 3. Calcul du capital empruntable
-    taux_mensuel = taux_annuel / 12  # ex: 0.08 / 12 = 0.006666
-    # Math : C = M * (1 - (1 + t)^(-n)) / t
     try:
-        capital = mensualite * (1 - (1 + taux_mensuel) ** -duree_mois) / taux_mensuel
-    except:
-        capital = 0
+        mensualite = Decimal(request.GET.get('mensualite_souhaitee', 0) or 0)
+    except InvalidOperation:
+        mensualite = Decimal(0)
 
-    # 4. Prix du véhicule = capital + apport
-    prix_vehicule = capital + apport
+    try:
+        taux_annuel = Decimal(request.GET.get('taux_interet', 8) or 8) / Decimal(100)
+    except InvalidOperation:
+        taux_annuel = Decimal('0.08')
 
-    # 5. On renvoie le résultat HTML partiel pour HTMX
+    try:
+        duree_mois = int(request.GET.get('duree_mois', 36) or 36)
+    except (TypeError, ValueError):
+        duree_mois = 36
+
+    try:
+        apport = Decimal(request.GET.get('apport', 0) or 0)
+    except InvalidOperation:
+        apport = Decimal(0)
+
+    if mensualite <= 0 or duree_mois <= 0:
+        prix_vehicule = Decimal(0)
+    else:
+        taux_mensuel = taux_annuel / Decimal(12)
+
+        if taux_mensuel == 0:
+            capital = mensualite * duree_mois
+        else:
+            capital = mensualite * (1 - (1 + taux_mensuel) ** (-duree_mois)) / taux_mensuel
+
+        prix_vehicule = capital + apport
+
     return render(request, "partials/leads/resulta_simulation.html", {"prix_estime": prix_vehicule})
 
 class DemandeFinView(LoginRequiredMixin, ListView):
@@ -412,8 +389,7 @@ def upload_multiple_documents(request, demande_id):
     if request.method == 'POST':
         form = DocumentsUploadForm(request.POST, request.FILES, instance=dossier)
         if form.is_valid():
-            dossier = form.save()
-            
+            dossier = form.save() 
             if dossier.verifier_completude():
                 # ✅ Dossier complet
                 dossier.statut_dossier = "complet"
@@ -430,7 +406,7 @@ def upload_multiple_documents(request, demande_id):
                             'client': demande.client,
                             'demande_id': demande.id,
                             'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Non renseigné",
-                            'lien_demande': request.build_absolute_uri(f"/commercial/demande/{demande.id}/"),
+                            'lien_demande': request.build_absolute_uri(reverse("leads_app:detail-demande", kwargs={"pk": demande.id}))
                         }
                         html_message = render_to_string('emails/documents/dossier_complet_commercial.html', context_email)
                         plain_message = strip_tags(html_message)
@@ -479,30 +455,40 @@ def upload_multiple_documents(request, demande_id):
 def valide_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
     
+    # === 1. VÉRIFICATIONS PRÉALABLES ===
     if dossier.statut_dossier == "incomplet":
-        messages.error(request, "Dossier incomplet, documents obligatoires manquants.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        messages.error(request, "❌ Dossier incomplet : documents obligatoires manquants.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
     
     if dossier.statut_dossier == "rejete":
-        messages.warning(request, "Dossier rejeté, ne peut pas être validé.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        messages.warning(request, "⚠️ Dossier rejeté : ne peut pas être validé.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
     
-    # 1️⃣ Valider le dossier
+    if dossier.statut_dossier == "valide":
+        messages.info(request, "ℹ️ Ce dossier est déjà validé.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
+    
+    demande = dossier.demande_financement
+    
+    # === 2. VÉRIFICATION DU FINANCEMENT ===
+    if not demande.financement_type:
+        messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
+        return redirect("leads_app:detail-demande", pk=demande.pk)
+    
+    if demande.financement_type == "externe" and not demande.financement_par:
+        messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
+        return redirect("leads_app:detail-demande", pk=demande.pk)
+    
+    # === 3. VÉRIFICATION : VENTE EXISTANTE ===
+    if hasattr(demande, 'vente') and demande.vente:
+        messages.warning(request, "⚠️ Une vente est déjà enregistrée pour ce dossier.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
+    
+    # === 4. VALIDATION DU DOSSIER ===
     dossier.statut_dossier = "valide"
     dossier.save()
     
-    # 2️⃣ Mettre à jour la demande et créer la vente
-    demande = dossier.demande_financement
-    
-     # ✅ Vérifier que le financement est configuré
-    if not demande.financement_type:
-        messages.error(request, "Veuillez d'abord configurer le type de financement.")
-        return redirect("leads_app:detail-demande", demande.pk)
-    
-    if demande.financement_type == "externe" and not demande.financement_par:
-        messages.error(request, "Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
-        return redirect("leads_app:detail-demande", demande.pk)
-    
+    # === 5. MISE À JOUR DE LA DEMANDE ET CRÉATION DE LA VENTE ===
     if demande.financement_type == "externe":
         if demande.financement_par == "fidelis":
             demande.etape = "demande_accordee_fidelis"
@@ -510,39 +496,37 @@ def valide_dossier(request, dossier_id):
         elif demande.financement_par == "alios":
             demande.etape = "demande_accordee_alios"
             partenaire = "Alios"
-        demande.save()
-        
-        Vente.objects.create(
-            client=demande.client,
-            demande_financement=demande,
-            statut='conclue',
-            montant=demande.Vehicul_interested.prix
-        )
-        
-    elif demande.financement_type == "maison":
+        else:
+            messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
+            return redirect("leads_app:document-detail", pk=dossier.pk)
+    else:  # financement_type == "maison"
         demande.etape = "demande_accordee_maison"
-        demande.save()
         partenaire = "KOZ Finance"
-        
-        Vente.objects.create(
-            client=demande.client,
-            demande_financement=demande,
-            statut='conclue',
-            montant=demande.Vehicul_interested.prix
-        )
     
-    # ✉️ Email au client pour l'informer de l'accord
+    demande.save()
+    
+    # Création de la vente
+    Vente.objects.create(
+        client=demande.client,
+        demande_financement=demande,
+        statut='conclue',
+        montant=demande.Vehicul_interested.prix if demande.Vehicul_interested else 0
+    )
+    
+    # === 6. EMAIL AU CLIENT ===
     try:
         context_email = {
             'client': demande.client,
             'demande_id': demande.id,
             'partenaire': partenaire,
-            'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné",
-            'montant_finance': demande.montant_souhaite,
+            'vehicule': demande.Vehicul_interested if demande.Vehicul_interested else "Véhicule sélectionné",
+            'montant_finance': demande.Vehicul_interested.prix if demande.Vehicul_interested else 0,
             'duree': demande.duree_mois,
-            'lien_offre': request.build_absolute_uri(f"/leads/offre/{demande.id}/"),
+            'lien_dossier': request.build_absolute_uri(
+                reverse("leads_app:document-detail", kwargs={"pk": dossier.pk})
+            ),
         }
-        html_message = render_to_string('emails/documents/demande_accordee_client.html', context_email)
+        html_message = render_to_string('emails/documents/dossier_valide.html', context_email)
         plain_message = strip_tags(html_message)
         
         send_mail(
@@ -556,8 +540,8 @@ def valide_dossier(request, dossier_id):
     except Exception as e:
         print(f"Erreur envoi email au client: {e}")
     
-    messages.success(request, "Dossier validé. Demande et vente enregistrées. Un email a été envoyé au client.")
-    return redirect("leads_app:document-detail", dossier.pk)
+    messages.success(request, "✅ Dossier validé. Demande et vente enregistrées. Un email a été envoyé au client.")
+    return redirect("leads_app:document-detail", pk=dossier.pk)
 
 @login_required
 def modifier_dossier(request, dossier_id):
@@ -583,7 +567,8 @@ def modifier_dossier(request, dossier_id):
                 'client': dossier.client,
                 'commercial': request.user,
                 'dossier_id': dossier.id,
-                'lien_chat': request.build_absolute_uri("/chat/"),
+                'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
+                'lien_dossier': request.build_absolute_uri(reverse("leads_app:document-detail", kwargs={"pk":dossier.pk}))
             }
             html_message = render_to_string('emails/documents/demande_modification_documents.html', context_email)
             plain_message = strip_tags(html_message)
@@ -604,7 +589,7 @@ def modifier_dossier(request, dossier_id):
         Message.objects.create(
             client=dossier.client,
             commercial=request.user,
-            contenu=f"📄 Demande de modification de vos documents pour le dossier #{dossier.id}. Veuillez consulter votre espace client.",
+            contenu=f"📄 Demande de modification de vos documents pour la demande de financement:  {dossier.demande_financement.Vehicul_interested.modele}. Veuillez consulter votre espace client.",
             est_client=False,
         )
     
@@ -648,8 +633,9 @@ def rejete_dossier(request, dossier_id):
                 'demande_id': demande.id,
                 'motif_rejet': motif_rejet,
                 'commercial': request.user,
+                'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
             }
-            html_message = render_to_string('emails/document/dossier_rejete.html', context_email)
+            html_message = render_to_string('emails/documents/dossier_rejete.html', context_email)
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -690,8 +676,8 @@ def verifier_dossier(request, dossier_id):
             context_email = {
                 'client': dossier.client,
                 'dossier_id': dossier.id,
-                'demande_id': dossier.demande_financement.id,
-                'lien_suivi': request.build_absolute_uri(f"/client/demandes/{dossier.demande_financement.id}/"),
+                'demande': dossier.demande_financement,
+                'lien_suivi': request.build_absolute_uri(reverse('leads_app:document-detail', kwargs={"pk":dossier.pk})),
             }
             html_message = render_to_string('emails/documents/dossier_verification.html', context_email)
             plain_message = strip_tags(html_message)
@@ -757,6 +743,7 @@ def reverifier_document(request, dossier_id):
     
     messages.success(request, f"Le dossier de {dossier.client.nom_complet} est à nouveau en vérification.")
     return redirect("leads_app:document-detail", dossier.pk)
+
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
     context_object_name = "documents"

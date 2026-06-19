@@ -1,5 +1,6 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -105,8 +106,8 @@
                 </div>
                 
                 <div class="border-t pt-4">
-                    <p class="text-3xl font-bold text-blue-700">{{ vehicul.prix }} FCFA</p>
-                    <p class="text-sm text-gray-500"><i class="fas fa-road mr-1"></i>{{ vehicul.kilometrage }} km</p>
+                    <p class="text-3xl font-bold text-blue-700">{{ vehicul.prix|intcomma }} FCFA</p>
+                    <p class="text-sm text-gray-500"><i class="fas fa-road mr-1"></i>{{ vehicul.kilometrage|intcomma }} km</p>
                 </div>
                 
                 <div class="border-t pt-4">
@@ -148,7 +149,7 @@
                 </div>
                 <div class="p-3 bg-gray-50 rounded-xl">
                     <i class="fas fa-tachometer-alt text-blue-600 text-xl"></i>
-                    <p class="font-semibold mt-1">{{ vehicul.kilometrage }} km</p>
+                    <p class="font-semibold mt-1">{{ vehicul.kilometrage|intcomma }} km</p>
                     <p class="text-xs text-gray-500">Kilométrage</p>
                 </div>
                 <div class="p-3 bg-gray-50 rounded-xl">

@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -66,18 +67,18 @@
         </div>
         <div class="content">
             <h2>✅ Félicitations, {{ client.nom_complet }} !</h2>
-            <p>Nous avons le plaisir de vous annoncer que votre demande de financement <strong>n°{{ demande_id }}</strong> a été <strong>acceptée</strong>.</p>
+            <p>Nous avons le plaisir de vous annoncer que votre dossier pour la demande de financement a été <strong>acceptée</strong>.</p>
             
             <div class="info-box">
-                <p><strong>🚗 Véhicule :</strong> {{ vehicule }}</p>
+                <p><strong>🚗 Véhicule :</strong> {{ vehicule.marque.nom }} {{ vehicule.modele }}</p>
                 <p><strong>🏦 Financement :</strong> {{ partenaire }}</p>
-                <p><strong>💰 Montant financé :</strong> {{ montant_finance }} FCFA</p>
+                <p><strong>💰 Montant financé :</strong> {{ montant_finance|intcomma }} FCFA</p>
                 <p><strong>📅 Durée :</strong> {{ duree }} mois</p>
             </div>
             
-            <p>Un commercial va vous contacter très prochainement pour finaliser la vente et organiser la livraison.</p>
+            <p>Un commercial va vous contacter très prochainement pour finaliser la vente </p>
             
-            <a href="{{ lien_offre }}" class="btn">📄 Voir mon offre</a>
+            <a href="{{ lien_dossier }}" class="btn">📄 Voir mon dossier</a>
         </div>
         <div class="footer">
             <p>KOZ Services - Votre concessionnaire de confiance</p>

@@ -1,3 +1,4 @@
+{% load humanize %}
 {% load static %}
 {% for vehicule in vehicul_list %}
 
@@ -14,7 +15,7 @@
         <div class="card-info">
             <h3>{{ vehicule.marque.nom }}</h3>
             <h5>{{ vehicule.modele }}</h5>
-            <p class="prix">{{ vehicule.prix }} FCFA</p>
+            <p class="prix">{{ vehicule.prix|intcomma }} FCFA</p>
             <p class="dispo">
                 {% if vehicule.disponible %}
                     ✅ Disponible

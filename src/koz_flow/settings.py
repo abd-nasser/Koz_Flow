@@ -1,6 +1,12 @@
 from pathlib import Path
+from django.conf.locale.fr import formats
 import os 
 from dotenv import load_dotenv
+
+
+formats.NUMBER_GROUPING = 3
+
+
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -169,10 +175,10 @@ DATABASES = {
 LOGIN_REDIRECT_URL = '/'  # Ou '/dashboard/', '/home/', etc.
 
 # URL de la page de login
-LOGIN_URL = '/login/'  # ✅ Correct si tu as une vue à /login/
+LOGIN_URL = '/'  # ✅ Correct si tu as une vue à /login/
 
 # Optionnel: URL de logout
-LOGOUT_REDIRECT_URL = '/logout/'  # Où rediriger après logout
+LOGOUT_REDIRECT_URL = '/'  # Où rediriger après logout
 
 
 # Password validation
@@ -247,17 +253,17 @@ DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 # Sécurité CSRF pour HTTPS
+# CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
-    'https://KOZ-CORPORATE.pro',
-    'https://www.KOZ-CORPORATE.pro',
+    'http://187.127.233.39',
+    'http://localhost',
+    'http://127.0.0.1',
 ]
 
-# Cookies sécurisés pour HTTPS uniquement
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-
-# Optionnel: protection additionnelle
-CSRF_COOKIE_HTTPONLY = True
-SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'

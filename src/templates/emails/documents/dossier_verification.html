@@ -21,7 +21,7 @@
         <div class="content">
             <h2>🔄 Dossier en cours de vérification</h2>
             <p>Bonjour <strong>{{ client.nom_complet }}</strong>,</p>
-            <p>Votre commercial a commencé la <strong>vérification de votre dossier</strong> (dossier n°{{ dossier_id }}, demande n°{{ demande_id }}).</p>
+            <p>Votre commercial a commencé la <strong>vérification de votre dossier pour la demande de financement de </strong> ( {{ demande.Vehicul_interested.marque.nom }} {{demande.Vehicul_interested.modele}}).</p>
             
             <div class="info-box">
                 <p>📌 Cette étape peut prendre quelques heures.</p>

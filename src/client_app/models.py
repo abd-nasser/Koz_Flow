@@ -124,7 +124,7 @@ class Documents(models.Model):
     attestation_non_engagement = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Attestation de non-engagement")
     contrat_travail = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Contrat de travail")
     attestation_travail = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Attestation de travail (<3 mois)")
-    quittance_salaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="03 derniers bulletins de paie")
+    quittance_salaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="quittance de salaire")
     
     # === BANQUE ===
     relevé_bancaire = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Relevé bancaire (12 mois) + RIB")
