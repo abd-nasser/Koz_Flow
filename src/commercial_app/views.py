@@ -271,53 +271,53 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
     
     template_name = "commercial_templates/commercial.html"
     
-    #avec la methode test_func de la class UserPassTestMixin seul un commercial peut acceder à la view 
     def test_func(self):
-        return self.request.user.is_staff or self.request.user.role =="commercial"
-        #self.request.user designe l'utilisateur qui est connecté
+        return self.request.user.is_staff or self.request.user.role == "commercial"
         
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs) 
+        context = super().get_context_data(**kwargs)
         context["commercial"] = self.request.user
         
+        # === FORMULAIRES ===
         if "user_register_form" not in context:
             context["user_register_form"] = UserRegisterForm()
         
         if 'change_pass_form' not in context:
             context["change_pass_form"] = ChangePasswordForm()
-            
-        #liste des clients assigné à ce commercial
-        clients = self.request.user.clients_assignes.all()
-        context['clients'] = clients
         
-        # Compter les demandes en cours (requête efficace)
-        demandes_en_cours = demande_financement.objects.filter(
-            client__in=clients,
+        # ========================================
+        # ✅ 1. TOUS LES CLIENTS
+        # ========================================
+        tous_les_clients = kozUser.objects.filter(role="client")
+        
+    
+           
+        context['clients'] = tous_les_clients
+        
+        # ========================================
+        # ✅ 2. STATISTIQUES
+        # ========================================
+        context['demande_financement_en_cours'] = demande_financement.objects.filter(
+            client__in=tous_les_clients,
             etape="en_cours"
         ).count()
-        context['demande_financement_en_cours'] = demandes_en_cours
         
-        #Compter les offres 
-        offres_acceptees = Offre.objects.filter(
-            client__in=clients,
+        context["offres_acceptees"] = Offre.objects.filter(
+            client__in=tous_les_clients,
             statut="acceptee"
-            
         ).count()
-        context["offres_acceptees"] = offres_acceptees
         
-        #Maintenance planifié
-        maintenance_planifiee = Maintenance.objects.filter(
-            client__in=clients,
+        context["maintenance_planifiee"] = Maintenance.objects.filter(
+            client__in=tous_les_clients,
             statut="planifiee"
         ).count()
         
-        context["maintenance_planifiee"] = maintenance_planifiee
-        
-        #message non lus
-        context["total_non_lus"] = sum(c.nb_messages_non_lus for c in context["clients"])
+        # ========================================
+        # ✅ 3. TOTAL DES NON-LUS (via la propriété)
+        # ========================================
+        context["total_non_lus"] = sum(c.nb_messages_non_lus for c in tous_les_clients)
         
         return context
-
 ##########################################________________OFFRE_VIEW_________________####################################################
 class offreSimpleCreateView(LoginRequiredMixin, CreateView):
     model = Offre
