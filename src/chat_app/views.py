@@ -14,6 +14,9 @@ def chat_view(request, client_id=None):
     if request.user.role == "client":
         messages = Message.objects.filter(client=request.user).order_by('date_envoi')
         destinataire = request.user.assigned_commercial
+        
+        # ✅ Marquer les messages comme lus (pour le client
+        messages.filter(est_client=False, lu=False).update(lu=True)
         context = {
             'messages': messages,
             'destinataire': destinataire,
@@ -24,12 +27,16 @@ def chat_view(request, client_id=None):
         if client_id:
             client = get_object_or_404(kozUser, id=client_id, role="client")
             messages = Message.objects.filter(client=client).order_by('date_envoi')
+            
+            # ✅ Marquer les messages comme lus (pour le commercial)
+            messages.filter(est_client=True, lu=False).update(lu=True)
+           
         else:
             # Si aucun client sélectionné, on affiche la liste des clients
             clients = kozUser.objects.filter(role="client")
             messages = None
             client = None
-        
+          
         context = {
             'messages': messages,
             'clients': clients if not client_id else None,
