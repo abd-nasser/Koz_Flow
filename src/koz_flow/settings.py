@@ -74,30 +74,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # ✅ AJOUTE CETTE LIGNE (en bas de la liste)
+    'koz_flow.middleware.LastActivityMiddleware',
 ]
 
 # ----- CONFIGURATION DE DRF (Django Rest Framework) -----
 REST_FRAMEWORK = {
-    # DEFAULT_AUTHENTICATION_CLASSES = comment on vérifie qu'un utilisateur est connecté
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    # JWTAuthentication = regarde dans l'en-tête "Authorization" de la requête
-     # Si le token JWT est valide, l'utilisateur est considéré comme connecté
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    
-    # DEFAULT_PERMISSION_CLASSES = qui à le droit d'appeler les APIs ?
-    
-    #pour désactiver CSRF sur les APIs
-    
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-    ),
-   
-    #IsAuthenticated = SEUL les utilisateurs connectés peuvent appeler l'API
-    # Si tu n'es pas connecté → erreur 401 (Non autorisé)
 }
 
 
@@ -112,7 +101,7 @@ from datetime import timedelta
 SIMPLE_JWT = {
     #ACCES_TOKEN_LIFETIME
     # Après 60 minutes, le token expire et tu dois en demander un nouveau
-    'ACCES_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     
     #REFRESH_TOKEN_LIFETIME
     # Pendant 7 jours, tu peux utiliser le refresh token pour obtenir un nouveau access token

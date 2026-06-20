@@ -44,3 +44,94 @@
         </div>
     </div>
 </dialog>
+
+
+     <script>
+        // Gestion de la soumission du formulaire
+        const form = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorDiv = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+        function setLoading(loading) {
+            if (!loginBtn) return;
+            if (loading) {
+                btnText?.classList.add('hidden');
+                btnSpinner?.classList.remove('hidden');
+                loginBtn.disabled = true;
+            } else {
+                btnText?.classList.remove('hidden');
+                btnSpinner?.classList.add('hidden');
+                loginBtn.disabled = false;
+            }
+        }
+
+        function showError(message) {
+            if (!errorDiv) return;
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 4000);
+        }
+
+        if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            console.log('🔵 Formulaire soumis'); // ✅ Vérifier que l'événement est déclenché
+            
+            const email = emailInput?.value.trim();
+            const password = passwordInput?.value;
+            
+            console.log('🔵 Email:', email); // ✅ Vérifier que les champs sont récupérés
+            
+            if (!email || !password) {
+                showError('Veuillez remplir tous les champs');
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+            console.log('🔵 Envoi de la requête...');
+            const response = await fetch('/api/auth/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken || ''
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            console.log('🔵 Statut réponse:', response.status); // ✅ Vérifier le statut HTTP
+            
+            const data = await response.json();
+            console.log('🔵 Données reçues:', data); // ✅ Voir ce que le serveur renvoie
+            
+            if (response.ok) {
+                console.log('✅ Login réussi !');
+                
+                localStorage.setItem('access', data.access);
+                localStorage.setItem('refresh', data.refresh);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                console.log('✅ Tokens stockés');
+                debugger;
+                window.location.href = data.redirect_url;
+            } else {
+                console.log('❌ Erreur login:', data.error);
+                showError(data.error || 'Email ou mot de passe incorrect');
+            }
+        } catch (error) {
+            console.error('❌ Erreur réseau:', error);
+            showError('Erreur de connexion au serveur');
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+</script>

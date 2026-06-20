@@ -58,21 +58,49 @@
                             {% endif %}
                             <span class="bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">{{ client.nom_complet }}</span>
                         </h2>
-                        <div class="flex flex-wrap items-center gap-3 mt-3">
-                            <div class="flex items-center gap-2 text-gray-600">
-                                <i class="fas fa-user-tie text-blue-500"></i>
-                                <span>Commercial :</span>
-                                <strong>{{ client.assigned_commercial.nom_complet|default:"En cours d'assignation" }}</strong>
-                            </div>
-                            <a href="{% url 'chat_app:chat-view' %}" class="inline-flex items-center gap-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-full transition shadow-sm">
-                                <i class="fas fa-comment-dots"></i> Message
-                            </a>
-                            <button onclick="document.getElementById('change_pass_modal').showModal()" 
-                                    class="inline-flex items-center cursor-pointer gap-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full transition">
-                                <i class="fas fa-key"></i> Changer mot de passe
-                            </button>
-                            {% include 'modals/auth/change_password.html' %}
-                        </div>
+
+                       <!-- Remplacer la ligne du commercial par ça -->
+<div class="flex flex-wrap items-center gap-3 mt-3">
+    <div class="flex items-center gap-2 text-gray-600">
+        <i class="fas fa-headset text-blue-500"></i>
+        <span>Équipe commerciale :</span>
+    </div>
+    
+    <!-- Liste des commerciaux disponibles -->
+    <div class="flex flex-wrap gap-2">
+        {% for commercial in commerciaux %}
+            <div class="flex items-center gap-1.5 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                <span class="w-2 h-2 rounded-full 
+                    {% if commercial.est_en_ligne %}
+                        bg-green-500
+                    {% elif commercial.est_hors_ligne %}
+                        bg-gray-400
+                    {% else %}
+                    bg-red-400
+                    {% endif %}
+                "></span>
+                <span class="text-gray-700">{{ commercial.nom_complet }}</span>
+                {% if commercial == client.assigned_commercial %}
+                    <span class="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">Assigné</span>
+                {% endif %}
+            </div>
+        {% empty %}
+            <span class="text-sm text-gray-400">Aucun commercial disponible pour le moment.</span>
+        {% endfor %}
+    </div>
+    
+    <!-- Lien vers le chat -->
+    <a href="{% url 'chat_app:chat-view' %}" 
+       class="inline-flex items-center gap-2 text-sm bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded-full transition shadow-sm">
+        <i class="fas fa-comment-dots"></i> Discuter
+    </a>
+    
+    <button onclick="document.getElementById('change_pass_modal').showModal()" 
+            class="inline-flex items-center cursor-pointer gap-2 text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-full transition">
+        <i class="fas fa-key"></i> Changer mot de passe
+    </button>
+</div>
+
                     </div>
                     <div class="text-right">
                         <p class="text-sm text-gray-500"><i class="fas fa-calendar-alt mr-1 text-blue-500"></i>{% now "l d F Y" %}</p>
@@ -178,52 +206,78 @@
         });
 </script>
 
-    <script>
-        // Gestion de la déconnexion
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            const refresh = localStorage.getItem('access');
-            await fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access')}`
-                },
-                body: JSON.stringify({refresh: refresh})
-            });
-            localStorage.clear();
-            window.location.href = '/';
-        });
-
-        // Refresh du token avant qu'il n'expire
-        async function refreshToken() {
-            const refresh = localStorage.getItem('access');
-            if (!refresh) return false;
-            
+<script>
+    // ============================================================
+    // 1. Gestion de la déconnexion
+    // ============================================================
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        const accessToken = localStorage.getItem('access');
+        const refreshToken = localStorage.getItem('refresh');
+        
+        // Si refresh token présent, on le blacklist
+        if (refreshToken && accessToken) {
             try {
-                const response = await fetch('/api/auth/refresh/', {
+                await fetch('/api/auth/logout/', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({refresh: refresh})
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('access', data.access);
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (error) {
-                console.error('Refresh failed:', error);
-                return false;
+            } catch (e) {
+                console.warn('Logout serveur échoué:', e);
             }
         }
+        
+        // Nettoyage local
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    });
 
-        // Vérification périodique du token avec refresh automatique
-        setInterval(async () => {
-            const token = localStorage.getItem('access');
-            if (!token) return;
+    // ============================================================
+    // 2. Rafraîchissement du token access
+    // ============================================================
+    async function refreshToken() {
+    const refreshToken = localStorage.getItem('refresh');
+    if (!refreshToken) return false;
+    
+    try {
+        const response = await fetch('/api/auth/token/refresh/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({refresh: refreshToken})
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access', data.access);
             
+            // ✅ Stocke le NOUVEAU refresh token
+            if (data.refresh) {
+                localStorage.setItem('refresh', data.refresh);
+            }
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        return false;
+    }
+}
+    // ============================================================
+    // 3. Vérification périodique du token (toutes les 60s)
+    // ============================================================
+    setInterval(async () => {
+        const token = localStorage.getItem('access');
+        if (!token) {
+            window.location.href = '/';
+            return;
+        }
+        
+        try {
             const response = await fetch('/api/auth/me/', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
@@ -235,7 +289,10 @@
                     window.location.href = '/';
                 }
             }
-        }, 60000);
-    </script>
+        } catch (error) {
+            console.error('Erreur vérification token:', error);
+        }
+    }, 60000); // 60 secondes
+</script>
 </body>
 </html>

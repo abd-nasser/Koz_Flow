@@ -247,52 +247,78 @@
         </div>
     </footer>
 
-   <script>
-        // Gestion de la déconnexion
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            const refresh = localStorage.getItem('access');
-            await fetch('/api/auth/logout/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access')}`
-                },
-                body: JSON.stringify({refresh: refresh})
-            });
-            localStorage.clear();
-            window.location.href = '/';
-        });
-
-        // Refresh du token avant qu'il n'expire
-        async function refreshToken() {
-            const refresh = localStorage.getItem('access');
-            if (!refresh) return false;
-            
+    <script>
+    // ============================================================
+    // 1. Gestion de la déconnexion
+    // ============================================================
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        const accessToken = localStorage.getItem('access');
+        const refreshToken = localStorage.getItem('refresh');
+        
+        // Si refresh token présent, on le blacklist
+        if (refreshToken && accessToken) {
             try {
-                const response = await fetch('/api/auth/refresh/', {
+                await fetch('/api/auth/logout/', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({refresh: refresh})
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('access', data.access);
-                    return true;
-                } else {
-                    return false;
-                }
-            } catch (error) {
-                console.error('Refresh failed:', error);
-                return false;
+            } catch (e) {
+                console.warn('Logout serveur échoué:', e);
             }
         }
+        
+        // Nettoyage local
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    });
 
-        // Vérification périodique du token avec refresh automatique
-        setInterval(async () => {
-            const token = localStorage.getItem('access');
-            if (!token) return;
+    // ============================================================
+    // 2. Rafraîchissement du token access
+    // ============================================================
+    async function refreshToken() {
+    const refreshToken = localStorage.getItem('refresh');
+    if (!refreshToken) return false;
+    
+    try {
+        const response = await fetch('/api/auth/token/refresh/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({refresh: refreshToken})
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access', data.access);
             
+            // ✅ Stocke le NOUVEAU refresh token
+            if (data.refresh) {
+                localStorage.setItem('refresh', data.refresh);
+            }
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        return false;
+    }
+}
+    // ============================================================
+    // 3. Vérification périodique du token (toutes les 60s)
+    // ============================================================
+    setInterval(async () => {
+        const token = localStorage.getItem('access');
+        if (!token) {
+            window.location.href = '/';
+            return;
+        }
+        
+        try {
             const response = await fetch('/api/auth/me/', {
                 headers: {'Authorization': `Bearer ${token}`}
             });
@@ -304,8 +330,11 @@
                     window.location.href = '/';
                 }
             }
-        }, 60000);
-    </script>
+        } catch (error) {
+            console.error('Erreur vérification token:', error);
+        }
+    }, 60000); // 60 secondes
+</script>
 
 </body>
 </html>

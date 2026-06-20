@@ -22,8 +22,11 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
    
    def get_context_data(self, **kwargs):
       context =  super().get_context_data(**kwargs)
+      
+      
       context["client"] = self.request.user
       context["commercial"] = self.request.user.assigned_commercial
+      context["commerciaux"] =  kozUser.objects.filter(role="commercial", est_actif=True)
       if 'change_pass_form' not in context:
          context["change_pass_form"] = ChangePasswordForm()
       return context

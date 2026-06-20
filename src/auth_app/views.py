@@ -140,25 +140,28 @@ class MeView(APIView):
 
 # ----- VUE POUR LA DÉCONNEXION -----
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated] #Uniquement user connecté
-    
+    permission_classes = [AllowAny]
+
     def post(self, request):
-        try:
-            #on récupère le refresh token stock par le client lors de sa connection
-            refresh_token = request.data.get('refresh')
-            
-            #on creé une instance RefreshToken à partir du token recupére
-            token = RefreshToken(refresh_token)
-            
-            #on blacklist le token recupérer
-            token.blacklist()     
-            return Response({"message":"déconnection reussi"})
-            
-        except Exception as e:
-            logger.error(f"erreur coté serveur = {str(e)} ")
-            return Response({"erreur":f"{str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    
+        refresh_token = request.data.get('refresh')
+        
+        # 1️⃣ Blacklist du refresh token (si présent et valide)
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                message = "Déconnexion réussie (token blacklisté)"
+            except Exception as e:
+                logger.warning(f"Tentative de logout avec token invalide: {str(e)}")
+                message = "Déconnexion réussie (token déjà expiré ou invalide)"
+        else:
+            message = "Déconnexion réussie (aucun token à blacklist)"
+        
+        # 2️⃣ ✅ TOUJOURS exécuter la déconnexion Django
+        django_logout(request)
+        print("logout reussi")
+        print(f"is_authenticated: {request.user.is_authenticated}") 
+        return Response({"message": message}, status=status.HTTP_200_OK)
 
 
 #--------------------------LES Vus d'autentification pour ERP--------------------------

@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.models import AbstractUser
 from vehicul_app.models import Vehicul
+from django.utils import timezone
+from datetime import timedelta
 
 # ---------- GESTIONNAIRE PERSONNALISÉ ----------
 # C'est le chef d'orchestre qui va créer et gérer nos kozUsers
@@ -149,6 +151,8 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
         verbose_name=" dernière connexion"
     )
     
+    last_activity = models.DateTimeField(null=True, blank=True)
+    
     est_actif = models.BooleanField(
         default=True,
         verbose_name='compte actif'
@@ -178,6 +182,16 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = "kozUsers"
     
     #------------PROPRIETE UTILES POUR LE MODELE KOZUSER ------------
+    @property
+    def est_en_ligne(self):
+        if not self.last_activity:
+            return False
+        return timezone.now()- self.last_activity < timedelta(minutes=5)
+    
+    @property
+    def est_hors_ligne(self):
+        return not self.est_en_ligne
+    
     
     @property
     def dernier_message(self):
@@ -220,14 +234,9 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
             return None  # Seuls les clients ont un commercial assigné
         return self.assigned_commercial
     
-    def est_en_ligne(self):
-        """Retourne True si l'utilisateur est connecté et actif"""
-        return self.est_actif and self.is_authenticated
     
-    def est_hors_ligne(self):
-        """Retourne True si l'utilisateur est déconnecté ou inactif"""
-        return not self.est_en_ligne()
     
+    @property
     def derniere_connexion_formatee(self):
         """Retourne la date de dernière connexion formatée"""
         if self.last_login:
