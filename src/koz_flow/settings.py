@@ -121,7 +121,10 @@ SIMPLE_JWT = {
 # ----- CONFIGURATION CORS (qui a le droit d'appeler nos APIs) -----
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",      # Ton site web en développement
-    "http://127.0.0.1:8000",      # Pareil mais avec IP local
+    "http://127.0.0.1:8000", # Pareil mais avec IP
+    'http://187.127.233.39',
+    'https://koz-corporate.pro',
+    'https://www.koz-corporate.pro',
     #"https://kozservices.bf",     # Ton site web en production (quand il sera en ligne)
 ]
 
@@ -163,7 +166,7 @@ DATABASES = {
 # URL de redirection APRÈS login réussi
 LOGIN_REDIRECT_URL = '/'  # Ou '/dashboard/', '/home/', etc.
 
-# URL de la page de login
+# URL de la palocalge de login
 LOGIN_URL = '/'  # ✅ Correct si tu as une vue à /login/
 
 # Optionnel: URL de logout
@@ -247,6 +250,9 @@ CSRF_TRUSTED_ORIGINS = [
     'http://187.127.233.39',
     'http://localhost',
     'http://127.0.0.1',
+    'https://koz-corporate.pro',
+    'https://www.koz-corporate.pro',
+    
 ]
 
 CSRF_COOKIE_SECURE = False

@@ -591,7 +591,7 @@ class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(request, "Offre supprimée.")
         return super().delete(request, *args, **kwargs)
     
-######################################___________VENTE/GESTION_View__________________#########################################################""""""
+######################################___________VENTE/GESTION_View__________________#########################################################
 
 def vente_update_statut(request, pk):
     vente = get_object_or_404(Vente, id=pk)
