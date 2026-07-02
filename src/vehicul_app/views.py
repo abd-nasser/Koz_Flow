@@ -1,12 +1,19 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import CreateView, ListView,DetailView, UpdateView, DeleteView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
+
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+
+
+
 from django.db.models import Q
 from django.urls import reverse_lazy 
 
-from .models import Vehicul, Marque
-from .forms import VehiculForm, MarqueForm
+from .models import Vehicul, Marque, VehiculeImage
+from .forms import VehiculForm, MarqueForm, VehiculeImage, VehiculeImageFormSet, VehiculeImageForm
 from directeur_app.views import DirecteurDashboardView
 from leads_app.forms import DemandeFinancementForm
 
@@ -90,6 +97,19 @@ class MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         
 
 #========================================= Vehicul Views =========================================
+
+
+
+
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from .models import Vehicul, VehiculeImage
+
+    
+
 class CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def test_func(self):
@@ -128,6 +148,12 @@ class VehiculListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["marques"] = Marque.objects.all()
         context["TYPES_CARBURANT"] = Vehicul.TYPES_CARBURANT_CHOICES
+        
+        # ✅ Ajout de l'image principale pour chaque véhicule
+        for vehicule in context["vehicul_list"]:
+            image_principale = vehicule.images.filter(est_principale=True).first()
+            vehicule.image_display = image_principale.image if image_principale else vehicule.image_principale
+        
         return context
     
     def get_queryset(self):
@@ -156,7 +182,6 @@ class VehiculListView(LoginRequiredMixin, ListView):
         
         return queryset
                
-
 class VehiculDetailView(LoginRequiredMixin, DetailView):
     model = Vehicul
     template_name = "vehicul_templates/vehicul_detail.html"
@@ -164,13 +189,26 @@ class VehiculDetailView(LoginRequiredMixin, DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Formulaire de modification
         if "vehicul_form" not in context:
             context["vehicul_form"] = VehiculForm(instance=self.object)
         
+        # Formulaire de demande de financement
         initial = {"duree_mois": 36, "apport": 0}
         context["dmd_fin_form"] = DemandeFinancementForm(initial=initial)
+        
+        # ✅ Images du véhicule
+        images = self.object.images.all().order_by('ordre', 'date_ajout')
+        context["images"] = images
+        
+        # ✅ Image principale (fallback si pas trouvée)
+        image_principal = images.filter(est_principale=True).first()
+        if not image_principal and images.exists():
+            image_principal = images.first()
+        context["image_principal"] = image_principal
+        
         return context
-
 
 class VehiculUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
@@ -208,3 +246,81 @@ class VehiculDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Vehicul
     template_name = "vehicul_templates/detail_vehicul.html"
     success_url = reverse_lazy("vehicul_app:list-vehicul")
+    
+
+# ============================================================
+# ✅ PAGE : Liste des images d'un véhicule (avec pagination)
+# ============================================================
+class VehiculeImageListView(LoginRequiredMixin, ListView):
+    model = VehiculeImage
+    template_name = "vehicul_templates/vehicul_images.html"
+    context_object_name = "images"
+    paginate_by = 8  # 8 images par page
+    
+    def get_queryset(self):
+        self.vehicule = get_object_or_404(Vehicul, pk=self.kwargs['pk'])
+        return self.vehicule.images.all().order_by('ordre', 'date_ajout')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['vehicul'] = self.vehicule
+        print(f"🔍 vehicul.pk = {self.vehicule.pk}")  
+        if "vehicul_image_form" not in context:
+            context["vehicul_image_form"] = VehiculeImageForm()
+        
+        return context
+    
+
+# ============================================================
+# ✅ AJOUT : Ajouter une image (CBV)
+# ============================================================
+# views.py
+@login_required
+@require_POST
+def ajouter_image(request, pk):
+    vehicule = get_object_or_404(Vehicul, pk=pk)
+    
+    # ✅ Vérification des permissions
+    if not (request.user.is_superuser or request.user.role == "directeur"):
+        messages.error(request, "Vous n'avez pas la permission d'ajouter des images.")
+        return redirect('vehicul_app:detail-vehicul', pk=vehicule.pk)
+    
+    # ✅ Traitement du formulaire
+    form = VehiculeImageForm(request.POST, request.FILES)
+    
+    if form.is_valid():
+        image = form.save(commit=False)
+        image.vehicule = vehicule
+        image.save()
+        
+        # ✅ Si c'est l'image principale, désactiver les autres
+        if image.est_principale:
+            VehiculeImage.objects.filter(
+                vehicule=vehicule
+            ).exclude(pk=image.pk).update(est_principale=False)
+        
+        messages.success(request, f"✅ Image ajoutée avec succès !")
+    else:
+        messages.error(request, f"❌ Erreur dans le formulaire : {form.errors}")
+    
+    # ✅ Redirection vers la page d'images
+    return redirect('vehicul_app:vehicul-images-list', pk=vehicule.pk)
+    
+
+# ============================================================
+# ✅ SUPPRESSION : Supprimer une image (CBV)
+# ============================================================
+class VehiculeImageDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = VehiculeImage
+    template_name = "vehicul_templates/vehicul_image_confirm_delete.html"
+    
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == "directeur"
+    
+    def get_success_url(self):
+        return reverse_lazy('vehicul_app:detail-vehicul', kwargs={'pk': self.object.vehicule.pk})
+    
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, "Image supprimée avec succès !")
+        return response

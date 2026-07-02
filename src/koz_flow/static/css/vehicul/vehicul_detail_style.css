@@ -190,10 +190,10 @@ input[type="file"], textarea {
 
 main {
     margin-top: 4rem; /* pour éviter que le contenu soit caché derrière la navbar */
-    padding-top: 15rem; /* pour éviter que le contenu soit caché derrière la navbar */ 
-    height: 100vh;
+ /* pour éviter que le contenu soit caché derrière la navbar */ 
+    min-height: 80vh;
     display: flex;
-    padding: 2rem;
+    
     background: linear-gradient(125deg, #ffffff, #ebebeb, #3b82f6, #590bc8);
     background-size: 400% 400%;
     background-repeat: no-repeat;
@@ -227,6 +227,7 @@ main .image_principale_infos {
     justify-content: space-evenly;
     flex-wrap: wrap;
     width: 100%;
+   margin-top: 2rem;
     
 }
 
@@ -284,10 +285,6 @@ main .image_principale_infos {
     .btn-glow {
         width: 100%;
         text-align: center;
-    }
-
-    main{
-        padding-top: 90rem;
     }
     .caractéristiques {
     margin-top: 15px;

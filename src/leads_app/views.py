@@ -22,6 +22,118 @@ from .models import DevisLeads, Vente, demande_financement
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 
+
+###API
+from rest_framework import status #status = codes HTTP(200 = OK, 400 = Erreur, 500 = erreu server)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import DemandeFinancementSerializers
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ApiDemandeFinancementView(APIView):
+    """ 
+        API pour créer une demande de financement depuis le site web.
+    """
+    permission_classes = [IsAuthenticated]
+    def post(self, request, vehicul_id):
+        vehicule = get_object_or_404(Vehicul, id=vehicul_id)
+        
+        # ✅ 1. Vérifier que l'utilisateur est un client
+        if request.user.role != "client":
+            return Response(
+                {"error": "Seuls les client faire une demande de financement."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        # ✅ 2. Vérifier si une demande existe déjà
+        demande_existante = demande_financement.objects.filter(
+            client=request.user,
+            etape__in=[
+                "nouvelle", "en_attente", "en_cours","demande_accordee_fidelis",
+                "demande_accordee_alios","demande_accordee_maison", 
+                'demand_refusee'
+            ]
+        ).first()
+        
+        if demande_existante:
+            return Response(
+                 {"error": f"Une demande de financement est déjà {demande_existante.etape}."},
+                 status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # ✅ 3. Validation des données
+        serializer= DemandeFinancementSerializers(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {"errors": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # ✅ 4. Création de la demande
+        try:
+            demande = demande_financement.objects.create(
+                client=request.user,
+                Vehicul_interested=vehicule,
+                apport=serializer.validated_data.get('apport', 0),
+                duree_mois=serializer.validated_data.get('duree_mois', 36),
+                revenus_mensuel=serializer.validated_data.get('revenus_mensuel', 0),
+                etape="nouvelle",
+                
+            )
+            # ✅ 5. Envoi de l'email au commercial assigné
+            client = request.user
+            if client.assigned_commercial and client.assigned_commercial.email:
+                try:
+                    context_email = {
+                        'client': client,
+                        'vehicule': f"{vehicule.marque.nom} {vehicule.modele} ({vehicule.annee})",
+                        'apport': serializer.validated_data.get('apport', 0),
+                        'duree': serializer.validated_data.get('duree_mois', 36),
+                        'revenus': serializer.validated_data.get('revenus_mensuel', 0),
+                        'lien_dashboard': request.build_absolute_uri(
+                            reverse('commercial_app:commercial-view')
+                        )
+                    }
+                    html_message = render_to_string(
+                        'emails/demande_financement/demande_financement_envoyee.html',
+                        context_email
+                    )
+                    plain_message = strip_tags(html_message)
+
+                    send_mail(
+                        subject="🆕 Nouvelle demande de financement - KOZ Services",
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[client.assigned_commercial.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                except Exception as e:
+                    logger.error(f"Erreur envoi email au commercial: {e}")
+            else:
+                logger.warning(f"Client {client.email} n'a pas de commercial assigné")
+            
+            # ✅ 6. Réponse API (pas de messages !)
+            return Response({
+                 "message": "Demande de financement envoyée avec succès !",
+                "demande_id": demande.id,
+                "statut": demande.etape,
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Erreur lors de la création de la demande: {str(e)}")
+            return Response(
+                {"error": "Une erreur est survenue lors de l'envoi de la demande."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+                
+            
+
+
 ##################################################___Demande et Gestion de Financement_______###########################################
 @login_required
 def demande_financement_view(request, vehicul_id):
@@ -48,7 +160,7 @@ def demande_financement_view(request, vehicul_id):
             demande = form.save(commit=False)
             demande.client = request.user
             demande.Vehicul_interested = vehicul
-            demande.etape = "envoye"
+            demande.etape = "nouvelle"
             demande.save()
             
             # ✉️ ENVOI DE L'EMAIL AU COMMERCIAL

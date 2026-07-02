@@ -11,15 +11,13 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <title>{{ vehicul.marque }} {{ vehicul.modele }} - KOZ Services</title>
+    <title>{{ vehicul.marque.nom }} {{ vehicul.modele }} - KOZ Services</title>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-400 font-inter">
     
-<div id="particles"></div>
- 
-    <!-- ========== NAVBAR MINIMALISTE ========== -->
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
-               <!-- Messages flash -->
+    <div id="particles"></div>
+    
+    <!-- ========== MESSAGES FLASH ========== -->
     {% if messages %}
     <div class="fixed top-5 right-5 z-50 space-y-2">
         {% for message in messages %}
@@ -29,6 +27,9 @@
         {% endfor %}
     </div>
     {% endif %}
+    
+    <!-- ========== NAVBAR ========== -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-200">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
@@ -46,51 +47,62 @@
 
     <!-- ========== MAIN CONTENT ========== -->
     <main>
-    
-
         <!-- Grille principale : image principale + infos -->
         <div class="image_principale_infos">
             
-            <!-- Galerie d'images -->
-            <div class="space-y-4 image-full ">
-                <div class="relative overflow-hidden rounded-2xl shadow-xl bg-white group img_gallery">
-                    <img id="mainImage" src="{{ vehicul.image_principale.url }}" 
-                         alt="{{ vehicul.marque }} {{ vehicul.modele }}"
-                         class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
-                    <div class="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                        <i class="fas fa-expand"></i> Cliquez pour zoomer
+            <!-- ========== GALERIE D'IMAGES ========== -->
+            <div class="space-y-4 image-full">
+                
+                <!-- Image principale (cliquable → galerie) -->
+                <a href="{% url 'vehicul_app:vehicul-images-list' vehicul.pk %}" class="block">
+                    <div class="relative overflow-hidden rounded-2xl shadow-xl bg-white group img_gallery">
+                        
+                        {% if image_principal %}
+                             <img id="mainImage" 
+                             src="{{ image_principal.image.url }}" 
+                             alt="{{ vehicul.marque.nom }} {{ vehicul.modele }}"
+                             class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
+                        {% else %}
+                            
+                        <img id="mainImage" 
+                             src="{{ vehicul.image_principale.url }}" 
+                             alt="{{ vehicul.marque.nom }} {{ vehicul.modele }}"
+                             class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
+                         {% endif %}
+                        <div class="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-sm">
+                            <i class="fas fa-images"></i> 
+                            {{ images|length|add:1 }} photos
+                        </div>
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <span class="bg-white/90 text-gray-800 px-4 py-2 rounded-xl text-sm font-medium shadow-lg">
+                                <i class="fas fa-expand mr-2"></i>Voir toutes les photos
+                            </span>
+                        </div>
                     </div>
+                </a>
+                
+                <!-- Miniatures (images supplémentaires) -->
+                <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
+                    <!-- Image principale en miniature -->
+                    <img src="{{ image_principal.image.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-blue-500 transition"
+                         onclick="changeImage('{{ image_principal.image.url }}')">
+                    
+                    <!-- Images supplémentaires -->
+                    {% for image in images %}
+                        {% if not image.est_principale %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ image.alt_text|default:vehicul.modele }}"
+                             class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                             onclick="changeImage('{{ image.image.url }}')">
+                        {% endif %}
+                    {% endfor %}
                 </div>
                 
-                <!-- Miniatures -->
-                <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
-                    <img src="{{ vehicul.image_principale.url }}" 
-                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
-                         onclick="changeImage('{{ vehicul.image_principale.url }}')">
-                    {% if vehicul.image_2 %}
-                    <img src="{{ vehicul.image_2.url }}" 
-                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
-                         onclick="changeImage('{{ vehicul.image_2.url }}')">
-                    {% endif %}
-                    {% if vehicul.image_3 %}
-                    <img src="{{ vehicul.image_3.url }}" 
-                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
-                         onclick="changeImage('{{ vehicul.image_3.url }}')">
-                    {% endif %}
-                    {% if vehicul.image_4 %}
-                    <img src="{{ vehicul.image_4.url }}" 
-                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
-                         onclick="changeImage('{{ vehicul.image_4.url }}')">
-                    {% endif %}
-                    {% if vehicul.image_5 %}
-                    <img src="{{ vehicul.image_5.url }}" 
-                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
-                         onclick="changeImage('{{ vehicul.image_5.url }}')">
-                    {% endif %}
-                </div>
+            
             </div>
             
-            <!-- Informations principales -->
+            <!-- ========== INFORMATIONS PRINCIPALES ========== -->
             <div class="bg-white rounded-2xl shadow-lg p-6 space-y-5 info_principales">
                 <div>
                     <div class="flex justify-between items-start">
@@ -115,7 +127,7 @@
                     <p class="text-gray-600 leading-relaxed">{{ vehicul.description|default:"Aucune description disponible." }}</p>
                 </div>
                 
-                <!-- Boutons d'action -->
+                <!-- ========== BOUTONS D'ACTION ========== -->
                 <div class="flex flex-wrap gap-3 pt-4 border-t">
                     {% if user.is_authenticated and not user.is_superuser and user.role != "directeur" %}
                         <button onclick="document.getElementById('dmd_fin_modal').showModal()" 
@@ -138,9 +150,11 @@
             </div>
         </div>
         
-        <!-- Section caractéristiques détaillées (optionnelle) -->
+        <!-- ========== CARACTÉRISTIQUES TECHNIQUES ========== -->
         <div class="bg-white rounded-2xl shadow-lg p-6 caractéristiques">
-            <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Caractéristiques techniques</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-chart-line mr-2 text-blue-600"></i>Caractéristiques techniques
+            </h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div class="p-3 bg-gray-50 rounded-xl">
                     <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
@@ -179,19 +193,23 @@
     {% include 'modals/vehicul/vehicul_confirm_delete.html' %}
     {% include 'modals/leads/demande_financement.html' %}
 
+    <!-- ========== JAVASCRIPT ========== -->
     <script>
-        // Galerie d'images : changer l'image principale
+        // ============================================================
+        // 1. Galerie : changer l'image principale
+        // ============================================================
         function changeImage(src) {
             const mainImage = document.getElementById('mainImage');
             if (mainImage) {
                 mainImage.src = src;
-                // Petite animation de fondu
                 mainImage.style.animation = 'fadeIn 0.3s ease';
                 setTimeout(() => { mainImage.style.animation = ''; }, 300);
             }
         }
-        
-        // Animation fadeIn (CSS)
+
+        // ============================================================
+        // 2. Animation fadeIn (CSS dynamique)
+        // ============================================================
         const style = document.createElement('style');
         style.textContent = `
             @keyframes fadeIn {
@@ -200,44 +218,39 @@
             }
         `;
         document.head.appendChild(style);
-        
-        // Zoom sur l'image principale (simulation)
-        const mainImage = document.getElementById('mainImage');
-        if (mainImage) {
-            mainImage.addEventListener('click', () => {
-                window.open(mainImage.src, '_blank');
-            });
-        }
-        
-        // Surligner la miniature active
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.addEventListener('click', function() {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('border-blue-500'));
-                this.classList.add('border-blue-500');
+
+        // ============================================================
+        // 3. Surligner la miniature active
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('border-blue-500'));
+                    this.classList.add('border-blue-500');
+                });
             });
         });
 
-// Création des particules (ton code existant)
-    const particlesContainer = document.getElementById('particles');
-    if (particlesContainer) {
-        for (let i = 0; i < 100; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + 'vw';
-            particle.style.top = Math.random() * 100 + 'vh';
-            const size = Math.random() * 10 + 5;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            const hue = Math.random() * 40 + 200;
-            particle.style.backgroundColor = `hsla(${hue}, 80%, 65%, 0.3)`;
-            particle.style.animationDuration = Math.random() * 20 + 10 + 's';
-            particle.style.animationDelay = Math.random() * 5 + 's';
-            particlesContainer.appendChild(particle);
+        // ============================================================
+        // 4. Particules animées
+        // ============================================================
+        const particlesContainer = document.getElementById('particles');
+        if (particlesContainer) {
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                const size = Math.random() * 10 + 5;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                const hue = Math.random() * 40 + 200;
+                particle.style.backgroundColor = `hsla(${hue}, 80%, 65%, 0.3)`;
+                particle.style.animationDuration = Math.random() * 20 + 10 + 's';
+                particle.style.animationDelay = Math.random() * 5 + 's';
+                particlesContainer.appendChild(particle);
+            }
         }
-    }
-
-
-
     </script>
 
 </body>

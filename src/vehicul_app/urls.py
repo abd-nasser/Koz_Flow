@@ -17,4 +17,10 @@ urlpatterns = [
     path("detail/marque/<int:pk>/", views.MarqueDetailView.as_view(), name="detail-marque"),
     path("update/marque/<int:pk>/", views.MarqueUpdateView.as_view(), name="update-marque"),
     path("delete/marque/<int:pk>/", views.MarqueDeleteView.as_view(), name="delete-marque"),
+    
+     
+    path('images/<int:pk>/', views.VehiculeImageListView.as_view(), name='vehicul-images-list'),
+    path("suprrimer/image/<int:pk>/", views.VehiculeImageDeleteView.as_view(), name="delete-vehicul-image"),
+    path("ajout/images/<int:pk>/", views.ajouter_image, name="ajouter-image"),
+   
 ]

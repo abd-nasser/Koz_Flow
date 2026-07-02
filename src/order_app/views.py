@@ -34,7 +34,7 @@ class AjouterPanierView(APIView):
     """Ajoute un produit au panier ,
         Augmente la quantité si le produit exite déja 
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] 
     
     def post(self, request):
         product_id = request.data.get('product_id')
