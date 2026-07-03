@@ -324,3 +324,66 @@ class VehiculeImageDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
         response = super().delete(request, *args, **kwargs)
         messages.success(request, "Image supprimée avec succès !")
         return response
+    
+
+# ============================================================
+# ✅ API
+# ============================================================
+
+
+from rest_framework import generics, filters
+from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Vehicul
+from .serializers import VehiculSerializer
+
+
+class APIVehiculListView(generics.ListAPIView):
+    """
+    API publique pour récupérer tous les véhicules disponibles.
+    Accessible sans authentification.
+    """
+    queryset = Vehicul.objects.all().select_related('marque').prefetch_related('images')
+    serializer_class = VehiculSerializer
+    permission_classes = [AllowAny]  # ✅ Tout le monde peut voir le catalogue
+    
+    # ✅ Filtres et recherche
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    
+    # ✅ Champs sur lesquels on peut filtrer
+    filterset_fields = [
+        'marque__nom',
+        'carburant',
+        'annee',
+        'disponible',
+    ]
+    
+    # ✅ Champs sur lesquels on peut rechercher
+    search_fields = [
+        'marque__nom',
+        'modele',
+        'description',
+    ]
+    
+    # ✅ Champs sur lesquels on peut trier
+    ordering_fields = [
+        'prix',
+        'annee',
+        'kilometrage',
+        'date_ajout',
+    ]
+    ordering = ['-date_ajout']  # ✅ Tri par défaut
+
+
+class APIVehiculDetailView(generics.RetrieveAPIView):
+    """
+    API publique pour récupérer les détails d'un véhicule.
+    """
+    queryset = Vehicul.objects.all().select_related('marque').prefetch_related('images')
+    serializer_class = VehiculSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'pk'
