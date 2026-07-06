@@ -36,7 +36,7 @@ class demande_financement(models.Model):
         ("demande_accordee_fidelis", "Demande accordée chez Fidelis"),
         ("demande_accordee_alios", "Demande accordée chez Alios"),
         ("demande_accordee_maison", "Demande accordée (KOZ Finance)"),
-        ('demand_refusee', "Demande Refusé")
+        ('demande_refusee', "Demande Refusé")
     ]
     
     FINANCEMENT_TYPE_CHOISE = [

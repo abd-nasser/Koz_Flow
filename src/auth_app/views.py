@@ -57,7 +57,7 @@ class ApiRegisterView(APIView):
             serializer = RegisterSerializers(data=request.data)
             
             #si les données sont valide on creer user
-            if serializer.is_valid:
+            if serializer.is_valid():
                 user = serializer.save()
                     
                 # on actualise les tokens du user

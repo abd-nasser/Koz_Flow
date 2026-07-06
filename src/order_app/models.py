@@ -3,7 +3,7 @@ from auth_app.models import kozUser
 from products_app.models import Products
 
 
-
+ 
 class Panier(models.Model):
     """Un panier appartient à un client """
     client = models.OneToOneField(kozUser, on_delete=models.CASCADE,related_name="panier")

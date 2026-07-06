@@ -23,7 +23,7 @@ urlpatterns = [
     path("suprrimer/image/<int:pk>/", views.VehiculeImageDeleteView.as_view(), name="delete-vehicul-image"),
     path("ajout/images/<int:pk>/", views.ajouter_image, name="ajouter-image"),
     
-     # ✅ API publique
+    # ✅ API publique
     path('api/vehicules/', views.APIVehiculListView.as_view(), name='api-vehicul-list'),
     path('api/vehicules/<int:pk>/',views.APIVehiculDetailView.as_view(), name='api-vehicul-detail'),
     ]

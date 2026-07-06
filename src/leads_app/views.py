@@ -147,7 +147,7 @@ def demande_financement_view(request, vehicul_id):
     # Vérifier si une demande existe déjà
     demande_existante = demande_financement.objects.filter(
         client=request.user,
-        etape__in=["brouillon", "envoye", "en_attente", "demande_accorde", "demande_refuse"]
+        etape__in=["nouvelle", "en_attente", "en_cours","demande_accordee_fidelis","demande_accordee_alios","demande_accordee_maison", 'demande_refusee']
     ).first()
     
     if demande_existante:
@@ -227,7 +227,7 @@ def attente_document(request, demande_id):
     # === 2. VÉRIFICATION DE L'ETAPE ===
     if demande.etape == "en_attente":
         messages.info(request, "cette demande de financement est déjà en attente de document")
-    elif demande.etape == "demande_accordee":
+    elif demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison":
         messages.info(request, f"Cette demande de financement est déja accordée par {demande.financement_par if demande.financement_type=="externe" else demande.financement_type}")
     elif demande.etape == "demande_refusee":
         messages.info(request, "cette demande de financement a été réfusée")
@@ -265,7 +265,7 @@ def refuser_demande(request, demande_id):
     
     if demande.etape == "demande_refusee":
         messages.info(request, "Cette demande est déjà refusée.")
-    elif demande.etape == "demande_accordee":
+    elif demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison":
         messages.warning(request, "Cette demande a déjà été accordée, vous ne pouvez pas la refuser.")
     else:
         demande.etape = "demande_refusee"
@@ -613,7 +613,7 @@ def valide_dossier(request, dossier_id):
             return redirect("leads_app:document-detail", pk=dossier.pk)
     else:  # financement_type == "maison"
         demande.etape = "demande_accordee_maison"
-        partenaire = "KOZ Finance"
+        partenaire = "KOZ Services (financement interne)"
     
     demande.save()
     

@@ -51,6 +51,11 @@
             transform: translateY(-2px);
             box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
         }
+        .action{
+            align-items: center;
+            justify-content: center;
+            padding-left: 4rem
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-inter">
@@ -109,17 +114,78 @@
                 <!-- Grille d'informations -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     
-                    <!-- Image produit -->
-                    <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-center">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" class="w-full max-h-96 object-contain rounded-lg shadow-md">
+                     <div class="image_principale_infos">
+            
+            <!-- ========== GALERIE D'IMAGES ========== -->
+            <div class="space-y-4 image-full">
+                
+                <!-- Image principale (cliquable → galerie) -->
+                <a href="{% url 'products_app:product-images-list' product.pk %}" class="block">
+                    <div class="relative overflow-hidden rounded-2xl shadow-xl bg-white group img_gallery">
+                        
+                        {% if image_principale %}
+                             <img id="mainImage" 
+                             src="{{ image_principale.image.url }}" 
+                             alt="{{ product.categorie.nom }} {{ product.nom }}"
+                             class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
                         {% else %}
-                            <div class="w-full h-64 flex flex-col items-center justify-center text-gray-400">
-                                <i class="fas fa-image text-6xl mb-3"></i>
-                                <p>Aucune image</p>
-                            </div>
-                        {% endif %}
+                            
+                        <img id="mainImage" 
+                             src="{{ product.image_principale.url }}" 
+                             alt="{{ product.categorie.nom }} {{ product.nom}}"
+                             class="w-full h-96 object-cover transition-transform duration-500 group-hover:scale-105">
+                         {% endif %}
+                        <div class="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-2 backdrop-blur-sm">
+                            <i class="fas fa-images"></i> 
+                            {{ images|length|add:1 }} photos
+                        </div>
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <span class="bg-white/90 text-gray-800 px-4 py-2 rounded-xl text-sm font-medium shadow-lg">
+                                <i class="fas fa-expand mr-2"></i>Voir plus d'images
+                            </span>
+                        </div>
                     </div>
+                </a>
+                
+                <!-- Miniatures (images supplémentaires) -->
+                <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
+                    <!-- Image principale en miniature -->
+                    <img src="{{ image_principal.image.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-blue-500 transition"
+                         onclick="changeImage('{{ image_principal.image.url }}')">
+                    
+                    <!-- Images supplémentaires -->
+                    {% for image in images %}
+                        {% if not image.est_principale %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ image.alt_text|default:vehicul.modele }}"
+                             class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                             onclick="changeImage('{{ image.image.url }}')">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                 <!-- Miniatures (images supplémentaires) -->
+                <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
+                    <!-- Image principale en miniature -->
+                    <img src="{{ image_principal.image.url }}" 
+                         class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-blue-500 transition"
+                         onclick="changeImage('{{ image_principal.image.url }}')">
+                    
+                    <!-- Images supplémentaires -->
+                    {% for image in images %}
+                        {% if not image.est_principale %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ image.alt_text|default:product.nom }}"
+                             class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-transparent hover:border-blue-500 transition"
+                             onclick="changeImage('{{ image.image.url }}')">
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+            
+            </div>
+                 
 
                     <!-- Informations produit -->
                     <div class="space-y-4">
@@ -170,7 +236,7 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                <div class="flex flex-wrap action gap-3 pt-4 border-t border-gray-100">
                     <button onclick="document.getElementById('update_product_modal').showModal()" 
                             class="btn-glow px-5 py-2 rounded-xl flex items-center gap-2">
                         <i class="fas fa-edit"></i> Modifier

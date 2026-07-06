@@ -15,12 +15,10 @@ class DemandeFinancementSerializers(serializers.ModelSerializer):
         'id',
         'client',
         'mensualite_souhaitee',
-        'taux_interet',
         'apport',
         'duree_mois',
         'revenus_mensuel',
         'Vehicul_interested',
-        'statut',
         'etape',
         'date_creation',
             
