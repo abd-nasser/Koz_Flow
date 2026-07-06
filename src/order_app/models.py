@@ -11,7 +11,7 @@ class Panier(models.Model):
     date_mise_a_jour = models.DateTimeField(auto_now=True)
     
     def total_panier(self):
-        return sum(article.sous_total for article in self.articlepanier_set.all())
+        return sum(article.sous_total() for article in self.articles.all())
 
      # 👇 AJOUTER CETTE MÉTHODE
     def nb_articles(self):
@@ -20,7 +20,7 @@ class Panier(models.Model):
 
 class ArticlePanier(models.Model):
     """plusieur article ou un article dans le panier"""
-    panier = models.ForeignKey(Panier, on_delete=models.SET_NULL, related_name="articles", null=True)
+    panier = models.ForeignKey(Panier, on_delete=models.CASCADE, related_name="articles")
     products = models.ForeignKey(Products, on_delete=models.CASCADE,related_name="dans_panier")
     quantite = models.IntegerField(db_default=1)
     
@@ -35,7 +35,7 @@ class Commande(models.Model):
         ("validee", "Validée"),
         ("payee", "Payée"),
         ("livraison", "En livraison"),
-        ("terminée", "terminée"),
+        ("terminee", "Terminée"),
     ]
     panier = models.ForeignKey(Panier, on_delete=models.CASCADE)
     statut = models.CharField(max_length=20, choices=STATUT_COMMANDE, default="Chargement")

@@ -134,11 +134,14 @@ class ViderPanierView(APIView):
     
     def delete(self, request):
         # Récupère le panier du client
-        panier = Panier.objects.get_or_create(client=request.user)
+        panier, created = Panier.objects.get_or_create(client=request.user)
         
-        # Supprime tous les articles
-        panier.articles.all().delete()
-        
+        if not panier.articles.exists():
+            # Supprime tous les articles
+            panier.articles.all().delete()
+        else:
+            return Response({"info":"Votre panier ne contient pas d'article"}, status=status.HTTP_404_NOT_FOUND)
+            
         # Retourne un statut 204 (No Content)
         return Response(status=status.HTTP_204_NO_CONTENT)
         
@@ -152,32 +155,13 @@ class ViderPanierView(APIView):
 class ValiderCommandeView(APIView):
     permission_classes = [IsAuthenticated]
     
-    # 1. Vérifier que la commande existe ET appartient au client
-    def post(self, request, commande_id):
-        commande = get_object_or_404(
-            Commande, 
-            id=commande_id,
-            panier__client=request.user,
-            
-            )
-        # 2. Vérifier que la commande n'est pas déjà traitée
-        if commande.statut in  ["validee", "payee", "livraison"]:
-            return Response({"error": 'Commande déjà validée ou payée'}, 
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
+    def post(self, request):
+        panier , created = Panier.objects.get_or_create(client=request.user) 
         
-        # 3. Vérifier que le panier n'est pas vide
-        if commande.panier.articles.count() == 0:
-            return Response({"error": 'Panier vide'}, 
-                            status=status.HTTP_400_BAD_REQUEST
-                            )
-            
-        # 4. Valider la commande
-        commande.statut = "validee"
-        commande.save() 
+        if panier.articles.count()== 0:
+            return Response({"error":"Panier vide"}, status=status.HTTP_400_BAD_REQUEST)   
         
-         # 5. Retourner la commande mise à jour
+        commande = Commande.objects.get_or_create(panier=panier, statut="Chargement")
         serializer = CommandeSerializer(commande)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)   
         

@@ -6,7 +6,8 @@ from .views import (
     AjouterPanierView,
     ModifierArticlePanierView,
     RetirerArticlePAnierView,
-    ViderPanierView
+    ViderPanierView,
+    ValiderCommandeView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('panier/modifier/<int:article_id>/', ModifierArticlePanierView.as_view(), name='panier-modifier'),
     path('panier/retirer/<int:article_id>/', RetirerArticlePAnierView.as_view(), name='panier-retirer'),
     path('panier/vider/', ViderPanierView.as_view(), name='panier-vider'),
+    path("valider/commande/", ValiderCommandeView.as_view(), name="valider-commande")
 ]
