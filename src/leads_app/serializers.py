@@ -21,7 +21,6 @@ class DemandeFinancementSerializers(serializers.ModelSerializer):
         'Vehicul_interested',
         'etape',
         'date_creation',
-            
         ]
         
         read_only_fields = [
