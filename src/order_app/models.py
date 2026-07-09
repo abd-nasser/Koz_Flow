@@ -13,7 +13,7 @@ class Panier(models.Model):
     def total_panier(self):
         return sum(article.sous_total() for article in self.articles.all())
 
-     # 👇 AJOUTER CETTE MÉTHODE
+     # 👇 AJOUTER CETTE MÉTHODE 
     def nb_articles(self):
         """Retourne le nombre total d'articles (en comptant les quantités)"""
         return sum(article.quantite for article in self.articles.all())

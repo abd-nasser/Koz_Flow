@@ -13,7 +13,8 @@ class Paiement(models.Model):
         ('en_attente',"Attente"),
         ("reussi", "Reussi"),
         ("echec","Echoué"),
-        ("annule","Annule")
+        ("annule","Annule"),
+        ("paye", "payée")
     ]
     
     # 3. A quelle commande ce paiement est il lié ?
@@ -30,6 +31,9 @@ class Paiement(models.Model):
     
     # 7 Quand est-ce que le paiement à été crée ?
     date_creation = models.DateTimeField(auto_now_add=True)
+    
+    # 8. Token
+    token = models.CharField()
     
 
     # 9. est ce avec le telephone (ligdicash)

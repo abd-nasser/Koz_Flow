@@ -15,8 +15,9 @@ urlpatterns = [
     path("leads/", include("leads_app.urls")),
     path("dashboard/", include("dashboard_app.urls")),
     path('api/order/', include('order_app.urls')),
+    path("api/paiement/", include("paiement_app.urls")),
     
-    path('admin/', admin.site.urls),
+    path('koz_adminitration_2k26/', admin.site.urls),
 ]
 
 
