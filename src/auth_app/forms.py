@@ -46,7 +46,7 @@ class UserRegisterForm(forms.ModelForm):
                 # ('directeur', 'Directeur'), ← caché
                 # ('commercial', 'Commercial'), ← caché
                 ]
-        # Filtre la liste des commerciayx assignables
+        # Filtre la liste des commerciaux assignables
         if 'assigned_commercial' in self.fields:
             self.fields['assigned_commercial'].queryset = kozUser.objects.filter(role='commercial')
                   

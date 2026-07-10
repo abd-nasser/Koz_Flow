@@ -93,7 +93,6 @@ class kozUser(AbstractBaseUser, PermissionsMixin):
     GENDER_CHOICES = [
         ("M", "Masculin"),
         ("F", "Féminin"),
-        ("A", "Autre")
          ]
     
     PROFESSION_CHOICES = [

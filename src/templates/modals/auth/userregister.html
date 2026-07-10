@@ -62,8 +62,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('userregister_modal').showModal();
     });
+    toggleAssignedCommercial();
 </script>
 {% endif %}
+
 <script>
     // Récupérer le rôle de l'utilisateur connecté (depuis le contexte Django)
     const userRole = "{{ user.role }}";
@@ -90,15 +92,45 @@
             }
         }
     }
-    
-    // Exécuter l'adaptation au chargement du modal
-    document.addEventListener('DOMContentLoaded', adaptFormForRole);
+
+    // ✅ FONCTION CORRIGÉE
+    function toggleAssignedCommercial() {
+        const roleSelect = document.querySelector('[name="role"]');
+        const assignedField = document.querySelector('[name="assigned_commercial"]');
+
+        if (roleSelect && assignedField) {
+            // ✅ Correction : "commercial" en minuscule (valeur du select)
+            if (roleSelect.value === "commercial") {
+                assignedField.closest('.form-group').style.display = "none";
+            } else {
+                assignedField.closest('.form-group').style.display = "block";
+            }
+
+            // Ajouter un écouteur d'événement pour détecter les changements de rôle
+            roleSelect.addEventListener('change', function() {
+                if (roleSelect.value === "commercial") {
+                    assignedField.closest('.form-group').style.display = "none";
+                } else {
+                    assignedField.closest('.form-group').style.display = "block";
+                }
+            });
+        }
+    }
+
+    // Initialiser au chargement du modal
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleAssignedCommercial();
+        adaptFormForRole();
+    });
     
     // Réadapter si le modal est ouvert dynamiquement
     const modal = document.getElementById('userregister_modal');
     if (modal) {
         modal.addEventListener('click', function() {
-            setTimeout(adaptFormForRole, 50);
+            setTimeout(function() {
+                toggleAssignedCommercial();
+                adaptFormForRole();
+            }, 50);
         });
     }
 </script>
