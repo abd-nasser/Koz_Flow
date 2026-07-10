@@ -12,6 +12,8 @@ python manage.py migrate
 # 4. Superuser
 python manage.py createsuperuser
 
+je dois faire un pip install psycopg2-binary pour que ça fonctionne avec postgresql
+en suite pip freeze > requirements.txt
 
 #----------------------------------------------------------------------------------------------------------------------------
 # Script universel qui détecte le moteur de base de données
