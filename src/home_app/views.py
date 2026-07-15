@@ -1,10 +1,9 @@
 from django.shortcuts import render
 
-
-def login_page(request):
-    
+def home_page_view(request):
     """
-    Affiche la page de connexion HTML
+    Affiche la page d'accueil HTML
     C'est une vue Django classique, pas une API
     """
-    return render(request, "auth_templates/login.html")        
+    return render(request, "home_templates/home_page.html")
+     

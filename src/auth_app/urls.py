@@ -1,13 +1,17 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+
+from chat_app import views
 from .views import (ApiRegisterView, LoginView, 
                     MeView, LogoutView,
-                    UserRegisterView, ChangePasswordView)
+                    UserRegisterView, ChangePasswordView, login_page)
 
 app_name = "auth_app"
 
 urlpatterns = [
     
+    #path("", views.home_page_view, name="home-page")
+    path("login/dashboard/", login_page, name="login-page"),
     
     # Inscription
     path('register/', ApiRegisterView.as_view(), name='register'),

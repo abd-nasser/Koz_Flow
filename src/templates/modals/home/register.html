@@ -1,0 +1,146 @@
+<!-- Modal DaisyUI - Inscription -->
+<dialog id="register_modal" class="modal">
+    <div class="modal-box relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">  <!-- ← max-w-lg + max-h-[90vh] + overflow-y-auto -->
+        
+        <!-- Bouton fermeture -->
+        <button class="btn btn-sm btn-circle btn-ghost sticky top-0 float-right z-10" 
+                onclick="document.getElementById('register_modal').close()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- En-tête -->
+        <h3 class="text-2xl font-bold text-gray-800 text-center mb-6">
+            <i class="fas fa-user-plus text-blue-600 mr-2"></i>Inscription
+        </h3>
+
+        <!-- Message d'erreur général -->
+        <div id="registerError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg text-sm mb-4"></div>
+
+        <!-- Formulaire -->
+        <form id="registerForm" class="space-y-3">  <!-- ← space-y-3 pour resserrer -->
+
+            <!-- 2 colonnes pour les champs (sur desktop) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <!-- Email -->
+                <div class="md:col-span-2">
+                    <label class="label label-text font-medium text-gray-700 text-sm">📧 Email</label>
+                    <input type="email" id="reg_email" name="email" required 
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="votre@email.com">
+                </div>
+
+                <!-- Nom complet -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">👤 Nom complet</label>
+                    <input type="text" id="reg_nom" name="nom_complet" required 
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="Nom Prénom">
+                </div>
+
+                <!-- Téléphone -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">📱 Téléphone</label>
+                    <input type="tel" id="reg_telephone" name="telephone" required 
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="77123456">
+                </div>
+
+                <!-- Pays -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">🌍 Pays</label>
+                    <input type="text" id="reg_pays" name="pays" required 
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="Burkina Faso">
+                </div>
+
+                <!-- Ville -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">🏙️ Ville</label>
+                    <input type="text" id="reg_ville" name="ville" required 
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="Ouagadougou">
+                </div>
+
+                <!-- Adresse -->
+                <div class="md:col-span-2">
+                    <label class="label label-text font-medium text-gray-700 text-sm">📍 Adresse</label>
+                    <input type="text" id="reg_adresse" name="adresse"  
+                           class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                           placeholder="123 Rue de l'Exemple, Quartier">
+                </div>
+
+                <!-- Genre -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">👤 Genre</label>
+                    <select id="reg_genre" name="genre" class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="">Sélectionner</option>
+                        <option value="M">Masculin</option>
+                        <option value="F">Féminin</option>
+                    </select>
+                </div>
+
+                <!-- Profession -->
+                <div>
+                    <label class="label label-text font-medium text-gray-700 text-sm">💼 Profession</label>
+                    <select id="reg_profession" name="profession" class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm">
+                        <option value="">Sélectionner</option>
+                        <option value="employe">Employé</option>
+                        <option value="chef_d_equipe">Chef d'équipe</option>
+                        <option value="gerant">Gérant</option>
+                        <option value="etudiant">Étudiant</option>
+                        <option value="autre">Autre</option>
+                        <!-- Ajoutez selon vos besoins -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mot de passe (pleine largeur) -->
+            <div>
+                <label class="label label-text font-medium text-gray-700 text-sm">🔒 Mot de passe</label>
+                <input type="password" id="reg_password" name="password" required 
+                       class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                       placeholder="••••••••">
+            </div>
+
+            <!-- Confirmation mot de passe -->
+            <div>
+                <label class="label label-text font-medium text-gray-700 text-sm">🔒 Confirmer mot de passe</label>
+                <input type="password" id="reg_password2" name="password2" required 
+                       class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
+                       placeholder="••••••••">
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex gap-3 mt-4">
+                <button type="submit" id="registerBtn" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </button>
+                <button type="button" 
+                        onclick="document.getElementById('register_modal').close()" 
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl transition text-sm">
+                    Annuler
+                </button>
+            </div>
+
+            <!-- Indicateur de chargement -->
+            <div id="registerSpinner" class="hidden text-center text-gray-500 text-sm">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Inscription en cours...
+            </div>
+
+            <!-- Lien vers connexion -->
+            <p class="text-center text-sm text-gray-500 mt-2">
+                Déjà un compte ? 
+                <button type="button" onclick="document.getElementById('register_modal').close(); document.getElementById('login_modal').showModal();" 
+                        class="text-blue-600 hover:underline font-medium">
+                    Se connecter
+                </button>
+            </p>
+        </form>
+    </div>
+
+    <!-- Fond pour fermeture par clic extérieur -->
+    <form method="dialog" class="modal-backdrop">
+        <button type="submit">fermer</button>
+    </form>
+</dialog>

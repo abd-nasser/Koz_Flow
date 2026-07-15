@@ -24,7 +24,8 @@ class RegisterSerializers(serializers.ModelSerializer):
             "adresse",
             "pays",
             "ville",
-            "profession",
+            "genre",
+            "profession_choisie",
             "password", 
             "password2"
         ]
@@ -36,8 +37,21 @@ class RegisterSerializers(serializers.ModelSerializer):
         """Vérifie que les mots de passe correspondent"""
         if attrs["password"] != attrs["password2"]:
             raise serializers.ValidationError({
-                "password": "Les mots de passe ne correspondent pas"
+                "error": "Les mots de passe ne correspondent pas"
             })
+            
+        if len(attrs["password"]) < 8:
+            raise serializers.ValidationError({
+                "error": "Le mot de passe doit contenir au moins 8 caractères"
+            })
+        
+        if attrs["telephone"] and not attrs["telephone"].isdigit():
+            raise serializers.ValidationError({
+                "error": "Le numéro de téléphone doit contenir uniquement des chiffres"
+            })
+            
+       
+            
         return attrs
     
     def create(self, validated_data):
@@ -57,7 +71,8 @@ class RegisterSerializers(serializers.ModelSerializer):
             adresse=validated_data.get("adresse", ""),  # ← Optionnel
             pays=validated_data.get("pays", ""),  # ← Optionnel
             ville=validated_data.get("ville", ""),  # ← Optionnel
-            profession=validated_data.get("profession", ""),  # ← Optionnel
+            genre=validated_data.get("genre", ""),  # ← Optionnel
+            profession_choisie=validated_data.get("profession_choisie", ""),  # ← Optionnel
         )
         
         # ✅ Le rôle est déjà "client" par défaut dans le modèle
@@ -78,7 +93,8 @@ class UserSerializer(serializers.ModelSerializer):
             'adresse', 
             'pays',
             'ville',
-            'profession',
+            'genre',
+            'profession_choisie',
             'role', 
             'is_staff', 
             'is_active',

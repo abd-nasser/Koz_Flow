@@ -151,7 +151,7 @@ def demande_financement_view(request, vehicul_id):
     ).first()
     
     if demande_existante:
-        messages.warning(request, f"Cette demande est déjà {demande_existante.etape}.")
+        messages.warning(request, f"Cette demande est déjà envoyée.")
         return redirect("client_app:client-view")
     
     if request.method == "POST":
@@ -297,7 +297,7 @@ def refuser_demande(request, demande_id):
         
         
     
-    return redirect("leads_app:detail-demande", demande_id=demande.pk)    
+    return redirect("leads_app:detail-demande", demande.pk)    
 
 
 @login_required
@@ -391,9 +391,7 @@ class DemandeFinView(LoginRequiredMixin, ListView):
             return queryset.order_by("-date_creation")
         
         if self.request.user.role == "commercial":
-            queryset = demande_financement.objects.filter(
-                client__assigned_commercial=self.request.user
-            ).order_by("-date_creation")
+            queryset = demande_financement.objects.all().order_by("-date_creation")
             search_query = self.request.GET.get("q")
             etape = self.request.GET.get("etape")
             financement_type = self.request.GET.get("type_entreprise")

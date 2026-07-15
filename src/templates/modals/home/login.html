@@ -1,0 +1,79 @@
+<!-- Modal DaisyUI - Connexion -->
+<dialog id="login_modal" class="modal">
+    <div class="modal-box relative bg-white rounded-2xl shadow-2xl max-w-md w-full">
+        
+        <!-- Bouton fermeture -->
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" 
+                onclick="document.getElementById('login_modal').close()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- En-tête -->
+        <h3 class="text-2xl font-bold text-gray-800 text-center mb-6">
+            <i class="fas fa-sign-in-alt text-blue-600 mr-2"></i>Connexion
+        </h3>
+
+        <!-- Message d'erreur général -->
+        <div id="loginError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg text-sm mb-4"></div>
+
+        <!-- Formulaire -->
+        <form id="loginForm" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Email -->
+            <div>
+                <label class="label label-text font-medium text-gray-700">📧 Email</label>
+                <input type="email" id="login_email" name="email" required 
+                       class="input input-bordered w-full focus:ring-2 focus:ring-blue-500" 
+                       placeholder="votre@email.com">
+            </div>
+
+            <!-- Mot de passe -->
+            <div>
+                <label class="label label-text font-medium text-gray-700">🔒 Mot de passe</label>
+                <input type="password" id="login_password" name="password" required 
+                       class="input input-bordered w-full focus:ring-2 focus:ring-blue-500" 
+                       placeholder="••••••••">
+            </div>
+
+            <!-- Lien mot de passe oublié -->
+            <div class="text-right">
+                <button type="button" class="text-sm text-blue-600 hover:underline">
+                    Mot de passe oublié ?
+                </button>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="flex gap-3 mt-6">
+                <button type="submit" id="loginBtn" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </button>
+                <button type="button" 
+                        onclick="document.getElementById('login_modal').close()" 
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2.5 rounded-xl transition">
+                    Annuler
+                </button>
+            </div>
+
+            <!-- Indicateur de chargement -->
+            <div id="loginSpinner" class="hidden text-center text-gray-500 text-sm">
+                <i class="fas fa-spinner fa-spin mr-2"></i> Connexion en cours...
+            </div>
+
+            <!-- Lien vers inscription -->
+            <p class="text-center text-sm text-gray-500 mt-4">
+                Pas encore de compte ? 
+                <button type="button" onclick="document.getElementById('login_modal').close(); document.getElementById('register_modal').showModal();" 
+                        class="text-blue-600 hover:underline font-medium">
+                    S'inscrire
+                </button>
+            </p>
+        </form>
+    </div>
+
+    <!-- Fond pour fermeture par clic extérieur -->
+    <form method="dialog" class="modal-backdrop">
+        <button type="submit">fermer</button>
+    </form>
+</dialog>

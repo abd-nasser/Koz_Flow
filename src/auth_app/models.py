@@ -77,7 +77,7 @@ class kozUserManager(BaseUserManager):
         return self.create_user(email, nom_complet, telephone, password=None, **extra_fields)
 
 
-class kozUser(AbstractBaseUser, PermissionsMixin):
+class  kozUser(AbstractBaseUser, PermissionsMixin):
     """
         Modèle unique pour:
         -authentication du site 

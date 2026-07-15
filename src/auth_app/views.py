@@ -1,3 +1,5 @@
+from email import header
+
 from django.shortcuts import render
 from django.contrib.auth import(
                                 authenticate, 
@@ -43,6 +45,16 @@ from commercial_app.views import CommercialDashboardView
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+
+def login_page(request):
+    
+    """
+    Affiche la page de connexion HTML
+    C'est une vue Django classique, pas une API
+    """
+    return render(request, "auth_templates/login.html")   
 
 #------------- VUE POUR L'INSCRIPTION ----------------------
 #APIView = une vue qui répond aux requetes GET, POST, PUT, DELETE
@@ -109,12 +121,17 @@ class LoginView(APIView):
                 
                 # on renvoie la reponse avec les tokens et la redirection
                 
-                return Response({
-                    'access':str(refresh.access_token),
-                    'refresh':str(refresh),
-                    'user':UserSerializer(user).data,
-                    'redirect_url': redirect_url,
-                }, status=status.HTTP_200_OK) # 200 = OK
+                return Response( data={
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+        'user': UserSerializer(user).data,
+        'redirect_url': redirect_url,
+    },
+    headers={
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:8001',
+        'Access-Control-Allow-Credentials': 'true',
+    },  # ← headers (au pluriel) pour permettre le partage de cookies entre les ports
+    status=status.HTTP_200_OK) # 200 = OK
             else:
                 # Si l'authentification a échoué (mauvais email ou mot de passe)
                 return Response({"error":"Email ou mot de passe incorrect"},
