@@ -64,6 +64,7 @@ class MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     
     model = Marque
     form_class = MarqueForm
+    context_object_name = "marque"
     template_name = "vehicul_templates/marque_detail.html"
     
     def get_success_url(self):

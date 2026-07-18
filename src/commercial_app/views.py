@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
-def creer_offre(request, demande_id):
+def creer_offre(request, demande_id=None):
     demande = get_object_or_404(demande_financement, id=demande_id)
     
     if request.user.role not in ['commercial', 'directeur']:

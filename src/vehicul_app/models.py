@@ -31,6 +31,7 @@ class Vehicul(models.Model):
     disponible = models.BooleanField(default=False)
     description = models.TextField(null=True, blank=True)
     date_ajout = models.DateTimeField(auto_now_add=True)
+    actualite = models.BooleanField(default=False)
     
     def __str__(self):
         marque_nom = self.marque.nom if self.marque else "?"

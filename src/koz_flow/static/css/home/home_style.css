@@ -1,0 +1,278 @@
+body {
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.frame-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+}
+
+.frame-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-section {
+    position: relative;
+    z-index: 1;
+    min-height: 200vh; /* ← Permet le scroll sur la hero */
+    background: rgba(0, 0, 0, 0.2); /* Overlay pour lisibilité */
+    display: flex;
+    align-items: center;
+    align-items: flex-start;
+    padding-top: 20rem;
+    justify-content: center;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+
+
+
+
+/* Le contenu suivant doit être au-dessus */
+.relative.z-10 {
+    position: relative;
+    z-index: 10;
+   
+}
+
+.reveal-text {
+    font-size: 1.25rem;
+    line-height: 1.8;
+}
+
+.reveal-text .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(40px) rotateX(-20deg);
+    transition: none;
+}
+
+/* Quand les lettres s'affichent, elles prennent leur place */
+.reveal-text .char.active {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+}
+
+/* Effet de brillance sur le texte */
+.text-blue-200 {
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+
+/* Dans home_style.css */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 50;
+    padding: 1rem 0;
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    
+    background: rgba(255, 255, 255, 0);
+    backdrop-filter: blur(0px);
+    box-shadow: none;
+}
+
+.navbar.visible {
+    background: rgba(255, 255, 255, 0.219);
+    backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    padding: 0.5rem 0;
+}
+
+.navbar.scrolled {
+    background: rgba(90, 163, 192, 0.623);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(20px) saturate(180%);
+}
+
+
+/* ============================================
+   BOXES LATÉRALES (Glassmorphism)
+============================================ */
+.trois_box {
+    position: absolute;
+    top: 45%;
+    left: 0;
+    height: 80vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 20;
+    
+}
+
+.box {
+    pointer-events: auto;
+    width: 50rem;
+    height: 50rem;
+    margin: 2rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    color: white;
+    opacity: 1;
+    transform: translateX(-80px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+}
+
+.box-right {
+    transform: translateX(80px);
+    position: relative;
+    top: 15%;
+    right: -12%;
+    
+}
+
+.box-left {
+    position: relative;
+    top: 1%;
+    left: -12%;
+}
+
+.box-bottom {
+    position: relative;
+    top: 25%;
+    min-width: 65%;
+}
+
+.box:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+
+
+.box-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.box-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.4rem;
+    color: #fff;
+}
+
+.box-text {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    opacity: 0.85;
+    font-weight: 300;
+}
+
+
+/* ============================================
+   CARTES ACTUALITÉS (style Mercedes)
+============================================ */
+
+.actualite-containt{
+    display: flex;
+        
+    align-items: center;
+    justify-content: space-between;
+}
+.campaign-card {
+    background: white;
+    transform: translateY(0);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.campaign-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.campaign-image {
+    position: relative;
+    overflow: hidden;
+    width: 40%;
+    top:2%;
+    
+}
+
+.campaign-image img {
+    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.campaign-card:hover .campaign-image img {
+    transform: scale(1.08);
+}
+
+/* Effet de brillance au survol */
+.campaign-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    opacity: 1;
+    transition: opacity 0.6s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.campaign-card:hover::before {
+    opacity: 1;
+}
+
+/* Animation d'entrée GSAP (à ajouter) */
+.campaign-card {
+    opacity: 1;
+    transform: translateY(40px);
+}
+
+.campaign-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+.text-nouveau{
+    position: relative;
+    top: -10rem;
+    right: 30rem;
+}
+/* -------- Responsive : on empile -------- */
+@media (max-width: 1024px) {
+    .trois_box {
+        bottom: 4%;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    .box {
+        width: 90%;
+        transform: translateY(40px);
+        padding: 1rem 1.5rem;
+    }
+    .box-left,
+    .box-right {
+        transform: translateY(40px);
+    }
+}

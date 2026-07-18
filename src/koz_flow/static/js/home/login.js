@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.ok) {
                     // ✅ Connexion réussie
                     console.log('✅ Connexion réussie !');
-            debugger;
                     // Stocker les tokens
                     localStorage.setItem('access', data.access);
                     localStorage.setItem('refresh', data.refresh);
@@ -65,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Redirection
     
-                    window.location.href = '/';
+                    window.location.href = "/";
                     
 
                 } else {

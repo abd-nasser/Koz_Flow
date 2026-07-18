@@ -1,97 +1,527 @@
 {% load static %}
 {% load tailwind_tags %}
+{% load humanize %}
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
-    <title>KOZ Services</title>
-    <link rel="stylesheet" href="{% static 'css/home_style.css' %}">
+    <title>KOZ Services - Votre voiture à crédit, vos pièces en ligne</title>
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css" />
+    <link rel="stylesheet" href="{% static 'css/home/home_style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    
-<!-- templates/includes/navbar.html -->
-<nav class="navbar bg-base-100 shadow-md fixed top-0 z-50 w-full border-b border-gray-200/20 backdrop-blur-sm bg-white/80">
-    <div class="container mx-auto px-4 flex justify-between items-center">
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar  top-0 z-50 w-full">
+    <div class="container mx-auto px-4 flex justify-between items-center h-16">
         
         <!-- Logo -->
-        <div class="flex items-center gap-2">
-            <div class="w-15 h-15 bg-gradient-to-br from-white to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                <img src="{% static 'images/koz_logo_noBack.png' %}" alt="Logo" class="text-white font-bold text-xl">
-            </div>
-            <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
+                    <img src="{% static 'images/koz_logo_noBack.png' %}" alt="KOZ" class="w-8 h-8 object-contain">
+                </div>
+                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
+            </a>
         </div>
 
-        <!-- Liens (centraux) -->
-        <div class="hidden md:flex gap-6 text-gray-600 font-light">
-            <a href="#" class="hover:text-blue-600 transition">Accueil</a>
-            <a href="#" class="hover:text-blue-600 transition">Catalogue</a>
+        <!-- Liens centraux -->
+        <div class="hidden md:flex gap-6 text-gray-600 font-medium text-sm">
+            <a href="{% url 'home_app:home-page' %}" class="hover:text-blue-600 transition">Accueil</a>
+            <a href="{% url 'vehicul_app:list-vehicul' %}" class="hover:text-blue-600 transition">Catalogue</a>
             <a href="#" class="hover:text-blue-600 transition">Financement</a>
-            <a href="#" class="hover:text-blue-600 transition">A propos</a>
             <a href="#" class="hover:text-blue-600 transition">Contact</a>
         </div>
 
-        <!-- Boutons droite -->
-        <div class="flex items-center gap-3">
+        <!-- Actions -->
+        <div class="flex items-center gap-4">
             {% if user.is_authenticated %}
-                <a href="{% url 'client_app:client-view' %}" class="hidden sm:inline-block text-sm text-gray-600 hover:text-blue-600 transition">
-                    <i class="fas fa-user mr-1"></i> Bienvenue, {{ user.nom_complet }}
+                <a href="{% url 'client_app:client-view' %}" class="hidden sm:flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition font-medium">
+                    <i class="fas fa-user-circle text-lg text-blue-600"></i>
+                    {{ user.nom_complet }}
                 </a>
-                <button id="logoutBtn" class="btn btn-error btn-sm text-white">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+
+                <a href="#" class="relative text-gray-700 hover:text-blue-600 transition">
+                    <i class="fas fa-shopping-cart text-lg"></i>
+                    <span class="absolute -top-2 -right-3 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
+                        {{ user.panier.nb_articles|default:0 }}
+                    </span>
+                </a>
+
+                <button id="logoutBtn" class="btn btn-error btn-sm text-white hover:bg-red-700 transition shadow-sm flex items-center gap-1.5">
+                    <i class="fas fa-sign-out-alt text-xs"></i>
+                    <span class="hidden sm:inline">Déconnexion</span>
                 </button>
             {% else %}
-                <button onclick="document.getElementById('login_modal').showModal()" 
-                        class="btn btn-ghost btn-sm hidden sm:inline-block">
+                <button onclick="document.getElementById('login_modal').showModal()" class="btn btn-ghost btn-sm hidden sm:inline-block hover:bg-gray-100">
                     Connexion
                 </button>
-                <button onclick="document.getElementById('register_modal').showModal()" 
-                        class="btn bg-blue-600 btn-sm text-white">
-                    <i class="fas fa-user-plus"></i> Inscription
+                <button onclick="document.getElementById('register_modal').showModal()" class="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="hidden sm:inline">Inscription</span>
                 </button>
             {% endif %}
-        </div>
 
-        <!-- Menu burger (mobile) -->
-        <div class="md:hidden">
-            <button id="burgerBtn" class="btn btn-ghost btn-sm">
+            <button id="burgerBtn" class="md:hidden btn btn-ghost btn-sm">
                 <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
     </div>
 
-    <!-- Menu mobile (caché par défaut) -->
-    <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 p-4">
-        <div class="flex flex-col gap-3 text-gray-600">
-            <a href="#" class="hover:text-blue-600">Accueil</a>
-            <a href="#" class="hover:text-blue-600">Catalogue</a>
-            <a href="#" class="hover:text-blue-600">Financement</a>
-            <a href="#" class="hover:text-blue-600">A propos</a>
-            <a href="#" class="hover:text-blue-600">Contact</a>
+    <!-- Menu mobile -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 p-4 shadow-lg">
+        <div class="flex flex-col gap-3 text-gray-600 text-sm">
+            <a href="{% url 'home_app:home-page' %}" class="hover:text-blue-600 transition">Accueil</a>
+            <a href="{% url 'vehicul_app:list-vehicul' %}" class="hover:text-blue-600 transition">Catalogue</a>
+            <a href="#" class="hover:text-blue-600 transition">Financement</a>
+            <a href="#" class="hover:text-blue-600 transition">Contact</a>
+            <hr>
+            <a href="#" class="text-blue-600 font-medium">
+                <i class="fas fa-shopping-cart mr-2"></i> Panier ({{ user.panier.nb_articles|default:0 }})
+            </a>
         </div>
     </div>
 </nav>
 
-<script>
-    document.getElementById('burgerBtn')?.addEventListener('click', function() {
-        const menu = document.getElementById('mobileMenu');
-        menu.classList.toggle('hidden');
-    });
+<!-- ========== HERO IMMERSIVE (fond fixe) ========== -->
+<div class="frame-container">
+    <img id="frame" src="{% static 'frames/ECO_SYS_PROJECTKoz_Flowsrckoz_flowstaticframesframe-0001.jpg' %}" alt="">
+</div>
 
-</script>
+<section class="hero-section  relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+    
+    <!-- ===== CONTENU PRINCIPAL ===== -->
+    <div class="container mx-auto px-4 text-center text-white relative z-10">
+        <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
+            Votre voiture à crédit.<br>
+            <span class="text-blue-200">Vos pièces en ligne.</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto mb-8">
+            KOZ Services vous accompagne dans l'achat de votre véhicule...
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="#" class="btn btn-white btn-lg text-blue-700 hover:bg-blue-50 shadow-lg">
+                Découvrir le catalogue
+            </a>
+            <a href="#" class="btn btn-outline trigger-box btn-lg text-white border-white/50 hover:bg-white/10">
+                Demander un financement
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== TROIS BOX LATÉRALES (apparition au scroll) ===== -->
+    
+    <div class="trois_box">
+        
+  <!-- Box 1 : gauche -->
+        <a href="#" class="box box-left">
+            <div class="box-icon"><i class="fas fa-car"></i></div>
+            <h4 class="box-title">Véhicules de qualité</h4>
+            <p class="box-text">
+                Des voitures rigoureusement sélectionnées, avec un accompagnement personnalisé pour chaque client.
+            </p>
+        </a>
 
 
-<!-- Modal Scripts -->
+        <!-- Box 2 : droite -->
+        <a href="#" class="box box-right">
+            <div class="box-icon"><i class='fas fa-hand-holding-usd' style='font-size:36px'></i></div>
+            <h4 class="box-title">Financement simple</h4>
+            <p class="box-text">
+                Crédit sans banque, dossiers simplifiés, réponses rapides. Obtenez votre véhicule en toute sérénité.
+            </p>
+        </a>
+
+        <!-- Box 3 : bas -->
+        <a href="#" class="box box-bottom">
+             <div class="box-icon"><i class="fas fas-finance"></i></div>
+            <h4 class="box-title">jolie jolie</h4>
+            <p class="box-text">
+                Crédit sans banque, dossiers simplifiés, réponses rapides. Obtenez votre véhicule en toute sérénité.
+            </p>
+        </a>
+
+    </div>
+    
+
+</section>
+
+<!-- ========== CONTENU SUIVANT (scrollable) ========== -->
+<div class="relative z-10 pin pin-trigger bg-white">
+
+    <!-- ========== SECTION ACTUALITÉS (style Mercedes) ========== -->
+<section class="py-16 pin fade-section-actualité bg-gray-50" >
+    <div class="container pin mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Actualités KOZ Services</h2>
+            <p class="text-gray-500 mt-2">Découvrez nos dernières nouveautés et offres</p>
+        </div>
+
+        <div class="actualite-containt" >
+            {% for vehicule in vehicules_vendette %}
+                {% if vehicule.actualite %}
+                    
+                        <!-- Image (avec fallback) -->
+                        <div class="campaign-image campaign-card overflow-hidden h-64 md:h-72">
+                            <img src="
+                                {% if vehicule.image_principale %}
+                                    {{ vehicule.image_principale.url }}
+                                {% elif vehicule.images.all %}
+                                    {{ vehicule.images.first.image.url }}
+                                {% else %}
+                                    {% static 'images/placeholder-vehicule.jpg' %}
+                                {% endif %}
+                            " alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}" 
+                               class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+                        </div>
+                        
+                        <!-- Overlay gradient (pour lisibilité) -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        
+                        <!-- Contenu superposé -->
+                        <div>
+                            
+                            <div class="text-nouveau">
+                                <h1 class="inline-block px-3 py-1  text-blue-600 text-3xl text-shadow-blue-900  mb-2">
+                                <em>Nouveau !!</em> 
+                        
+                            </h1>
+                            </div>
+                            <div class="reveal-text">
+                            <h3 class="text-xl font-bold mb-1">
+                                {{ vehicule.marque.nom }} {{ vehicule.modele }}
+                            </h3>
+                            <p class="text-sm text-neutral-950/80 mb-3">
+                                {{ vehicule.annee }} • {{ vehicule.kilometrage|intcomma }} km • {{ vehicule.prix|intcomma }} FCFA
+                            </p>
+                            <h3>Description</h3>
+                            <p>
+                                {{vehicule.description}}
+                            </p>
+                            <a href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}" 
+                               class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-200 transition-colors duration-300">
+                                Découvrir
+                                <svg class="w-1 h-1 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                </svg>
+                            </a>
+                            </div>
+                        </div>
+                    
+                {% endif %}
+            {% empty %}
+                <div class="col-span-full text-center text-gray-400 py-8">
+                    Aucune actualité disponible pour le moment.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+    <section class="py-16 fade-section bg-white">
+        <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Pièces et accessoires</h2>
+            <p class="text-gray-500 mt-2">L'équipement qu'il vous faut pour votre véhicule</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for produit in produits_vedette %}
+            <div class="bg-gray-50 rounded-xl p-4 text-center hover:shadow-md transition">
+                <div class="w-full h-32 bg-gray-200 rounded-lg mb-3 overflow-hidden">
+                    <img src="{{ produit.image_principale.url }}" alt="{{ produit.nom }}" class="w-full h-full object-cover">
+                </div>
+                <h4 class="font-semibold text-gray-800">{{ produit.nom }}</h4>
+                <p class="text-blue-600 font-bold">{{ produit.prix|intcomma }} FCFA</p>
+                <button class="btn btn-primary btn-sm w-full mt-2">Ajouter au panier</button>
+            </div>
+            {% empty %}
+            <p class="text-gray-400 col-span-full text-center">Aucun produit disponible.</p>
+            {% endfor %}
+        </div>
+        </div>
+    </section>
+
+     <!-- CTA -->
+    <section class="py-16 fade-section bg-gradient-to-r from-blue-700 to-indigo-800 text-white">
+        <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Prêt à rouler avec KOZ ?</h2>
+        <p class="text-blue-100 text-lg mb-6">Créez votre compte et faites votre demande de financement en quelques minutes.</p>
+        <button onclick="document.getElementById('register_modal').showModal()" class="btn btn-white btn-lg text-blue-700 hover:bg-blue-50 shadow-lg">
+            <i class="fas fa-user-plus mr-2"></i> Créer un compte
+        </button>
+    </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-8">
+        
+         <div class="container mx-auto px-4 text-center text-sm">
+        <p>&copy; {% now "Y" %} KOZ Services. Tous droits réservés.</p>
+        <p class="mt-1">Conçu avec ❤️ pour les passionnés d'automobile.</p>
+        </div>
+    </footer>
+</div>
+
+<!-- ========== MODALES ========== -->
 {% include 'modals/home/register.html' %}
 {% include 'modals/home/login.html' %}
-<!-- Modal Scripts -->
 
-
-<!--Scripts js -->
+<!-- ========== SCRIPTS ========== -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
 <script src="{% static 'js/home/register.js' %}"></script>
 <script src="{% static 'js/home/login.js' %}"></script>
-<!--Scripts js -->
+<script src="{% static 'js/home/logout.js' %}"></script>
+
+<script>
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const totalFrames = 76;
+    const basePath = "{% static 'frames/ECO_SYS_PROJECTKoz_Flowsrckoz_flowstaticframesframe-' %}";
+    const frameImg = document.getElementById('frame');
+
+    ScrollTrigger.create({
+        trigger: ".hero-section",   // ← Le déclencheur
+        start: "top top",           // Début du scroll
+        end: "bottom bottom",       // Fin du scroll
+        scrub: 0.8,
+        onUpdate: (self) => {
+            let frameIndex = Math.floor(self.progress * (totalFrames - 1)) + 1;
+            frameIndex = Math.min(frameIndex, totalFrames);
+            const paddedIndex = String(frameIndex).padStart(4, '0');
+            frameImg.src = `${basePath}${paddedIndex}.jpg`;
+        }
+    });
+
+    // Faire apparaître les sections avec un fondu
+    const sections = document.querySelectorAll(".fade-section-actualité");
+    sections.forEach((section, index) => {
+        gsap.from(section, {
+            scrollTrigger: {
+                trigger: section,
+                start: "top 80%",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 0,
+            y: 50,
+            duration: 1,
+            delay: index * 0.15
+        });
+    });
+    gsap.from(".fade-section", {
+            scrollTrigger: {
+                trigger: ".py-16 .fade-section .bg-white",
+                start: "bottom",
+                end: "top -100%",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 0,
+            y: 100,
+            duration: 2,
+           
+        });
+
+
+    // NAVBAR PREMIUM
+    // ============================================
+    const navbar = document.querySelector('.navbar');
+
+    // 1. Apparition au scroll (pure JS)
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 30) {
+            navbar.classList.add('visible');
+        } else {
+            navbar.classList.remove('visible');
+        }
+        
+        // Fond qui s'intensifie
+        if (window.scrollY > 200) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // 2. Survol (pour rendre plus réactif)
+    navbar.addEventListener('mouseenter', () => {
+        navbar.classList.add('visible');
+    });
+
+    navbar.addEventListener('mouseleave', () => {
+        navbar.classList.remove('visible');
+    });
+
+
+    // ============================================
+    // BOXES LATÉRALES : apparition au scroll
+    // ============================================
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Box 1 : vient de gauche
+    gsap.from(".box-left", {
+        scrollTrigger: {
+            trigger: ".trigger-box",
+            start: "top 50%" ,
+            end: "top 10%",
+            scrub: 1.2,
+            toggleActions: "play none none reverse",
+            id: "box-left"
+        },
+        x: -300,
+        opacity: 0,
+        rotationY: 8,
+        duration: 2.8,
+        ease: "power3.out"
+        
+    });
+
+    // Box 2 : vient de droite
+    gsap.from(".box-right", {
+        scrollTrigger: {
+            trigger: ".trigger-box",
+            start: "top 30%",
+            end: "bottom",
+            scrub: 1.2,
+            toggleActions: "play none none reverse",
+            id: "box-right"
+        },
+        x: 300,
+        opacity: 0,
+        rotationX: 8,
+        duration: 3.5,
+        ease: "power3.out",
+        
+
+    });
+
+    // Box 3 : vient du bas
+    gsap.from(".box-bottom", {
+        scrollTrigger:{
+            trigger: ".box-right",
+            start: "top 50%",
+            end:"bottom 50%",
+            scrub: 1.2,
+            toggleActions: "play none none reverse",
+            id: "box-bottom"
+
+        },
+        y: 300,
+        opacity: 0,
+        rotationX: 8,
+        duration: 3.5,
+        ease: "power3.out",
+    });
+
+
+    // GSAP text-nouveau et details
+    gsap.from(".text-nouveau", {
+                scrollTrigger:{
+                    trigger: ".campaign-card",
+                    start: "top 65%",
+                    end: "top 45%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                x: 300,
+                duration: 3,
+                ease: "power3.out"
+            });
+
+
+    // --- ÉTAPE 2 : PIN DE LA SECTION (le scroll reste bloqué) ---
+ScrollTrigger.create({
+    trigger: ".pin-trigger",
+    start: "top 9%",
+    end: "+=150%",  // La section reste "épinglée" pendant 150% de la hauteur d'écran
+    pin: true,
+    pinSpacing: true,
+
+});
+
+// --- ÉTAPE 3 : TEXTE QUI SE DÉVOILE AVEC SPLITTING ---
+// Initialisation de Splitting
+// 1. Initialiser Splitting après chargement
+document.addEventListener('DOMContentLoaded', function() {
+   Splitting({ target: '.reveal-text' });
+
+    // Animation du texte : chaque lettre apparaît en cascade
+    const textChars = document.querySelectorAll('.reveal-text .char');
+    const totalChars = textChars.length;
+
+    ScrollTrigger.create({
+        trigger: '.pin-trigger',
+        start: "top 30%",
+        end: "top -50%",
+        scrub: 1.5,
+        id: "text-reveal",
+        onUpdate: (self) => {
+            const progress = self.progress;
+            const revealCount = Math.floor(progress * totalChars);
+            textChars.forEach((char, index) => {
+                if (index < revealCount) {
+                    char.classList.add('active');
+                } else {
+                    char.classList.remove('active');
+                }
+            });
+        }
+    });
+});
+
+
+        
+    // ============================================
+// CARTES ACTUALITÉS : apparition au scroll
+// ============================================
+// 2. Définir campaignCards
+const campaignCards = document.querySelectorAll('.campaign-card');
+        gsap.from('.campaign-card',{
+            scrollTrigger: {
+                trigger: ".actualite-containt",
+                start: "top 60%",
+                end: "top 50%",
+                toggleActions: "play none none reverse",
+            },
+            opacity: 0,
+            x: -300,
+            duration: 1.5,
+            ease: "power3.out"
+        });
+   
+    // Animation de survol supplémentaire (flottement)
+    campaignCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            gsap.to(card, {
+                y: -8,
+                duration: 0.4,
+                ease: "power2.out"
+            });
+        });
+        card.addEventListener('mouseleave', () => {
+            gsap.to(card, {
+                y: 0,
+                duration: 0.4,
+                ease: "power2.out"
+            });
+        });
+    });
+   
+</script>
+
+
+<script>
+    // Burger menu
+    document.getElementById('burgerBtn')?.addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+</script>
+
 </body>
 </html>

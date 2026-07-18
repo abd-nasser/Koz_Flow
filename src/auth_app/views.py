@@ -111,13 +111,13 @@ class LoginView(APIView):
                 refresh = RefreshToken.for_user(user)
                 
                 if user.is_superuser or user.role == "directeur":
-                    redirect_url = 'directeur/dashboard/'
+                    redirect_url = 'http://127.0.0.1:8000/directeur/dashboard/'
                     
                 elif user.role == 'commercial':
-                    redirect_url = 'commercial/dashboard/'
+                    redirect_url = 'http://127.0.0.1:8000/commercial/dashboard/'
                 
                 else:
-                    redirect_url = 'client/dashboard/'    
+                    redirect_url = 'http://127.0.0.1:8000/client/dashboard/'    
                 
                 # on renvoie la reponse avec les tokens et la redirection
                 
@@ -128,7 +128,7 @@ class LoginView(APIView):
         'redirect_url': redirect_url,
     },
     headers={
-        'Access-Control-Allow-Origin': 'http://127.0.0.1:8001',
+        'Access-Control-Allow-Origin': 'http://127.0.0.1:8000',
         'Access-Control-Allow-Credentials': 'true',
     },  # ← headers (au pluriel) pour permettre le partage de cookies entre les ports
     status=status.HTTP_200_OK) # 200 = OK

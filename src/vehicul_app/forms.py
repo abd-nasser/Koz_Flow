@@ -23,7 +23,7 @@ class VehiculForm(forms.ModelForm):
     class Meta:
         model = Vehicul
         fields = ["marque","modele", "annee", "stock",
-                  "prix", "kilometrage", "carburant",
+                  "prix", "kilometrage", "carburant","actualite",
                   "image_principale",
                   "disponible", "description",
                   ]
