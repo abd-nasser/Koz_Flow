@@ -49,7 +49,11 @@
             <div class="w-10"></div>
         </div>
     </nav>
-
+<style>
+    main{
+        min-height: 81vh;
+    }
+</style>
     <main class="container mx-auto px-4 py-8 max-w-5xl">
         
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up">
@@ -230,14 +234,22 @@
                             {% endfor %}
                         </div>
                     
-                        <div class="text-center py-4">
+                        <div class="text-center flex-wrap py-4">
                             <p class="text-gray-500 mb-3">Aucune offre de financement générée.</p>
                             <button onclick="document.getElementById('simpleoffreModal').showModal()" 
                                     class="btn-glow px-5 py-2 rounded-xl inline-flex items-center gap-2">
-                                <i class="fas fa-plus-circle"></i> Générer une offre simple
+                                <i class="fas fa-plus-circle"></i> Débuter une vente simple
+                            </button>
+
+                             <button onclick="document.getElementById('offre_financement_Modal').showModal()" 
+                                    class="btn-glow px-5 py-2 rounded-xl inline-flex items-center gap-2">
+                                <i class="fas fa-plus-circle"></i> Débuter une vente avec offre financement
                             </button>
                         </div>
+
+                        
                         {% include "modals/leads/creer_simple_offre.html" %}
+                        {% include 'modals/leads/creer_offre_financement.html' %}
                     
                 </div>
 

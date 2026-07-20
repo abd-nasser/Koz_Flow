@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy,reverse
 from django.conf import settings
 
 from django.contrib import messages
@@ -28,7 +28,7 @@ from chat_app.models import Message
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
 from leads_app.forms import GestionFinancementForm, DocumentsUploadForm
 from client_app.forms import MaintenanceForm
-from .forms import OffreForm
+from .forms import OffreFinancementForm, OffreSimpleForm
 
 import logging
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ def creer_offre(request, demande_id=None):
         return redirect('commercial_app:offre-detail', demande.client.offre.id)
     
     if request.method == 'POST':
-        form = OffreForm(request.POST)
+        form = OffreFinancementForm(request.POST)
         if form.is_valid():
             offre = form.save(commit=False)
             offre.client = demande.client
@@ -319,15 +319,20 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         
         return context
 ##########################################________________OFFRE_VIEW_________________####################################################
-class offreSimpleCreateView(LoginRequiredMixin, CreateView):
+
+class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role in ["commercial", "directeur"]
+    
     model = Offre
-    form_class = OffreForm
+    form_class = OffreSimpleForm  # ← Utilise le formulaire complet
     template_name = "clients_templates/client_detail.html"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "offre_simple_form" not in context:
-            context["offre_simple_form"] = OffreForm()
+            context["offre_simple_form"] = OffreSimpleForm()
         return context
     
     def form_valid(self, form):
@@ -338,26 +343,97 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         offre.client = client
         offre.type_offre = "simple"
         offre.statut = "envoyee"
+        offre.save()
         
-        # Récupérer les valeurs du formulaire
+        # ✉️ Email au client
+        try:
+            context_email = {
+                'client': client,
+                'offre_id': offre.id,
+                'montant_propose': offre.montant_propose,
+                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                'date_expiration': offre.date_expiration,
+                'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+            }
+            html_message = render_to_string('emails/offres/simple_offre.html', context_email)
+            plain_message = strip_tags(html_message)
+            
+            send_mail(
+                subject="📄 Une offre vous attend - KOZ Services",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[client.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"Erreur envoi email au client: {e}")
+        
+        messages.success(self.request, f"✅ Offre simple créée pour {client.nom_complet}. Un email a été envoyé.")
+        
+        return redirect(reverse('client_app:client-detail', kwargs={'pk': client_id}))
+    
+    def form_invalid(self, form):
+        detail_view = ClientDetailView()
+        detail_view.request = self.request
+        detail_view.kwargs = self.kwargs
+        context = detail_view.get_context_data()
+        
+        context["offre_simple_form"] = form
+        context["open_offre_simple_modal"] = True
+        
+        return self.render_to_response(context)
+    
+
+class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role in ["commercial", "directeur"]
+    
+    model = Offre
+    form_class = OffreFinancementForm
+    template_name = "clients_templates/client_detail.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "offre_financement_form" not in context:
+            context["offre_financement_form"] = OffreFinancementForm()  # ← CORRIGÉ
+        return context
+    
+    def form_valid(self, form):
+        client_id = self.kwargs.get('pk')
+        client = get_object_or_404(kozUser, id=client_id)
+        
+        offre = form.save(commit=False)
+        offre.client = client
+        offre.type_offre = "offre_financement"
+        offre.statut = "envoyee"
+        
+        # Récupérer les valeurs
         prix_vehicule = form.cleaned_data.get('prix_vehicule')
         apport_demande = form.cleaned_data.get('apport_demande')
-        offre.montant_finance = prix_vehicule - apport_demande
+        offre.montant_finance = prix_vehicule - (apport_demande or 0)
         
-        # Calculer la mensualité
-        taux_mensuel = offre.taux_interet / 100 / 12 if offre.taux_interet > 0 else 0
-        
-        if offre.taux_interet > 0:
-            offre.mensualite = (offre.montant_finance * taux_mensuel) / (1 - (1 + taux_mensuel) ** -offre.duree_mois)
+        # ✅ Calcul mensualité sécurisé
+        if offre.taux_interet and offre.taux_interet > 0:
+            taux_mensuel = offre.taux_interet / 100 / 12
+            offre.mensualite = (
+                (offre.montant_finance * taux_mensuel) / 
+                (1 - (1 + taux_mensuel) ** -(offre.duree_mois or 1))
+            )
         else:
-            offre.mensualite = offre.montant_finance / offre.duree_mois
+            offre.mensualite = offre.montant_finance / (offre.duree_mois or 1)
         
-        # Calculer le total dû
-        offre.total_du = (offre.mensualite * offre.duree_mois) + offre.frais_dossier + offre.frais_garantie
+        # ✅ Calcul total dû
+        offre.total_du = (
+            (offre.mensualite or 0) * (offre.duree_mois or 0)
+            + (offre.frais_dossier or 0)
+            + (offre.frais_garantie or 0)
+        )
         
-        offre.save()  # ✅ Sauvegarde manuelle
+        offre.save()
         
-        # ✉️ EMAIL AU CLIENT
+        # ✉️ Email au client
         try:
             context_email = {
                 'client': client,
@@ -370,7 +446,7 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
                 'date_expiration': offre.date_expiration,
                 'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
             }
-            html_message = render_to_string('emails/offres/simple_offre_cree.client.html', context_email)
+            html_message = render_to_string('emails/offres/offre_financement_cree_client.html', context_email)
             plain_message = strip_tags(html_message)
             
             send_mail(
@@ -384,34 +460,31 @@ class offreSimpleCreateView(LoginRequiredMixin, CreateView):
         except Exception as e:
             print(f"Erreur envoi email au client: {e}")
         
-        messages.success(self.request, f"Offre simple créée pour {client.nom_complet}. Un email a été envoyé au client.")
+        messages.success(self.request, f"✅ Offre de financement créée pour {client.nom_complet}. Un email a été envoyé.")
         
-        # ✅ Pas de super().form_valid(form) car on a déjà sauvegardé
-        return redirect("client_app:client-detail", client_id )  # ou reverse_lazy
-        
+        return redirect(reverse('client_app:client-detail', kwargs={'pk': client_id}))
+    
     def form_invalid(self, form):
-        """
-        En cas d'erreur dans le formulaire, on rouvre le modal
-        avec le formulaire contenant les erreurs
-        """
-        # Récupère la vue de détail client pour avoir le contexte
         detail_view = ClientDetailView()
         detail_view.request = self.request
         detail_view.kwargs = self.kwargs
         context = detail_view.get_context_data()
         
-        # Remplace le formulaire par celui avec les erreurs
-        context["offre_simple_form"] = form
-        context["open_offre_simple_modal"] = True  # ← Flag pour rouvrir le modal
+        context["offre_financement_form"] = form
+        context["open_offre_financement_modal"] = True
         
         return self.render_to_response(context)
+
+        
+        
+    
     
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
     def get_template_names(self):
         is_htmx = self.request.headers.get('HX-Request') == 'true'
-        if self.request.user.role == "commercial":
+        if self.request.user.role == "commercial" and self.request.user.is_staff:
             return ["partials/offre/partials_offre_list.html" if is_htmx else "commercial_templates/commercial_offre_list.html"]
         
         elif self.request.user.role == "directeur":
@@ -437,7 +510,7 @@ class OffreView(LoginRequiredMixin, ListView):
             return queryset.order_by("-date_creation")
             
         elif self.request.user.role == "commercial" or (self.request.user.is_staff and not self.request.user.is_superuser):
-            queryset = Offre.objects.filter(client__assigned_commercial=self.request.user).select_related("client")
+            queryset = Offre.objects.all().select_related("client")
             q = self.request.GET.get("q")
             statut = self.request.GET.get("statut")
             if q:
@@ -493,14 +566,14 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
             context["upload_doc_form"] = DocumentsUploadForm()
         if self.request.user.role != "client":
             if "update_offre_form" not in context:
-                context["update_offre_form"] = OffreForm(instance=self.object)
+                context["update_offre_form"] = OffreFinancementForm(instance=self.object)
             return context
         
         return context
 
 class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Offre
-    form_class = OffreForm
+    form_class = OffreFinancementForm
     
     def get_success_url(self):
         return reverse_lazy("commercial_app:offre-detail", kwargs={"pk": self.object.pk})
@@ -625,7 +698,7 @@ class VenteListView(LoginRequiredMixin, ListView):
             queryset = Vente.objects.all()
             
         elif self.request.user.is_staff or self.request.user.role == "commercial":
-            queryset = Vente.objects.filter(client__assigned_commercial=self.request.user)
+            queryset = Vente.objects.all()
         else:
             return Vente.objects.none()
 

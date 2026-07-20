@@ -6,8 +6,9 @@ app_name = "commercial_app"
 urlpatterns = [
     path("dashboard/", views.CommercialDashboardView.as_view(), name="commercial-view"),
     path("générer/<int:demande_id>/offre/", views.creer_offre, name="creer-offre"),
-    path("générer/<int:pk>/simple/offre/", views.offreSimpleCreateView.as_view(), name="creer-offre-simple"),
     path("offres/", views.OffreView.as_view(), name="offre-list"),
+    path("générer/<int:pk>/simple/offre/", views.OffreSimpleCreateView.as_view(), name="creer-offre-simple"),
+    path("generer/<int:pk>/offre/financement",views.OffreDeFinancementView.as_view(), name="creer-offre-financement"),
     path("offre/<int:pk>/", views.OffreDetailView.as_view(), name="offre-detail"),  
     path('offre/<int:pk>/modifier/', views.OffreUpdateView.as_view(), name="update-offre"),
     path('offre/<int:pk>/supprimer/',views.OffreDeleteView.as_view(), name='offre-delete'),
@@ -31,8 +32,8 @@ urlpatterns = [
     
     # commercial_app/urls.py
 
-path('ventes/',views.VenteListView.as_view(), name='vente-list'),
-path('ventes/<int:pk>/detail', views.VenteDetailView.as_view(), name="vente-detail"),
-path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
-path('vente/<int:vente_id>/changer-statut/',views.changer_statut_vente, name='changer-statut-vente'),
+    path('ventes/',views.VenteListView.as_view(), name='vente-list'),
+    path('ventes/<int:pk>/detail', views.VenteDetailView.as_view(), name="vente-detail"),
+    path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
+    path('vente/<int:vente_id>/changer-statut/',views.changer_statut_vente, name='changer-statut-vente'),
 ]

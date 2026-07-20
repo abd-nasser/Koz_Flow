@@ -114,7 +114,7 @@ class Maintenance(models.Model):
 class Documents(models.Model):
     client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='documents')
     demande_financement = models.OneToOneField('leads_app.demande_financement', on_delete=models.CASCADE, related_name='documents', null=True, blank=True)
-   
+    offre_financement = models.OneToOneField('commercial_app.offre', on_delete=models.CASCADE, related_name='documents', null=True, blank=True)
     
     # === IDENTITÉ & RÉSIDENCE ===
     cni_passeport = models.FileField(upload_to='documents/%Y/%m/%d/', verbose_name="Photocopie CNIB")

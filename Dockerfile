@@ -22,6 +22,7 @@ COPY requirements.txt .
 
 #installation de tout les packages copier dans le requirement.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN npm install gsap
 
 #copy de tout le backend django
 COPY src/ .

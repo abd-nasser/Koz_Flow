@@ -20,12 +20,8 @@
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
         }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
-        .animate-slide-in-right {
-            animation: slideInRight 0.4s ease-out forwards;
-        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        .animate-slide-in-right { animation: slideInRight 0.4s ease-out forwards; }
         .glass-nav {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -80,7 +76,11 @@
             </a>
         </div>
     </nav>
-
+<style>
+    main{
+        min-height: 81vh;
+    }
+</style>
     <main class="container mx-auto px-4 py-8 max-w-5xl">
         
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up">
@@ -97,8 +97,8 @@
                         </p>
                     </div>
                     <div class="badge badge-lg px-4 py-2 rounded-full text-sm font-semibold shadow-sm
-                        {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_offre_acceptee' %}bg-green-500 text-white
-                        {% elif vente.statut == 'perdue' or vente.statut == 'perdue_par_offre_refusee' %}bg-red-500 text-white
+                        {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_acceptation_offre_financement' or vente.statut == 'conclue_par_acceptation_offre_simple' %}bg-green-500 text-white
+                        {% elif vente.statut == 'perdue' or vente.statut == 'perdue_par_offre_refusee' or vente.statut == 'perdue_par_refus_offre_simple' or vente.statut == 'perdue_par_refus_offre_financement' %}bg-red-500 text-white
                         {% elif vente.statut == 'en_cours' %}bg-yellow-500 text-white
                         {% else %}bg-gray-500 text-white{% endif %}">
                         {{ vente.get_statut_display }}
@@ -154,7 +154,7 @@
                                 <strong>
                                     {% if vente.type_vente == 'cash' %}
                                         <span class="text-green-600">💰 Paiement comptant</span>
-                                    {% elif vente.type_vente == 'interne' %}
+                                    {% elif vente.type_vente == 'maison' %}
                                         <span class="text-blue-600">🏠 KOZ Finance</span>
                                     {% elif vente.type_vente == 'externe_fidelis' %}
                                         <span class="text-purple-600">🏦 Fidelis</span>
@@ -172,13 +172,17 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
-                                <span class="text-gray-600">Date d'enregistrement :</span>
+                                <span class="text-gray-600">Date :</span>
                                 <strong>{{ vente.date_vente|date:"d/m/Y H:i" }}</strong>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Demande associée (si existante) -->
+                    <!-- ============================================================ -->
+                    <!-- 🔥 AFFICHAGE CONDITIONNEL : DEMANDE OU OFFRE                  -->
+                    <!-- ============================================================ -->
+
+                    <!-- ✅ CAS 1 : VENTE LIÉE À UNE DEMANDE -->
                     {% if vente.demande_financement %}
                     <div class="bg-gray-50 rounded-xl p-5 info-card lg:col-span-2">
                         <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
@@ -205,7 +209,7 @@
                                 <i class="fas fa-tag text-blue-500 w-5"></i>
                                 <span class="text-gray-600">Statut demande :</span>
                                 <strong class="
-                                    {% if vente.demande_financement.etape == 'demande_accordee_fidelis' or vente.demande_financement.etape == 'demande_accordee_alios' %}text-green-600
+                                    {% if vente.demande_financement.etape == 'demande_accordee_fidelis' or vente.demande_financement.etape == 'demande_accordee_alios' or vente.demande_financement.etape == 'demande_accordee_maison' %}text-green-600
                                     {% elif vente.demande_financement.etape == 'demand_refusee' %}text-red-600
                                     {% else %}text-yellow-600{% endif %}">
                                     {{ vente.demande_financement.get_etape_display }}
@@ -232,20 +236,81 @@
                     </div>
                     {% endif %}
 
+                    <!-- ✅ CAS 2 : VENTE LIÉE À UNE OFFRE -->
+                    {% if vente.offre_financement %}
+                    <div class="bg-gray-50 rounded-xl p-5 info-card lg:col-span-2">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-file-signature text-blue-600"></i> Offre de financement associée
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-id-card text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Offre n° :</span>
+                                <strong>{{ vente.offre_financement.id }}</strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-car text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Véhicule :</span>
+                                <strong>
+                                    {{ vente.offre_financement.vehicule_propose.marque.nom }} {{ vente.offre_financement.vehicule_propose.modele }}
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-tag text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Type offre :</span>
+                                <strong>
+                                    <span class="badge px-2 py-0.5 rounded-full text-xs font-semibold
+                                        {% if vente.offre_financement.type_offre == 'simple' %}bg-purple-100 text-purple-700
+                                        {% else %}bg-blue-100 text-blue-700{% endif %}">
+                                        {{ vente.offre_financement.get_type_offre_display }}
+                                    </span>
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-handshake text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Statut offre :</span>
+                                <strong class="
+                                    {% if vente.offre_financement.statut == 'offre_financement_fidelis' or vente.offre_financement.statut == 'offre_financement_alios' or vente.offre_financement.statut == 'offre_financement_maison' %}text-green-600
+                                    {% elif vente.offre_financement.statut == 'refusee' or vente.offre_financement.statut == 'expiree' %}text-red-600
+                                    {% else %}text-yellow-600{% endif %}">
+                                    {{ vente.offre_financement.get_statut_display }}
+                                </strong>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
+                                <span class="text-gray-600">Montant financier :</span>
+                                <strong class="text-green-600">
+                                    {% if vente.offre_financement.type_offre == 'offre_financement' %}
+                                        {{ vente.offre_financement.montant_finance|intcomma }} FCFA
+                                    {% else %}
+                                        {{ vente.offre_financement.montant_propose|intcomma }} FCFA
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right">
+                            <a href="{% url 'commercial_app:offre-detail' vente.offre_financement.id %}" 
+                               class="text-blue-600 hover:text-blue-800 transition text-sm inline-flex items-center gap-1">
+                                <i class="fas fa-external-link-alt"></i> Voir l'offre
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
 
                 <!-- Actions (pour commercial/directeur uniquement) -->
-              {% if vente.statut == 'gestion_de_statut' %}
-        <div class="mt-6">
-            <button onclick="document.getElementById('gestion_statut_modal').showModal()" 
-                    class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
-                <i class="fas fa-exchange-alt"></i> Gérer le statut de la vente
-            </button>
-        </div>
-        {% endif %}
+                {% if vente.statut == 'gestion_de_status' %}
+                <div class="mt-6">
+                    <button onclick="document.getElementById('gestion_statut_modal').showModal()" 
+                            class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
+                        <i class="fas fa-exchange-alt"></i> Gérer le statut de la vente
+                    </button>
+                </div>
+                {% endif %}
 
-<!-- Inclusion du modal -->
-{% include 'modals/vente/gestion_statut.html' with statut_choices=statut_choices %}
+                <!-- Inclusion du modal -->
+                {% include 'modals/vente/gestion_statut.html' with statut_choices=statut_choices %}
 
                 <!-- Bouton retour -->
                 <div class="flex justify-center pt-4">

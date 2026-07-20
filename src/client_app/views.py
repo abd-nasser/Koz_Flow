@@ -10,7 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 from auth_app.forms import  ChangePasswordForm
-from commercial_app.forms import OffreForm
+from commercial_app.forms import OffreFinancementForm, OffreSimpleForm
 from .models import Documents
 from auth_app.models import kozUser
 from leads_app.models import demande_financement
@@ -50,7 +50,10 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
         
         # Ajoute le formulaire d'offre simple dans le contexte
         if "offre_simple_form" not in context:
-            context["offre_simple_form"] = OffreForm()
+            context["offre_simple_form"] = OffreSimpleForm()
+            
+        if "offre_financement_form" not in context:
+            context["offre_financement_form"] = OffreFinancementForm()
         
         # Ajoute aussi d'autres formulaires si nécessaire (ex: change_password, etc.)
         if "change_pass_form" not in context:

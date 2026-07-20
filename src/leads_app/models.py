@@ -111,18 +111,34 @@ class Vente(models.Model):
     """Vente conclue ou perdue, liée à une demande de financement et un client"""
     
     STATUT_VENTE = [
-    ('non_classifie', 'non classifié'),
-    ('gestion_de_status', "Gérer l'etat de la vente"),
-    ('en_cours', 'En cours'),
-    ('conclue', 'Conclue'),
-    ('conclue_par_offre_acceptee', 'Conclue par offre acceptée'),
-    ('perdue', 'Perdue'),
-    ('perdue_par_offre_refusee', 'Perdue par offre refusée'),
-]
+        ('non_classifie', 'Non classifié'),
+        ('gestion_de_status', "Gérer l'état de la vente"),
+        ('en_cours', 'En cours'),
+        ('conclue', 'Conclue'),
+        ('conclue_par_acceptation_offre_simple', "Conclue par acceptation d'offre simple"),
+        ('conclue_par_acceptation_offre_financement', "Conclue par acceptation d'offre financement"),
+        ('perdue', 'Perdue'),
+        ('perdue_par_refus_offre_simple', "Perdue par refus d'offre simple"),
+        ('perdue_par_refus_offre_financement', "Perdue par refus d'offre financement"),
+        ('perdue_par_rejet_dossier_offre_financement', 'Perdue par rejet de dossier (offre de financement)'),
+        ('perdue_par_rejet_dossier_demande_financement', 'Perdue par rejet de dossier (demande de financement)')
+    ]
     
     client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='ventes')
-    demande_financement = models.OneToOneField('demande_financement', on_delete=models.CASCADE, related_name='vente', null=True, blank=True)
-    offre = models.OneToOneField("commercial_app.offre", on_delete=models.CASCADE, related_name='vente', null=True, blank=True)
+    demande_financement = models.OneToOneField(
+        'demande_financement', 
+        on_delete=models.CASCADE, 
+        related_name='vente', 
+        null=True, 
+        blank=True
+    )
+    offre_financement = models.OneToOneField(
+        "commercial_app.offre", 
+        on_delete=models.CASCADE, 
+        related_name='vente', 
+        null=True, 
+        blank=True
+    )
     
     statut = models.CharField(max_length=70, choices=STATUT_VENTE, default='non_classifie')
     montant = models.DecimalField(max_digits=12, decimal_places=0, help_text="Montant total de la vente")
@@ -130,17 +146,43 @@ class Vente(models.Model):
     
     @property
     def type_vente(self):
-        if self.demande_financement is None :
-            return 'cash' if self.statut in ['conclue', 'conclue_par_offre_acceptee'] else 'non_classifie'
-        
+        """
+        Détermine le type de vente pour l'analytics :
+        - cash : Offre simple acceptée
+        - maison : Financement KOZ
+        - externe_fidelis : Financement Fidelis
+        - externe_alios : Financement Alios
+        - non_classifie : Non déterminé
+        """
+        offre = self.offre_financement
         demande = self.demande_financement
-        if demande.financement_type == 'maison':
+        
+        # ✅ CAS 1 : Vente cash (offre simple)
+        if offre and offre.type_offre == "simple":
+            if self.statut in ['conclue', 'conclue_par_acceptation_offre_simple']:
+                return 'cash'
+            return 'non_classifie'
+        
+        # ✅ CAS 2 : Financement maison (KOZ)
+        if offre and offre.financement_type == 'maison':
             return 'maison'
-        if demande.financement_type == 'externe':
+        if demande and demande.financement_type == 'maison':
+            return 'maison'
+        
+        # ✅ CAS 3 : Financement externe
+        if offre and offre.financement_type == 'externe':
+            if offre.financement_par == 'fidelis':
+                return 'externe_fidelis'
+            if offre.financement_par == 'alios':
+                return 'externe_alios'
+        
+        if demande and demande.financement_type == 'externe':
             if demande.financement_par == 'fidelis':
                 return 'externe_fidelis'
             if demande.financement_par == 'alios':
                 return 'externe_alios'
-            
-        return 'non_classifie'
         
+        return 'non_classifie'
+    
+    def __str__(self):
+        return f"Vente {self.id} - {self.client.nom_complet} - {self.statut}"

@@ -17,10 +17,12 @@ from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from .forms import DemandeFinancementForm, GestionFinancementForm, DocumentsUploadForm
-from commercial_app.forms import OffreForm
+from commercial_app.forms import OffreFinancementForm
 from .models import DevisLeads, Vente, demande_financement
+from commercial_app.models import Offre
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
+from auth_app.models import kozUser
 
 
 ###API
@@ -469,7 +471,7 @@ class DemandeDetailView(LoginRequiredMixin, DetailView):
             'frais_garantie': 75000,
             'date_expiration': datetime.now()+timedelta(days=30),
              }   
-            context["offre_form"] = OffreForm(initial=initial)
+            context["offre_form"] = OffreFinancementForm(initial=initial)
             context["gestion_type_fin_form"] = GestionFinancementForm(instance=self.object)
          
         return context
@@ -561,6 +563,99 @@ def upload_multiple_documents(request, demande_id):
     # Si GET (pas POST), rediriger vers la page de détail
     return redirect('leads_app:detail-demande', demande.pk)
 
+
+@login_required
+def upload_offre_documents(request, offre_id):
+    """
+    Vue pour uploader les documents d'une offre de financement.
+    Le client upload ses documents, le dossier est vérifié.
+    """
+    # ✅ Récupérer l'offre (appartient au client connecté)
+    offre = get_object_or_404(Offre, id=offre_id, client=request.user)
+    
+    # ✅ Récupérer ou créer le dossier de documents lié à l'offre
+    dossier, created = Documents.objects.get_or_create(
+        client=request.user,
+        offre_financement=offre  # ← Ajoute ce champ dans ton modèle Documents
+    )
+    
+    if request.method == "POST":
+        form = DocumentsUploadForm(request.POST, request.FILES, instance=dossier)
+        
+        if form.is_valid():
+            dossier = form.save()
+            
+            # ✅ Vérifier la complétude du dossier
+            if dossier.verifier_completude():
+                # ✅ Dossier complet → mise à jour des statuts
+                dossier.statut_dossier = "complet"
+                dossier.save()
+                
+                offre.statut = "verification_document"
+                offre.save()
+                
+                messages.success(request, "✅ Dossier complet ! Il sera étudié prochainement.")
+                
+                # ✉️ Email à tous les commerciaux
+                try:
+                    commerciaux = kozUser.objects.filter(role="commercial")
+                    for commercial in commerciaux:
+                        if commercial and commercial.email:
+                            context_email = {
+                                'client': offre.client,
+                                'offre_id': offre.id,
+                                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
+                                'lien_offre': request.build_absolute_uri(
+                                    reverse('commercial_app:offre-detail', kwargs={'pk': offre.id})  # ← CORRIGÉ
+                                )
+                            }
+                            html_message = render_to_string('emails/documents/dossier_offre_complet.html', context_email)
+                            plain_message = strip_tags(html_message)
+                            
+                            send_mail(
+                                subject="📄 Dossier complet à étudier - KOZ Services",
+                                message=plain_message,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=[commercial.email],
+                                html_message=html_message,
+                                fail_silently=False,
+                            )
+                except Exception as e:
+                    logger.error(f"Erreur envoi email aux commerciaux: {e}")
+                
+                return redirect('commercial_app:offre-detail', pk=offre.pk)
+            
+            else:
+                # ❌ Dossier incomplet (documents manquants)
+                dossier.statut_dossier = "incomplet"
+                dossier.save()
+                messages.warning(request, "⚠️ Veuillez uploader tous les documents obligatoires.")
+                
+                # ✅ Réouvrir le modal avec le formulaire
+                context = {
+                    'offre': offre,
+                    'upload_doc_form': form,
+                    'open_upload_doc_modal': True,
+                }
+                return render(request, 'clients_templates/offre_detail.html', context)  # ← CORRIGÉ
+        
+        else:
+            # ❌ Formulaire invalide
+            messages.error(request, "❌ Erreur dans l'upload des fichiers. Vérifiez les champs.")
+            
+            context = {
+                'offre': offre,  # ← CORRIGÉ (demande → offre)
+                'upload_doc_form': form,
+                'open_upload_doc_modal': True,
+            }
+            return render(request, 'clients_templates/offre_detail.html', context)  # ← CORRIGÉ
+    
+    # ✅ GET → rediriger vers le détail de l'offre
+    return redirect('commercial_app:offre-detail', pk=offre.pk)
+                            
+                            
+    
+
 @login_required
 def valide_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
@@ -568,74 +663,149 @@ def valide_dossier(request, dossier_id):
     # === 1. VÉRIFICATIONS PRÉALABLES ===
     if dossier.statut_dossier == "incomplet":
         messages.error(request, "❌ Dossier incomplet : documents obligatoires manquants.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        return redirect("leads_app:document-detail", dossier.pk)
     
     if dossier.statut_dossier == "rejete":
         messages.warning(request, "⚠️ Dossier rejeté : ne peut pas être validé.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        return redirect("leads_app:document-detail", dossier.pk)
     
     if dossier.statut_dossier == "valide":
         messages.info(request, "ℹ️ Ce dossier est déjà validé.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        return redirect("leads_app:document-detail", dossier.pk)
     
     demande = dossier.demande_financement
+    offre = dossier.offre_financement
     
-    # === 2. VÉRIFICATION DU FINANCEMENT ===
-    if not demande.financement_type:
-        messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
-        return redirect("leads_app:detail-demande", pk=demande.pk)
-    
-    if demande.financement_type == "externe" and not demande.financement_par:
-        messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
-        return redirect("leads_app:detail-demande", pk=demande.pk)
-    
-    # === 3. VÉRIFICATION : VENTE EXISTANTE ===
-    if hasattr(demande, 'vente') and demande.vente:
-        messages.warning(request, "⚠️ Une vente est déjà enregistrée pour ce dossier.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
-    
-    # === 4. VALIDATION DU DOSSIER ===
-    dossier.statut_dossier = "valide"
-    dossier.save()
-    
-    # === 5. MISE À JOUR DE LA DEMANDE ET CRÉATION DE LA VENTE ===
-    if demande.financement_type == "externe":
-        if demande.financement_par == "fidelis":
-            demande.etape = "demande_accordee_fidelis"
-            partenaire = "Fidelis"
-        elif demande.financement_par == "alios":
-            demande.etape = "demande_accordee_alios"
-            partenaire = "Alios"
+    # ============================================================
+    # CONTEXTE 1 : DEMANDE DE FINANCEMENT
+    # ============================================================
+    if demande:
+        # Vérification du financement
+        if not demande.financement_type:
+            messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
+            return redirect("leads_app:detail-demande", demande.pk)
+        
+        if demande.financement_type == "externe" and not demande.financement_par:
+            messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
+            return redirect("leads_app:detail-demande", demande.pk)
+        
+        # Vérification : vente existante
+        if hasattr(demande, 'vente') and demande.vente:
+            messages.warning(request, "⚠️ Une vente est déjà enregistrée pour ce dossier.")
+            return redirect("leads_app:document-detail", dossier.pk)
+        
+        # ✅ Déterminer le partenaire et le statut
+        if demande.financement_type == "externe":
+            if demande.financement_par == "fidelis":
+                nouvelle_etape = "demande_accordee_fidelis"
+                partenaire = "Fidelis"
+            elif demande.financement_par == "alios":
+                nouvelle_etape = "demande_accordee_alios"
+                partenaire = "Alios"
+            else:
+                messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
+                return redirect("leads_app:document-detail", dossier.pk)
         else:
-            messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
-            return redirect("leads_app:document-detail", pk=dossier.pk)
-    else:  # financement_type == "maison"
-        demande.etape = "demande_accordee_maison"
-        partenaire = "KOZ Services (financement interne)"
-    
-    demande.save()
-    
-    # Création de la vente
-    Vente.objects.create(
-        client=demande.client,
-        demande_financement=demande,
-        statut='conclue',
-        montant=demande.Vehicul_interested.prix if demande.Vehicul_interested else 0
-    )
-    
-    # === 6. EMAIL AU CLIENT ===
-    try:
+            nouvelle_etape = "demande_accordee_maison"
+            partenaire = "KOZ Services (financement interne)"
+        
+        # ✅ CRÉER LA VENTE AVANT DE CHANGER LE STATUT
+        Vente.objects.create(
+            client=demande.client,
+            demande_financement=demande,
+            statut='conclue',
+            montant=demande.Vehicul_interested.prix if demande.Vehicul_interested else 0
+        )
+        
+        # ✅ Mettre à jour la demande
+        demande.etape = nouvelle_etape
+        demande.save()
+        
+        client = demande.client
         context_email = {
-            'client': demande.client,
+            'client': client,
             'demande_id': demande.id,
             'partenaire': partenaire,
-            'vehicule': demande.Vehicul_interested if demande.Vehicul_interested else "Véhicule sélectionné",
+            'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné",
             'montant_finance': demande.Vehicul_interested.prix if demande.Vehicul_interested else 0,
             'duree': demande.duree_mois,
             'lien_dossier': request.build_absolute_uri(
                 reverse("leads_app:document-detail", kwargs={"pk": dossier.pk})
             ),
         }
+    
+    # ============================================================
+    # CONTEXTE 2 : OFFRE DE FINANCEMENT
+    # ============================================================
+    elif offre:
+        # Vérification du financement
+        if not offre.financement_type:
+            messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement de l'offre.")
+            return redirect("commercial_app:offre-detail", offre.pk)
+        
+        if offre.financement_type == "externe" and not offre.financement_par:
+            messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
+            return redirect("commercial_app:offre-detail", offre.pk)
+        
+        # Vérification : vente existante
+        if hasattr(offre, 'vente') and offre.vente:
+            messages.warning(request, "⚠️ Une vente est déjà enregistrée pour cette offre.")
+            return redirect("leads_app:document-detail", dossier.pk)
+        
+        # ✅ Déterminer le partenaire et le statut
+        if offre.financement_type == "externe":
+            if offre.financement_par == "fidelis":
+                nouveau_statut = "offre_financement_fidelis"
+                partenaire = "Fidelis"
+            elif offre.financement_par == "alios":
+                nouveau_statut = "offre_financement_alios"
+                partenaire = "Alios"
+            else:
+                messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
+                return redirect("leads_app:document-detail", dossier.pk)
+        else:
+            nouveau_statut = "offre_financement_maison"
+            partenaire = "KOZ Services (financement interne)"
+        
+        # ✅ CRÉER LA VENTE AVANT DE CHANGER LE STATUT
+        Vente.objects.create(
+            client=offre.client,
+            offre_financement=offre,
+            statut='conclue_par_acceptation_offre_financement',
+            montant=offre.vehicule_propose.prix if offre.vehicule_propose else 0
+        )
+        
+        # ✅ Mettre à jour l'offre
+        offre.statut = nouveau_statut
+        offre.save()
+        
+        client = offre.client
+        context_email = {
+            'client': client,
+            'offre_id': offre.id,
+            'partenaire': partenaire,
+            'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+            'montant_finance': offre.vehicule_propose.prix if offre.vehicule_propose else 0,
+            'duree': offre.duree_mois,
+            'lien_dossier': request.build_absolute_uri(
+                reverse("leads_app:document-detail", kwargs={"pk": dossier.pk})
+            ),
+        }
+    
+    else:
+        messages.error(request, "❌ Aucune demande ni offre associée à ce dossier.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # ============================================================
+    # ✅ VALIDATION DU DOSSIER (APRÈS TOUTES LES CRÉATIONS)
+    # ============================================================
+    dossier.statut_dossier = "valide"
+    dossier.save()
+    
+    # ============================================================
+    # ENVOI DE L'EMAIL
+    # ============================================================
+    try:
         html_message = render_to_string('emails/documents/dossier_valide.html', context_email)
         plain_message = strip_tags(html_message)
         
@@ -643,7 +813,7 @@ def valide_dossier(request, dossier_id):
             subject="✅ Félicitations ! Votre financement est accepté - KOZ Services",
             message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[demande.client.email],
+            recipient_list=[client.email],
             html_message=html_message,
             fail_silently=False,
         )
@@ -659,67 +829,135 @@ def modifier_dossier(request, dossier_id):
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "Vous n'avez pas l'autorisation de modifier ce dossier.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        messages.error(request, "❌ Vous n'avez pas l'autorisation de modifier ce dossier.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
     
+    # Vérifier si le dossier peut être modifié
     if dossier.statut_dossier == "valide":
-        messages.warning(request, "Ce dossier a déjà été validé, vous ne pouvez pas demander de modifications.")
-    elif dossier.statut_dossier == "rejete":
-        messages.warning(request, "Ce dossier a été rejeté. Une nouvelle demande de financement est nécessaire.")
+        messages.warning(request, "⚠️ Ce dossier a déjà été validé, vous ne pouvez pas demander de modifications.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
+    
+    if dossier.statut_dossier == "rejete":
+        messages.warning(request, "⚠️ Ce dossier a été rejeté. Une nouvelle demande de financement est nécessaire.")
+        return redirect("leads_app:document-detail", pk=dossier.pk)
+    
+    # ✅ Mise à jour du statut
+    dossier.statut_dossier = "modification"
+    dossier.save()
+    
+    # ✅ Déterminer le contexte (demande ou offre)
+    demande = dossier.demande_financement
+    offre = dossier.offre_financement
+    
+    if demande:
+        contexte_nom = "demande de financement"
+        vehicule = str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné"
+        lien_demande_offre = request.build_absolute_uri(
+            reverse("leads_app:detail-demande", kwargs={"pk": demande.id})
+        )
+    elif offre:
+        contexte_nom = "offre de financement"
+        vehicule = str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné"
+        lien_demande_offre = request.build_absolute_uri(
+            reverse("commercial_app:offre-detail", kwargs={"pk": offre.id})
+        )
     else:
-        dossier.statut_dossier = "modification"
-        dossier.save()
-        messages.success(request, f"Une demande de modification a été envoyée à {dossier.client.nom_complet}.")
+        contexte_nom = "dossier"
+        vehicule = "Non renseigné"
+        lien_demande_offre = None
+    
+    messages.success(
+        request, 
+        f"✅ Une demande de modification a été envoyée à {dossier.client.nom_complet} pour son {contexte_nom}."
+    )
+    
+    # ✉️ EMAIL AU CLIENT
+    try:
+        context_email = {
+            'client': dossier.client,
+            'commercial': request.user,
+            'dossier_id': dossier.id,
+            'contexte': contexte_nom,
+            'vehicule': vehicule,
+            'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
+            'lien_dossier': request.build_absolute_uri(
+                reverse("leads_app:document-detail", kwargs={"pk": dossier.pk})
+            ),
+        }
+        html_message = render_to_string('emails/documents/demande_modification_documents.html', context_email)
+        plain_message = strip_tags(html_message)
         
-        # ✉️ Email au client
-        try:
-            context_email = {
-                'client': dossier.client,
-                'commercial': request.user,
-                'dossier_id': dossier.id,
-                'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
-                'lien_dossier': request.build_absolute_uri(reverse("leads_app:document-detail", kwargs={"pk":dossier.pk}))
-            }
-            html_message = render_to_string('emails/documents/demande_modification_documents.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="📝 Demande de modification de vos documents - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[dossier.client.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Erreur envoi email au client: {e}")
-        
-        # 💬 Message dans le chat interne
+        send_mail(
+            subject="📝 Demande de modification de vos documents - KOZ Services",
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[dossier.client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email au client: {e}")
+    
+    # 💬 MESSAGE DANS LE CHAT INTERNE
+    try:
         from chat_app.models import Message
+        
+        if demande:
+            message_contenu = (
+                f"📄 Demande de modification de vos documents pour la demande de financement "
+                f"du véhicule {vehicule}. Veuillez consulter votre espace client."
+            )
+        elif offre:
+            message_contenu = (
+                f"📄 Demande de modification de vos documents pour l'offre de financement "
+                f"n°{offre.id} (véhicule {vehicule}). Veuillez consulter votre espace client."
+            )
+        else:
+            message_contenu = (
+                f"📄 Demande de modification de vos documents pour votre dossier. "
+                f"Veuillez consulter votre espace client."
+            )
+        
         Message.objects.create(
             client=dossier.client,
             commercial=request.user,
-            contenu=f"📄 Demande de modification de vos documents pour la demande de financement:  {dossier.demande_financement.Vehicul_interested.modele}. Veuillez consulter votre espace client.",
+            contenu=message_contenu,
             est_client=False,
         )
+    except Exception as e:
+        print(f"Erreur création message chat: {e}")
     
     return redirect("leads_app:document-detail", dossier.pk)
 
 @login_required
 def rejete_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
-    demande = dossier.demande_financement
     
+    # Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "❌ Vous n'avez pas l'autorisation de rejeter ce dossier.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Vérifier si le dossier peut être rejeté
     if dossier.statut_dossier == "rejete":
-        messages.info(request, "Ce dossier est déjà rejeté.")
+        messages.info(request, "ℹ️ Ce dossier est déjà rejeté.")
+        return redirect("leads_app:document-detail", dossier.pk)
     
-    elif dossier.statut_dossier == "valide":
-        messages.warning(request, "Ce dossier a été validé, vous ne pouvez pas le rejeter.")
+    if dossier.statut_dossier == "valide":
+        messages.warning(request, "⚠️ Ce dossier a été validé, vous ne pouvez pas le rejeter.")
+        return redirect("leads_app:document-detail", dossier.pk)
     
-    else:
-        # Récupérer le motif de rejet (depuis le formulaire)
-        motif_rejet = request.POST.get('motif_rejet', 'Non conforme aux critères de financement')
-        
+    # Récupérer le motif de rejet (depuis le formulaire)
+    motif_rejet = request.POST.get('motif_rejet', 'Non conforme aux critères de financement')
+    
+    # ✅ Déterminer le contexte (demande ou offre)
+    demande = dossier.demande_financement
+    offre = dossier.offre_financement
+    
+    # ============================================================
+    # CONTEXTE 1 : DEMANDE DE FINANCEMENT
+    # ============================================================
+    if demande:
         # 1️⃣ Rejeter le dossier
         dossier.statut_dossier = "rejete"
         dossier.commentaire_rejet = motif_rejet
@@ -732,126 +970,260 @@ def rejete_dossier(request, dossier_id):
         # 3️⃣ Si une vente existait, la passer en "perdue"
         vente = getattr(demande, 'vente', None)
         if vente:
-            vente.statut = 'perdue'
+            vente.statut = 'perdue_par_rejet_dossier_demande_financement'
             vente.save()
             messages.info(request, "La vente associée a été marquée comme perdue.")
-        # ✉️ Email au client
-        try:
-            context_email = {
-                'client': demande.client,
-                'dossier_id': dossier.id,
-                'demande_id': demande.id,
-                'motif_rejet': motif_rejet,
-                'commercial': request.user,
-                'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
-            }
-            html_message = render_to_string('emails/documents/dossier_rejete.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="❌ Votre dossier a été rejeté - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[demande.client.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Erreur envoi email au client: {e}")
         
-        messages.success(request, "Dossier rejeté. Demande marquée comme refusée. Un email a été envoyé au client.")
+        
+        # 5️⃣ Contexte pour l'email
+        contexte_nom = "demande de financement"
+        contexte_id = demande.id
+        contexte_type = "demande"
+        client = demande.client
+        
+        # 6️⃣ Message de succès
+        messages.success(request, "✅ Dossier rejeté. Demande marquée comme refusée. Un email a été envoyé au client.")
     
-    return redirect("leads_app:document-detail", dossier.pk)
+    # ============================================================
+    # CONTEXTE 2 : OFFRE DE FINANCEMENT
+    # ============================================================
+    elif offre:
+        # 1️⃣ Rejeter le dossier
+        dossier.statut_dossier = "rejete"
+        dossier.commentaire_rejet = motif_rejet
+        dossier.save()
+        
+        # 2️⃣ Mettre à jour le statut de l'offre
+        offre.statut = 'offre_document_rejete'
+        offre.save()
+        
+        # 3️⃣ Si une vente existait, la passer en "perdue"
+        vente = getattr(offre, 'vente', None)
+        if vente:
+            vente.statut = 'perdue_par_rejet_dossier_offre_financement'
+            vente.save()
+            messages.info(request, "La vente associée a été marquée comme perdue.")
+        
+        # 4️⃣ Contexte pour l'email
+        contexte_nom = "offre de financement"
+        contexte_id = offre.id
+        contexte_type = "offre"
+        client = offre.client
+        
+        # 5️⃣ Message de succès
+        messages.success(request, "✅ Dossier rejeté. Offre marquée comme refusée. Un email a été envoyé au client.")
+    
+    else:
+        messages.error(request, "❌ Aucune demande ni offre associée à ce dossier.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # ============================================================
+    # ENVOI DE L'EMAIL
+    # ============================================================
+    try:
+        context_email = {
+            'client': client,
+            'dossier_id': dossier.id,
+            'contexte_nom': contexte_nom,
+            'contexte_id': contexte_id,
+            'contexte_type': contexte_type,
+            'motif_rejet': motif_rejet,
+            'commercial': request.user,
+            'lien_chat': request.build_absolute_uri(reverse("chat_app:chat-view")),
+        }
+        html_message = render_to_string('emails/documents/dossier_rejete.html', context_email)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject="❌ Votre dossier a été rejeté - KOZ Services",
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email au client: {e}")
+    
+    # 💬 MESSAGE DANS LE CHAT INTERNE
+    try:
+        from chat_app.models import Message
+        Message.objects.create(
+            client=client,
+            commercial=request.user,
+            contenu=f"❌ Votre {contexte_nom} (n°{contexte_id}) a été rejetée. Motif : {motif_rejet}. N'hésitez pas à discuter avec nous via le chat.",
+            est_client=False,
+        )
+    except Exception as e:
+        print(f"Erreur création message chat: {e}")
+    
+    return redirect("leads_app:document-detail", pk=dossier.pk)
 
 @login_required
 def verifier_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)
     
+    # Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "❌ Vous n'avez pas l'autorisation de mettre ce dossier en vérification.")
+        return redirect("leads_app:document-detail", dossier.pk)
+    
+    # Vérifier si le dossier peut être mis en vérification
     if dossier.statut_dossier == "verification":
-        messages.info(request, "Ce dossier est déjà en cours de vérification.")
+        messages.info(request, "ℹ️ Ce dossier est déjà en cours de vérification.")
+        return redirect("leads_app:document-detail", dossier.pk)
     
-    elif dossier.statut_dossier == "valide":
-        messages.warning(request, "Ce dossier a été validé, vous ne pouvez pas le mettre en vérification.")
+    if dossier.statut_dossier == "valide":
+        messages.warning(request, "⚠️ Ce dossier a été validé, vous ne pouvez pas le mettre en vérification.")
+        return redirect("leads_app:document-detail", dossier.pk)
     
-    elif dossier.statut_dossier == "rejete":
-        messages.warning(request, "Ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification.")
+    if dossier.statut_dossier == "rejete":
+        messages.warning(request, "⚠️ Ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification.")
+        return redirect("leads_app:document-detail", dossier.pk)
     
+    # ✅ Mise à jour du statut
+    dossier.statut_dossier = "verification"
+    dossier.save()
+    messages.success(request, "✅ Ce dossier est désormais en cours de vérification.")
+    
+    # ✅ Déterminer le contexte (demande ou offre)
+    demande = dossier.demande_financement
+    offre = dossier.offre_financement
+    
+    if demande:
+        contexte_nom = "demande de financement"
+        contexte_id = demande.id
+        vehicule = str(demande.Vehicul_interested) if demande.Vehicul_interested else "Véhicule sélectionné"
+    elif offre:
+        contexte_nom = "offre de financement"
+        contexte_id = offre.id
+        vehicule = str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné"
     else:
-        dossier.statut_dossier = "verification"
-        dossier.save()
-        messages.success(request, "Ce dossier est désormais en cours de vérification.")
-        
-        # ✉️ Email au client
-        try:
-            context_email = {
-                'client': dossier.client,
-                'dossier_id': dossier.id,
-                'demande': dossier.demande_financement,
-                'lien_suivi': request.build_absolute_uri(reverse('leads_app:document-detail', kwargs={"pk":dossier.pk})),
-            }
-            html_message = render_to_string('emails/documents/dossier_verification.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="🔄 Votre dossier est en cours de vérification - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[dossier.client.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
-        except Exception as e:
-            print(f"Erreur envoi email au client: {e}")
+        contexte_nom = "dossier"
+        contexte_id = None
+        vehicule = "Non renseigné"
     
-    return redirect("leads_app:document-detail", dossier.pk)
+    # ✉️ EMAIL AU CLIENT
+    try:
+        context_email = {
+            'client': dossier.client,
+            'dossier_id': dossier.id,
+            'contexte_nom': contexte_nom,
+            'contexte_id': contexte_id,
+            'vehicule': vehicule,
+            'lien_suivi': request.build_absolute_uri(
+                reverse('leads_app:document-detail', kwargs={"pk": dossier.pk})
+            ),
+        }
+        html_message = render_to_string('emails/documents/dossier_verification.html', context_email)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            subject="🔄 Votre dossier est en cours de vérification - KOZ Services",
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[dossier.client.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+    except Exception as e:
+        print(f"Erreur envoi email au client: {e}")
+    
+    return redirect("leads_app:document-detail", pk=dossier.pk)
        
 @login_required
 def reverifier_document(request, dossier_id):
     """
     Remet un dossier en vérification (après correction par le client)
-    Utilisable uniquement pour les dossiers liés à une demande
+    Utilisable pour les dossiers liés à une demande OU à une offre
     """
     dossier = get_object_or_404(Documents, id=dossier_id)
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "Action non autorisée.")
+        messages.error(request, "❌ Action non autorisée.")
         return redirect("leads_app:document-detail", dossier.pk)
     
-    # Vérifier que le dossier est lié à une demande (pas à une offre simple)
-    if not dossier.demande_financement:
-        messages.error(request, "Cette action n'est disponible que pour les dossiers liés à une demande de financement.")
+    # Vérifier que le dossier a un contexte (demande ou offre)
+    demande = dossier.demande_financement
+    offre = dossier.offre_financement
+    
+    if not demande and not offre:
+        messages.error(request, "❌ Cette action n'est disponible que pour les dossiers liés à une demande ou une offre de financement.")
         return redirect("leads_app:document-detail", dossier.pk)
     
     # Vérifier que le dossier est dans un état valide pour être revérifié
     if dossier.statut_dossier not in ['rejete', 'modification']:
-        messages.warning(request, "Ce dossier ne peut pas être remis en vérification.")
+        messages.warning(request, "⚠️ Ce dossier ne peut pas être remis en vérification.")
         return redirect("leads_app:document-detail", dossier.pk)
     
-    # Remettre en vérification
+    # ✅ Remettre en vérification
     dossier.statut_dossier = "verification"
     dossier.commentaire_rejet = ""  # Effacer le commentaire de rejet
     dossier.save()
     
-    # Mettre à jour l'étape de la demande si nécessaire
-    demande = dossier.demande_financement
-    if demande and demande.etape in ['demand_refusee']:
-        demande.etape = "en_cours"
-        demande.save()
+    # ✅ Mettre à jour le contexte selon le type
+    if demande:
+        contexte_nom = "demande de financement"
+        contexte_id = demande.id
+        if demande.etape in ['demand_refusee']:
+            demande.etape = "en_cours"
+            demande.save()
+    elif offre:
+        contexte_nom = "offre de financement"
+        contexte_id = offre.id
+        if offre.statut in ['refusee', 'expiree',"offre_document_rejete"]:
+            offre.statut = "envoyee"
+            offre.save()
+    else:
+        contexte_nom = "dossier"
+        contexte_id = None
     
-    # ✉️ Email au client
+    # ✅ Déterminer le message de succès
+    if demande:
+        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour sa demande n°{demande.id}.")
+    elif offre:
+        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour son offre n°{offre.id}.")
+    else:
+        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification.")
+    
+    # ✉️ EMAIL AU CLIENT
     try:
+        context_email = {
+            'client': dossier.client,
+            'dossier_id': dossier.id,
+            'contexte_nom': contexte_nom,
+            'contexte_id': contexte_id,
+            'lien_dossier': request.build_absolute_uri(
+                reverse("leads_app:document-detail", kwargs={"pk": dossier.pk})
+            ),
+        }
+        html_message = render_to_string('emails/documents/dossier_reverification.html', context_email)
+        plain_message = strip_tags(html_message)
+        
         send_mail(
             subject="🔄 Votre dossier est à nouveau en vérification - KOZ Services",
-            message=f"Bonjour {dossier.client.nom_complet},\n\nVotre dossier a été remis en vérification. Nous vous tiendrons informé.",
+            message=plain_message,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[dossier.client.email],
+            html_message=html_message,
             fail_silently=False,
         )
     except Exception as e:
-        print(f"Erreur envoi email: {e}")
+        print(f"Erreur envoi email au client: {e}")
     
-    messages.success(request, f"Le dossier de {dossier.client.nom_complet} est à nouveau en vérification.")
+    # 💬 MESSAGE DANS LE CHAT INTERNE
+    try:
+        from chat_app.models import Message
+        Message.objects.create(
+            client=dossier.client,
+            commercial=request.user,
+            contenu=f"🔄 Votre {contexte_nom} (n°{contexte_id}) a été remise en vérification. Merci de votre diligence.",
+            est_client=False,
+        )
+    except Exception as e:
+        print(f"Erreur création message chat: {e}")
+    
     return redirect("leads_app:document-detail", dossier.pk)
 
 class DocumentListView(LoginRequiredMixin, ListView):
@@ -882,7 +1254,7 @@ class DocumentListView(LoginRequiredMixin, ListView):
             return Documents.objects.all().order_by("-date_upload")
         
         if user.is_staff or user.role == "commercial":
-            return Documents.objects.filter(client__in=user.clients_assignes.all()).order_by("-date_upload")
+            return Documents.objects.all().order_by("-date_upload")
         
         if user.role == "client":
             return Documents.objects.filter(client=user).order_by("-date_upload")

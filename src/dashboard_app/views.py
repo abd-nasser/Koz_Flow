@@ -33,7 +33,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_superuser or self.request.user.role == "directeur":
+        if self.request.user.is_superuser or self.request.user.role == "directeur" or self.request.user.is_staff:
             
             # 📊 KPI Clients
             total_clients = kozUser.objects.filter(role='client').count()
@@ -332,165 +332,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
                 'maintenances_en_cours_queryset': maintenances_en_cours_queryset
             })
             
-        elif self.request.user.role == "commercial" or self.request.user.is_staff:
-    
-            # 📊 Clients du commercial
-            clients = kozUser.objects.filter(role='client', assigned_commercial=self.request.user)
-            
-            total_clients = clients.count()
-            nb_clients_jour = clients.filter(date_inscription__date=datetime.now().date()).count()
-            nb_clients_semaine = clients.filter(date_inscription__date__gte=datetime.now().date() - timedelta(days=7)).count()
-            nb_clients_mois = clients.filter(date_inscription__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            
-            # Clients avec demande de financement
-            clients_avec_demande = clients.filter(demande_financement__isnull=False).distinct().count()
-            
-            # Clients avec offre acceptée
-            clients_avec_offre = clients.filter(offres__statut='acceptee').count()
-            
-            # Taux de conversion
-            taux_conversion = (clients_avec_offre / total_clients * 100) if total_clients > 0 else 0
-            
-            # Top 5 clients
-            top_clients = clients.filter(offres__statut='acceptee').annotate(
-                montant_total=Sum('offres__montant_finance')
-            ).order_by('-montant_total')[:5]
-            
-            context.update({
-                'total_clients': total_clients,
-                'nb_clients_jour': nb_clients_jour,
-                'nb_clients_semaine': nb_clients_semaine,
-                'nb_clients_mois': nb_clients_mois,
-                'clients_avec_demande': clients_avec_demande,
-                'clients_avec_offre': clients_avec_offre,
-                'taux_conversion': taux_conversion,
-                'top_clients': top_clients,
-            })
-            
-            #######################################"" 📊 KPI DEMANDE_FINANCEMENT########################################
-            #######################################📊 KPI DEMANDE_FINANCEMENT########################################
-            total_demandes = demande_financement.objects.filter(client__assigned_commercial=self.request.user).count()
-            demandes_jour = demande_financement.objects.filter(client__assigned_commercial=self.request.user, date_creation__date=datetime.now().date()).count()
-            demandes_semaine = demande_financement.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=7)).count()
-            demandes_mois = demande_financement.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            demandes_accorder_fidelis = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='accordee_fidelis', financement_type="externe").count()
-            demandes_accorder_alios = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='accordee_alios', financement_type="externe").count()
-            demandes_accorder_maison = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='accordee_maison', financement_type="maison").count()
-            demandes_refuser = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='refusee').count()
-            demandes_en_cours = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='en_cours').count()
-            demandes_en_attente = demande_financement.objects.filter(client__assigned_commercial=self.request.user, etape='en_attente').count()
-            taux_accord_fidelis = ((demandes_accorder_fidelis) / total_demandes * 100) if total_demandes > 0 else 0
-            taux_accord_alios = ((demandes_accorder_alios) / total_demandes * 100) if total_demandes > 0 else 0
-            taux_accord_externe = ((demandes_accorder_fidelis + demandes_accorder_alios) / total_demandes * 100) if total_demandes > 0 else 0
-            taux_accord_maison = ((demandes_accorder_maison) / total_demandes * 100) if total_demandes > 0 else 0
-
-            context.update({
-                'total_demandes': total_demandes,
-                'demandes_jour': demandes_jour,
-                'demandes_semaine': demandes_semaine,
-                'demandes_mois': demandes_mois,
-                'demandes_accorder_fidelis': demandes_accorder_fidelis,
-                'demandes_accorder_alios': demandes_accorder_alios,
-                'demandes_accorder_maison': demandes_accorder_maison,
-                'demandes_refuser': demandes_refuser,
-                'demandes_en_cours': demandes_en_cours,
-                'demandes_en_attente': demandes_en_attente,
-                'taux_accord_fidelis': taux_accord_fidelis,
-                'taux_accord_alios': taux_accord_alios,
-                'taux_accord_externe': taux_accord_externe,
-                'taux_accord_maison': taux_accord_maison,
-            })
-            
-            ############################################"KPI DOCUMENTS"########################################
-            total_dossiers = Documents.objects.filter(client__assigned_commercial=self.request.user).count()
-            dossiers_jour = Documents.objects.filter(client__assigned_commercial=self.request.user, date_upload__date=datetime.now().date()).count()
-            dossiers_semaine = Documents.objects.filter(client__assigned_commercial=self.request.user, date_upload__date__gte=datetime.now().date() - timedelta(days=7)).count()
-            dossiers_mois = Documents.objects.filter(client__assigned_commercial=self.request.user, date_upload__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            dossier_vide = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='vide').count()
-            dossier_incomplet = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='incomplet').count()
-            dossier_complet = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='complet').count()
-            dossier_en_verification = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='verification').count()
-            dossier_rejete = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='rejete').count()
-            dossier_valide = Documents.objects.filter(client__assigned_commercial=self.request.user, statut_dossier='valide').count()
-            taux_dossier_valide = ((dossier_valide) / total_dossiers * 100) if total_dossiers > 0 else 0
-            taux_dossier_rejete = ((dossier_rejete) / total_dossiers * 100) if total_dossiers > 0 else 0
-            taux_dossier_en_verification = ((dossier_en_verification) / total_dossiers * 100) if total_dossiers > 0 else 0
-            context.update({
-                'total_dossiers': total_dossiers,
-                'dossiers_jour': dossiers_jour,
-                'dossiers_semaine': dossiers_semaine,
-                'dossiers_mois': dossiers_mois,
-                'dossier_vide': dossier_vide,
-                'dossier_incomplet': dossier_incomplet,
-                'dossier_complet': dossier_complet,
-                'dossier_en_verification': dossier_en_verification,
-                'dossier_rejete': dossier_rejete,
-                'dossier_valide': dossier_valide,
-                'taux_dossier_valide': taux_dossier_valide,
-                'taux_dossier_rejete': taux_dossier_rejete,
-                'taux_dossier_en_verification': taux_dossier_en_verification,
-            })
-            
-            #########################################"KPI OFFRES"########################################
-            total_offres = Offre.objects.filter(client__assigned_commercial=self.request.user).count()
-            offres_jour = Offre.objects.filter(client__assigned_commercial=self.request.user, date_creation__date=datetime.now().date()).count()
-            offres_semaine = Offre.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=7)).count()
-            offres_mois = Offre.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            offres_brouillon = Offre.objects.filter(client__assigned_commercial=self.request.user, statut='brouillon').count()
-            offres_envoyee = Offre.objects.filter(client__assigned_commercial=self.request.user, statut='envoyee').count()
-            offres_acceptee = Offre.objects.filter(client__assigned_commercial=self.request.user, statut='acceptee').count()
-            offres_refusee = Offre.objects.filter(client__assigned_commercial=self.request.user, statut='refusee').count()
-            offres_expiree = Offre.objects.filter(client__assigned_commercial=self.request.user, statut='expiree').count()
-            taux_offre_acceptee = ((offres_acceptee) / total_offres * 100) if total_offres > 0 else 0
-            taux_offre_refusee = ((offres_refusee) / total_offres * 100) if total_offres > 0 else 0
-            taux_offre_expiree = ((offres_expiree) / total_offres * 100) if total_offres > 0 else 0
-            context.update({
-                'total_offres': total_offres,
-                'offres_jour': offres_jour,
-                'offres_semaine': offres_semaine,
-                'offres_mois': offres_mois,
-                'offres_brouillon': offres_brouillon,
-                'offres_envoyee': offres_envoyee,
-                'offres_acceptee': offres_acceptee,
-                'offres_refusee': offres_refusee,
-                'offres_expiree': offres_expiree,
-                'taux_offre_acceptee': taux_offre_acceptee,
-                'taux_offre_refusee': taux_offre_refusee,
-                'taux_offre_expiree': taux_offre_expiree,})
-            
-            
-            #########################################"KPI MAINTENANCE"########################################
-            total_maintenances = Maintenance.objects.filter(client__assigned_commercial=self.request.user).count()
-            maintenances_jour = Maintenance.objects.filter(client__assigned_commercial=self.request.user, date_creation__date=datetime.now().date()).count()
-            maintenances_semaine = Maintenance.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=7)).count()
-            maintenances_mois = Maintenance.objects.filter(client__assigned_commercial=self.request.user, date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            maintenances_effectuee = Maintenance.objects.filter(client__assigned_commercial=self.request.user, statut='effectuee').count()
-            maintenances_annulee = Maintenance.objects.filter(client__assigned_commercial=self.request.user, statut='annulee').count()
-            maintenances_acceptee = Maintenance.objects.filter(client__assigned_commercial=self.request.user, statut='confirme').count()
-            maintenances_planifiee = Maintenance.objects.filter(client__assigned_commercial=self.request.user, statut='planifiee').count()
-            maintenances_en_cours = Maintenance.objects.filter(client__assigned_commercial=self.request.user, statut='en_cours').count()
-            taux_maintenance_effectuee = ((maintenances_effectuee) / total_maintenances * 100) if total_maintenances > 0 else 0
-            taux_maintenance_annulee = ((maintenances_annulee) / total_maintenances * 100) if total_maintenances > 0 else 0
-            taux_maintenance_acceptee = ((maintenances_acceptee) / total_maintenances * 100) if total_maintenances > 0 else 0
-            taux_maintenance_planifiee = ((maintenances_planifiee) / total_maintenances * 100) if total_maintenances > 0 else 0
-            taux_maintenance_en_cours = ((maintenances_en_cours) / total_maintenances * 100) if total_maintenances > 0 else 0
-            context.update({
-                'total_maintenances': total_maintenances,
-                'maintenances_jour': maintenances_jour,
-                'maintenances_semaine': maintenances_semaine,
-                'maintenances_mois': maintenances_mois,
-                'maintenances_effectuee': maintenances_effectuee,
-                'maintenances_annulee': maintenances_annulee,
-                'maintenances_acceptee': maintenances_acceptee,
-                'maintenances_planifiee': maintenances_planifiee,
-                'maintenances_en_cours': maintenances_en_cours,
-                'taux_maintenance_effectuee': taux_maintenance_effectuee,
-                'taux_maintenance_annulee': taux_maintenance_annulee,
-                'taux_maintenance_acceptee': taux_maintenance_acceptee,
-                'taux_maintenance_planifiee': taux_maintenance_planifiee,
-                'taux_maintenance_en_cours': taux_maintenance_en_cours,})
-            
-            
+       
         # Tu peux copier-coller les mêmes blocs que pour le directeur
         # pour demandes, offres, documents, maintenances
         # en ajoutant à chaque fois .filter(client__assigned_commercial=self.request.user)
@@ -498,13 +340,10 @@ class DashboardView(LoginRequiredMixin,TemplateView):
      
      
      
-# 📊 CHART LINE : Évolution du CA par type de vente
-# ============================================
-# Ce graphique montre l'évolution du chiffre d'affaires sur une période
-# avec 4 courbes : Fidelis, Alios, KOZ Finance (maison), Paiement cash
-# --------------------------------
-# 1. Définition des périodes disponibles
-# --------------------------------
+        # 📊 CHART LINE : Évolution du CA par type de vente
+        # ============================================================
+        # 1. Définition des périodes
+        # ============================================================
         now = timezone.now()
         periods = {
             '1j': now - timedelta(days=1),
@@ -513,26 +352,29 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             '1y': now - timedelta(days=365),
         }
 
-        # --------------------------------
+        # ============================================================
         # 2. Période sélectionnée
-        # --------------------------------
+        # ============================================================
         selected_period = self.request.GET.get('period', '1m')
         start_date = periods.get(selected_period, periods['1m'])
 
-        # --------------------------------
+        # ============================================================
         # 3. Récupération des ventes conclues
-        # --------------------------------
+        # ============================================================
         ventes = Vente.objects.filter(
-            statut__in=["conclue_par_offre_acceptee", "conclue"],
+            statut__in=[
+                "conclue",
+                "conclue_par_acceptation_offre_simple",
+                "conclue_par_acceptation_offre_financement"
+            ],
             date_vente__gte=start_date
-        ).select_related('demande_financement')
+        ).select_related('demande_financement', 'offre_financement')
 
-       
-        # --------------------------------
+        # ============================================================
         # 4. Regroupement des données
-        # --------------------------------
+        # ============================================================
         if selected_period == '1y':
-            # ---------- Cas : Période 1 an (par MOIS) ----------
+            # ---------- Période 1 an → par MOIS ----------
             ventes_par_mois = {}
             
             for vente in ventes:
@@ -546,16 +388,16 @@ class DashboardView(LoginRequiredMixin,TemplateView):
                         'cash': 0
                     }
                 
-                if vente.demande_financement is None:
+                # ✅ Utiliser la propriété type_vente
+                type_vente = vente.type_vente
+                if type_vente == 'externe_fidelis':
+                    ventes_par_mois[mois]['fidelis'] += int(vente.montant)
+                elif type_vente == 'externe_alios':
+                    ventes_par_mois[mois]['alios'] += int(vente.montant)
+                elif type_vente == 'maison':
+                    ventes_par_mois[mois]['maison'] += int(vente.montant)
+                elif type_vente == 'cash':
                     ventes_par_mois[mois]['cash'] += int(vente.montant)
-                else:
-                    df = vente.demande_financement
-                    if df.financement_type == 'externe' and df.financement_par == 'fidelis':
-                        ventes_par_mois[mois]['fidelis'] += int(vente.montant)
-                    elif df.financement_type == 'externe' and df.financement_par == 'alios':
-                        ventes_par_mois[mois]['alios'] += int(vente.montant)
-                    elif df.financement_type == 'maison':
-                        ventes_par_mois[mois]['maison'] += int(vente.montant)
             
             labels = list(ventes_par_mois.keys())
             context['chart_labels'] = json.dumps(labels)
@@ -566,7 +408,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             context['selected_period'] = selected_period
 
         else:
-            # ---------- Cas : Période courte (par JOUR) ----------
+            # ---------- Période courte → par JOUR ----------
             ventes_par_jour = {}
             
             for vente in ventes:
@@ -580,16 +422,16 @@ class DashboardView(LoginRequiredMixin,TemplateView):
                         'cash': 0
                     }
                 
-                if vente.demande_financement is None:
+                # ✅ Utiliser la propriété type_vente
+                type_vente = vente.type_vente
+                if type_vente == 'externe_fidelis':
+                    ventes_par_jour[jour]['fidelis'] += int(vente.montant)
+                elif type_vente == 'externe_alios':
+                    ventes_par_jour[jour]['alios'] += int(vente.montant)
+                elif type_vente == 'maison':
+                    ventes_par_jour[jour]['maison'] += int(vente.montant)
+                elif type_vente == 'cash':
                     ventes_par_jour[jour]['cash'] += int(vente.montant)
-                else:
-                    df = vente.demande_financement
-                    if df.financement_type == 'externe' and df.financement_par == 'fidelis':
-                        ventes_par_jour[jour]['fidelis'] += int(vente.montant)
-                    elif df.financement_type == 'externe' and df.financement_par == 'alios':
-                        ventes_par_jour[jour]['alios'] += int(vente.montant)
-                    elif df.financement_type == 'maison':
-                        ventes_par_jour[jour]['maison'] += int(vente.montant)
             
             labels = list(ventes_par_jour.keys())
             context['chart_labels'] = json.dumps(labels)
@@ -598,13 +440,20 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             context['chart_maison'] = json.dumps([ventes_par_jour[j]['maison'] for j in labels])
             context['chart_cash'] = json.dumps([ventes_par_jour[j]['cash'] for j in labels])
             context['selected_period'] = selected_period
-            
-            #TOTAL CA et Nombre de vente
-            stats = Vente.objects.filter(statut__in=["conclue_par_offre_acceptee", "conclue"], date_vente__gte=start_date).select_related("demande_financement").aggregate(total=Sum("montant"),
-                                                                                                         nombre = Count("id")
-                                                                                                         )
-            context["total_ca"] = stats["total"] or 0
-            context["nb_ventes"] = stats['nombre']
+
+        # ============================================================
+        # 5. Statistiques globales
+        # ============================================================
+        stats = Vente.objects.filter(
+            statut__in=["conclue", "conclue_par_acceptation_offre_simple", "conclue_par_acceptation_offre_financement"],
+            date_vente__gte=start_date
+        ).aggregate(
+            total=Sum("montant"),
+            nombre=Count("id")
+        )
+
+        context["total_ca"] = stats["total"] or 0
+        context["nb_ventes"] = stats["nombre"]
 
         return context
                 
@@ -616,7 +465,6 @@ class DashboardView(LoginRequiredMixin,TemplateView):
 class ListeFiltreeView(ListView):
     template_name = 'dashboard_templates/liste_filtree.html'
     context_object_name = 'items'
-    paginate_by = 10  # Nombre d'éléments par page
     
     def _parse_filter_value(self, filter_nom, filter_valeur):
         if isinstance(filter_valeur, str):
@@ -639,32 +487,32 @@ class ListeFiltreeView(ListView):
         user = self.request.user
         
         # Base queryset selon le modèle
-        if model_name in ('offre', 'offres'):
+        if model_name == 'offres':
             queryset = Offre.objects.filter(**{filter_nom: filter_valeur})
             
             # 👇 AJOUTE ÇA
-            if user.role == 'commercial' or user.is_staff:
-                queryset = queryset.filter(client__assigned_commercial=user)
+            #if user.role == 'commercial' or user.is_staff:
+                #queryset = queryset.filter(client__assigned_commercial=user)
             # Pour le directeur, on garde tout
             
             return queryset
         
         if model_name == 'demande_financement':
             queryset = demande_financement.objects.filter(**{filter_nom: filter_valeur})
-            if user.role == 'commercial' or user.is_staff:
-                queryset = queryset.filter(client__assigned_commercial=user)
+            #if user.role == 'commercial' or user.is_staff:
+                #queryset = queryset.filter(client__assigned_commercial=user)
             return queryset
         
         if model_name == 'documents':
             queryset = Documents.objects.filter(**{filter_nom: filter_valeur})
-            if user.role == 'commercial' or user.is_staff:
-                queryset = queryset.filter(client__assigned_commercial=user)
+           # if user.role == 'commercial' or user.is_staff:
+                #queryset = queryset.filter(client__assigned_commercial=user)
             return queryset
         
         if model_name == 'maintenance':
             queryset = Maintenance.objects.filter(**{filter_nom: filter_valeur})
-            if user.role == 'commercial' or user.is_staff:
-                queryset = queryset.filter(client__assigned_commercial=user)
+           # if user.role == 'commercial' or user.is_staff:
+              #  queryset = queryset.filter(client__assigned_commercial=user)
             return queryset
         
         if model_name in  ['client', "clients"]:
