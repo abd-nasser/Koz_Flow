@@ -8,9 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     {% tailwind_css %}
     <title>KOZ Services - Votre voiture à crédit, vos pièces en ligne</title>
-    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css" />
     <link rel="stylesheet" href="{% static 'css/home/home_style.css' %}">
+    <script scr="{% static 'js/home/gsap.js' %}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+
+
 </head>
 <body>
 
@@ -94,20 +102,20 @@
 <section class="hero-section  relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
     
     <!-- ===== CONTENU PRINCIPAL ===== -->
-    <div class="container mx-auto px-4 text-center text-white relative z-10">
+    <div class="container fade-hero-contain mx-auto px-4 text-center text-white relative z-10">
         <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
             Votre voiture à crédit.<br>
             <span class="text-blue-200">Vos pièces en ligne.</span>
         </h1>
         <p class="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto mb-8">
-            KOZ Services vous accompagne dans l'achat de votre véhicule...
+            KOZ Services n'achetez pas une auto, changer votre vie
         </p>
         <div class="flex flex-wrap justify-center gap-4">
             <a href="#" class="btn btn-white btn-lg text-blue-700 hover:bg-blue-50 shadow-lg">
-                Découvrir le catalogue
+                Découvrir nos offres
             </a>
             <a href="#" class="btn btn-outline trigger-box btn-lg text-white border-white/50 hover:bg-white/10">
-                Demander un financement
+                Financer mon auto
             </a>
         </div>
     </div>
@@ -117,22 +125,32 @@
     <div class="trois_box">
         
   <!-- Box 1 : gauche -->
-        <a href="#" class="box box-left">
-            <div class="box-icon"><i class="fas fa-car"></i></div>
-            <h4 class="box-title">Véhicules de qualité</h4>
+        <a href="#"  class="box box-left">
+            <div class="box-icon"><i class="fas fa-calendar-check"></i></div>
+            <h1 class="box-title">Prendre un rendez vous</h1>
             <p class="box-text">
-                Des voitures rigoureusement sélectionnées, avec un accompagnement personnalisé pour chaque client.
+                Acheter une voiture est une décision importante. <br>
+                avec <strong class= "text-indigo-950">KOZ SERVICES</strong>, évitez les mauvaises surprises <br>
+                grace à notre expertise automobible.
             </p>
+           
         </a>
 
 
         <!-- Box 2 : droite -->
         <a href="#" class="box box-right">
             <div class="box-icon"><i class='fas fa-hand-holding-usd' style='font-size:36px'></i></div>
-            <h4 class="box-title">Financement simple</h4>
+            <h4 class="box-title">Financement Flexible !</h4>
             <p class="box-text">
-                Crédit sans banque, dossiers simplifiés, réponses rapides. Obtenez votre véhicule en toute sérénité.
+                <i class="fas fa-check"></i><strong class= "text-indigo-950">Paiement</strong> en plusieurs fois <br>
+                <i class="fas fa-check"></i>Adapté à votre budget
             </p>
+             <p class="box-text">
+                Decouvrez tout sur les <br>
+               <strong><em  class= "text-indigo-950">Demandes</em></strong> et <strong><em  class= "text-indigo-950">offres</em></strong> <br> 
+               de financement
+            </p>
+
         </a>
 
         <!-- Box 3 : bas -->
@@ -152,75 +170,82 @@
 <!-- ========== CONTENU SUIVANT (scrollable) ========== -->
 <div class="relative z-10 pin pin-trigger bg-white">
 
-    <!-- ========== SECTION ACTUALITÉS (style Mercedes) ========== -->
-<section class="py-16 pin fade-section-actualité bg-gray-50" >
-    <div class="container pin mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Actualités KOZ Services</h2>
-            <p class="text-gray-500 mt-2">Découvrez nos dernières nouveautés et offres</p>
-        </div>
-
-        <div class="actualite-containt" >
-            {% for vehicule in vehicules_vendette %}
-                {% if vehicule.actualite %}
-                    
-                        <!-- Image (avec fallback) -->
-                        <div class="campaign-image campaign-card overflow-hidden h-64 md:h-72">
-                            <img src="
-                                {% if vehicule.image_principale %}
-                                    {{ vehicule.image_principale.url }}
-                                {% elif vehicule.images.all %}
-                                    {{ vehicule.images.first.image.url }}
-                                {% else %}
-                                    {% static 'images/placeholder-vehicule.jpg' %}
-                                {% endif %}
-                            " alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}" 
-                               class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
-                        </div>
-                        
-                        <!-- Overlay gradient (pour lisibilité) -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
-                        
-                        <!-- Contenu superposé -->
-                        <div>
-                            
-                            <div class="text-nouveau">
-                                <h1 class="inline-block px-3 py-1  text-blue-600 text-3xl text-shadow-blue-900  mb-2">
-                                <em>Nouveau !!</em> 
-                        
-                            </h1>
-                            </div>
-                            <div class="reveal-text">
-                            <h3 class="text-xl font-bold mb-1">
-                                {{ vehicule.marque.nom }} {{ vehicule.modele }}
-                            </h3>
-                            <p class="text-sm text-neutral-950/80 mb-3">
-                                {{ vehicule.annee }} • {{ vehicule.kilometrage|intcomma }} km • {{ vehicule.prix|intcomma }} FCFA
-                            </p>
-                            <h3>Description</h3>
-                            <p>
-                                {{vehicule.description}}
-                            </p>
-                            <a href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}" 
-                               class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-200 transition-colors duration-300">
-                                Découvrir
-                                <svg class="w-1 h-1 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                </svg>
-                            </a>
-                            </div>
-                        </div>
-                    
-                {% endif %}
-            {% empty %}
-                <div class="col-span-full text-center text-gray-400 py-8">
-                    Aucune actualité disponible pour le moment.
+        <!-- ========== SECTION ACTUALITÉS (style Mercedes) ========== -->
+        <section class="py-16 pin fade-section-actualité bg-gray-50" >
+            <div class="container pin mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Actualités KOZ Services</h2>
+                    <p class="text-gray-500 mt-2">Découvrez nos dernières nouveautés et offres</p>
                 </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
 
+                <div class="actualite-containt" >
+                    {% for vehicule in vehicules_vendette %}
+                        {% if vehicule.actualite %}
+                            
+                                <!-- Image (avec fallback) -->
+                                <div class="campaign-image campaign-card overflow-hidden h-64 md:h-72">
+                                    <img src="
+                                        {% if vehicule.image_principale %}
+                                            {{ vehicule.image_principale.url }}
+                                        {% elif vehicule.images.all %}
+                                            {{ vehicule.images.first.image.url }}
+                                        {% else %}
+                                            {% static 'images/placeholder-vehicule.jpg' %}
+                                        {% endif %}
+                                    " alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}" 
+                                    class="w-full h-full object-cover group-hover:scale-110 transition duration-700 ease-out">
+                                </div>
+                                
+                                <!-- Overlay gradient (pour lisibilité) -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-blue-400 via-white/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                
+                                <!-- Contenu superposé -->
+                                <div >
+
+                                        <h1 class="inline-block px-3 py-1 text-nouveau  text-blue-600 text-3xl text-shadow-blue-900  mb-2">
+                                        <em>Nouveau !!</em> 
+                                        </h1>
+                                    
+                                        <div data-splitting class="reveal-text">
+                                            <h3 class="text-xl font-bold mb-1">
+                                                {{ vehicule.marque.nom }} {{ vehicule.modele }}
+                                            </h3>
+                                            <p class="text-sm text-neutral-950/80 mb-3">
+                                                {{ vehicule.annee }} • {{ vehicule.kilometrage|intcomma }} km • {{ vehicule.prix|intcomma }} FCFA
+                                            </p>
+                                            <h3>Description</h3>
+                                            <p>
+                                                {{vehicule.description}}
+                                            </p>
+                                            <a href="{% url 'vehicul_app:detail-vehicul' vehicule.pk %}" 
+                                                class="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-200 transition-colors duration-300">
+                                                Découvrir
+                                                <svg class="w-1 h-1 transform group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                </div>
+                            
+                        {% endif %}
+                    {% empty %}
+                        <div class="col-span-full text-center text-gray-400 py-8">
+                            Aucune actualité disponible pour le moment.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+    <section class="py-16 fade-section bg-white">
+        <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Nos services</h2>
+            <p class="text-gray-500 mt-2">L'équipement qu'il vous faut pour votre véhicule</p>
+        </div>
+        
+        </div>
+    </section>
 
     <section class="py-16 fade-section bg-white">
         <div class="container mx-auto px-4">
@@ -246,7 +271,7 @@
     </section>
 
      <!-- CTA -->
-    <section class="py-16 fade-section bg-gradient-to-r from-blue-700 to-indigo-800 text-white">
+    <section class="py-16 fade-section bg-gradient-to-r from-blue-400 to-indigo-500 text-indigo-800">
         <div class="container mx-auto px-4 text-center">
         <h2 class="text-3xl md:text-4xl font-bold mb-4">Prêt à rouler avec KOZ ?</h2>
         <p class="text-blue-100 text-lg mb-6">Créez votre compte et faites votre demande de financement en quelques minutes.</p>
@@ -269,20 +294,18 @@
 <!-- ========== MODALES ========== -->
 {% include 'modals/home/register.html' %}
 {% include 'modals/home/login.html' %}
-
-<!-- ========== SCRIPTS ========== -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
 <script src="{% static 'js/home/register.js' %}"></script>
 <script src="{% static 'js/home/login.js' %}"></script>
 <script src="{% static 'js/home/logout.js' %}"></script>
+<script src="{% static 'js/home/gsap_anim.js' %}"></script>
+
 
 <script>
 
+
     gsap.registerPlugin(ScrollTrigger);
 
+    
     const totalFrames = 76;
     const basePath = "{% static 'frames/ECO_SYS_PROJECTKoz_Flowsrckoz_flowstaticframesframe-' %}";
     const frameImg = document.getElementById('frame');
@@ -317,14 +340,25 @@
     });
     gsap.from(".fade-section", {
             scrollTrigger: {
-                trigger: ".py-16 .fade-section .bg-white",
-                start: "bottom",
+                trigger: ".fade-section",
+                start: "top -210%",
                 end: "top -100%",
                 toggleActions: "play none none reverse"
             },
             opacity: 0,
             y: 100,
-            duration: 2,
+            duration: 1,
+           
+        });
+
+    gsap.from(".fade-hero-contain", {
+            scrollTrigger: {
+                trigger: ".hero-section",
+                toggleActions: "play none none reverse"
+            },
+            opacity: 0,
+            y: 100,
+            duration: 1.5,
            
         });
 
@@ -377,7 +411,7 @@
         x: -300,
         opacity: 0,
         rotationY: 8,
-        duration: 2.8,
+        duration: 1.5,
         ease: "power3.out"
         
     });
@@ -395,7 +429,7 @@
         x: 300,
         opacity: 0,
         rotationX: 8,
-        duration: 3.5,
+        duration: 1.5,
         ease: "power3.out",
         
 
@@ -415,7 +449,7 @@
         y: 300,
         opacity: 0,
         rotationX: 8,
-        duration: 3.5,
+        duration: 1.5,
         ease: "power3.out",
     });
 
@@ -430,89 +464,59 @@
                 },
                 opacity: 0,
                 x: 300,
-                duration: 3,
+                duration: 2,
                 ease: "power3.out"
             });
 
 
     // --- ÉTAPE 2 : PIN DE LA SECTION (le scroll reste bloqué) ---
-ScrollTrigger.create({
-    trigger: ".pin-trigger",
-    start: "top 9%",
-    end: "+=150%",  // La section reste "épinglée" pendant 150% de la hauteur d'écran
-    pin: true,
-    pinSpacing: true,
-
-});
-
-// --- ÉTAPE 3 : TEXTE QUI SE DÉVOILE AVEC SPLITTING ---
-// Initialisation de Splitting
-// 1. Initialiser Splitting après chargement
-document.addEventListener('DOMContentLoaded', function() {
-   Splitting({ target: '.reveal-text' });
-
-    // Animation du texte : chaque lettre apparaît en cascade
-    const textChars = document.querySelectorAll('.reveal-text .char');
-    const totalChars = textChars.length;
-
     ScrollTrigger.create({
-        trigger: '.pin-trigger',
-        start: "top 30%",
-        end: "top -50%",
-        scrub: 1.5,
-        id: "text-reveal",
-        onUpdate: (self) => {
-            const progress = self.progress;
-            const revealCount = Math.floor(progress * totalChars);
-            textChars.forEach((char, index) => {
-                if (index < revealCount) {
-                    char.classList.add('active');
-                } else {
-                    char.classList.remove('active');
-                }
-            });
-        }
+        trigger: ".pin-trigger",
+        start: "top 9%",
+        end: "+=300%",  // La section reste "épinglée" pendant 150% de la hauteur d'écran
+        pin: true,
+        pinSpacing: true,
+
     });
-});
 
 
-        
+            
     // ============================================
-// CARTES ACTUALITÉS : apparition au scroll
-// ============================================
-// 2. Définir campaignCards
-const campaignCards = document.querySelectorAll('.campaign-card');
-        gsap.from('.campaign-card',{
-            scrollTrigger: {
-                trigger: ".actualite-containt",
-                start: "top 60%",
-                end: "top 50%",
-                toggleActions: "play none none reverse",
-            },
-            opacity: 0,
-            x: -300,
-            duration: 1.5,
-            ease: "power3.out"
-        });
-   
-    // Animation de survol supplémentaire (flottement)
-    campaignCards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            gsap.to(card, {
-                y: -8,
-                duration: 0.4,
-                ease: "power2.out"
+    // CARTES ACTUALITÉS : apparition au scroll
+    // ============================================
+    // 2. Définir campaignCards
+    const campaignCards = document.querySelectorAll('.campaign-card');
+            gsap.from('.campaign-card',{
+                scrollTrigger: {
+                    trigger: ".actualite-containt",
+                    start: "top 60%",
+                    end: "top 50%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                x: -300,
+                duration: 1.5,
+                ease: "power3.out"
+            });
+    
+        // Animation de survol supplémentaire (flottement)
+        campaignCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                gsap.to(card, {
+                    y: -8,
+                    duration: 0.4,
+                    ease: "power2.out"
+                });
+            });
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    y: 0,
+                    duration: 0.4,
+                    ease: "power2.out"
+                });
             });
         });
-        card.addEventListener('mouseleave', () => {
-            gsap.to(card, {
-                y: 0,
-                duration: 0.4,
-                ease: "power2.out"
-            });
-        });
-    });
-   
+    
 </script>
 
 
@@ -522,6 +526,9 @@ const campaignCards = document.querySelectorAll('.campaign-card');
         document.getElementById('mobileMenu').classList.toggle('hidden');
     });
 </script>
+
+<!-- ========== SCRIPTS ========== -->
+
 
 </body>
 </html>

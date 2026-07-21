@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django_filters',
     
      # ----- NOS APPS (créées par nous) -----
-    'home_app',
+    
     'auth_app',         # Gère les utilisateurs (connexion, inscription)
     'client_app',       # Portail client
     'order_app',        # Panier et commandes
@@ -55,7 +55,9 @@ INSTALLED_APPS = [
     'dashboard_app',     # Dashboard global
     'leads_app',        # Demandes de crédit
     'maintenance_app',    # Suivi des maintenances
-    
+        # les App site-web
+        'home_app',
+        'services_app',
     
     #tailwind_app
     "tailwind",

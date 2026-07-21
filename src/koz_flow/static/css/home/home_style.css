@@ -93,7 +93,7 @@ body {
 }
 
 .navbar.scrolled {
-    background: rgba(90, 163, 192, 0.623);
+    background: rgba(17, 90, 185, 0.596);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(20px) saturate(180%);
 }
@@ -123,7 +123,7 @@ body {
     height: 50rem;
     margin: 2rem;
     padding: 2rem;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(10, 93, 201, 0.575);
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     border-radius: 1.5rem;
@@ -157,9 +157,9 @@ body {
 }
 
 .box:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-100px) scale(1.02);
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
-    background: rgba(255, 255, 255, 0.15);
+    
 }
 
 
@@ -171,26 +171,42 @@ body {
 
 .box-title {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 2rem;
     margin-bottom: 0.4rem;
     color: #fff;
 }
 
 .box-text {
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     line-height: 1.6;
     opacity: 0.85;
-    font-weight: 300;
+    font-weight: 400;
+    font-style: italic;
 }
 
+/* Style de base pour Splitting */
+.splitting .char {
+    display: inline-block;
+}
 
+/* Si tu utilises GSAP, assure-toi que les éléments sont visibles au départ */
+.splitting .char {
+    opacity: 1; /* Au lieu de 0 */
+    transform: none; /* Au lieu de translateY(50px) */
+}
 /* ============================================
    CARTES ACTUALITÉS (style Mercedes)
 ============================================ */
+.fade-section-actualité{
+    min-height: 85vh;
+}
 
+.fade-section-actualité .text-center{
+    margin-top: -2rem;
+}
 .actualite-containt{
     display: flex;
-        
+    margin-top: -4rem;
     align-items: center;
     justify-content: space-between;
 }
@@ -208,8 +224,10 @@ body {
 .campaign-image {
     position: relative;
     overflow: hidden;
-    width: 40%;
-    top:2%;
+    min-width: 40%;
+    top:1px;
+    min-height: 70vh;
+    margin-bottom: 3rem;
     
 }
 
@@ -256,6 +274,16 @@ body {
     position: relative;
     top: -10rem;
     right: 30rem;
+}
+
+.reveal-text{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    color: black;
+    opacity: 1;
+    top: -15rem;
 }
 /* -------- Responsive : on empile -------- */
 @media (max-width: 1024px) {
