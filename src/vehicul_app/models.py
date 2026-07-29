@@ -7,7 +7,50 @@ class Marque(models.Model):
     def __str__(self):
         return self.nom if self.nom else "Marque sans nom"
 
-
+class TypeVehicule(models.Model):
+    """
+    Types de véhicules : SUV, Berline, Coupé, Break, Pick-up, etc.
+    """
+    nom = models.CharField(
+        max_length=50,
+        verbose_name="Nom du type",
+        help_text="Ex: SUV, Berline, Coupé"
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Description"
+    )
+    
+    image = models.ImageField(
+            upload_to='type_vehicule_images/%Y/%m/%d/',
+            verbose_name="image",
+            blank=True,
+            null=True,
+        )
+    
+    icone = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Icône FontAwesome (ex: fa-car, fa-truck)",
+        verbose_name="Icône"
+    )
+    ordre = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Ordre d'affichage"
+    )
+    date_ajout = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['ordre', 'nom']
+        verbose_name = "Type de véhicule"
+        verbose_name_plural = "Types de véhicules"
+    
+    def __str__(self):
+        return self.nom
+    
+    
 class Vehicul(models.Model):
     
     TYPES_CARBURANT_CHOICES = [
@@ -15,6 +58,15 @@ class Vehicul(models.Model):
         ("diesel", "Diesel"),
         ("electrique", 'Electrique')
     ]
+    
+    type_vehicule = models.ForeignKey(  # ← ✅ NOUVEAU CHAMP
+        TypeVehicule,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='vehicules',
+        verbose_name="Type de véhicule"
+    )
     
     marque = models.ForeignKey(Marque, on_delete=models.CASCADE, related_name='vehicul')
     modele = models.CharField(max_length=100)
@@ -32,7 +84,16 @@ class Vehicul(models.Model):
     description = models.TextField(null=True, blank=True)
     date_ajout = models.DateTimeField(auto_now_add=True)
     actualite = models.BooleanField(default=False)
+    est_vedette = models.BooleanField(default=False)
     
+    # ✅ Propriété qui choisit la bonne image
+    @property
+    def display_image(self):
+        principale = self.images.filter(est_principale=True).first()
+        if principale:
+            return principale.image
+        return self.image_principale
+        
     def __str__(self):
         marque_nom = self.marque.nom if self.marque else "?"
         modele_nom = self.modele if self.modele else "?"

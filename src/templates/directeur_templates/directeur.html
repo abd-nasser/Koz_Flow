@@ -11,98 +11,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/directeur/directeur_style.css' %}">
     <title>Dashboard Directeur - KOZ Services</title>
-    <style>
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
-        .animate-slide-in-right {
-            animation: slideInRight 0.4s ease-out forwards;
-        }
-        .stat-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.15);
-        }
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .btn-glow {
-            background: linear-gradient(135deg, #3b82f6, #2563eb);
-            color: white;
-            border: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-        }
-        .btn-glow:hover {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
-        }
-        .action-card {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .action-card:hover {
-            transform: translateY(-3px);
-            background: #f8fafc;
-            border-color: #3b82f6;
-        }
-    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-inter">
 
- 
 
     <!-- Navbar premium -->
     <nav class="glass-nav sticky top-0 z-40 shadow-sm">
            <!-- Messages flash -->
-    {% if messages %}
-    <div class="fixed top-20 right-5 z-50 space-y-2">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
-            <span>{{ message }}</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                    <span class="text-white font-bold text-xl">K</span>
-                </div>
-                <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">KOZ Services</span>
-                <span class="hidden md:inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Directeur</span>
+        {% if messages %}
+        <div class="fixed top-20 right-5 z-50 space-y-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+                <span>{{ message }}</span>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="relative group">
-                    <span class="text-gray-600 text-sm hidden md:inline cursor-pointer hover:text-blue-600 transition">
-                        <i class="fas fa-user-circle mr-1"></i>{{ user.email }}
-                    </span>
-                </div>
-                <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md flex items-center gap-2">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                </button>
-            </div>
+            {% endfor %}
         </div>
+        {% endif %}
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-xl">K</span>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">KOZ Services</span>
+                    <span class="hidden md:inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Directeur</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="relative group">
+                        <span class="text-gray-600 text-sm hidden md:inline cursor-pointer hover:text-blue-600 transition">
+                            <i class="fas fa-user-circle mr-1"></i>{{ user.email }}
+                        </span>
+                    </div>
+                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 cursor-pointer text-white px-4 py-2 rounded-xl text-sm transition shadow-md flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
     </nav>
 
     <!-- Main content -->
     <main class="max-w-7xl mx-auto px-4 py-8" style="min-height:80vh">
         
-        <!-- Welcome section -->
+        <!-- ===== WELCOME ===== -->
         <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-2xl p-6 mb-8 animate-fade-in-up shadow-lg">
             <div class="flex justify-between items-center flex-wrap gap-4">
                 <div>
@@ -117,47 +66,87 @@
             </div>
         </div>
 
-        <!-- Section administration -->
+        <!-- ============================================================ -->
+        <!-- SECTION : ADMINISTRATION (BOUTONS CRUD)                     -->
+        <!-- ============================================================ -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 animate-fade-in-up" style="animation-delay: 0.1s">
             
             <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
                 <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-cog text-blue-600"></i> Administration
                 </h2>
-                <p class="text-sm text-gray-500 mt-0.5">Gestion des utilisateurs, véhicules, marques et produits</p>
+                <p class="text-sm text-gray-500 mt-0.5">Gestion des utilisateurs, véhicules, produits et services</p>
             </div>
 
-            <!-- Boutons d'actions -->
-            <div class="px-6 py-5 border-b border-gray-100">
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div class="px-6 py-5 space-y-4">
+
+                <!-- ===== SECTION : UTILISATEURS ===== -->
+                <div class="btn-section">
+                    <span class="btn-section-label"><i class="fas fa-users mr-2"></i>Utilisateurs</span>
                     <button onclick="document.getElementById('change_pass_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-gray-600 hover:bg-gray-700 text-white border-0 shadow-sm">
                         <i class="fas fa-key"></i> Changer mot de passe
                     </button>
                     <button onclick="document.getElementById('userregister_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm">
                         <i class="fas fa-user-plus"></i> Ajouter utilisateur
                     </button>
+                </div>
+
+                <!-- ===== SECTION : VÉHICULES ===== -->
+                <div class="btn-section">
+                    <span class="btn-section-label"><i class="fas fa-car mr-2"></i>Véhicules & Marques</span>
                     <button onclick="document.getElementById('marque_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm">
                         <i class="fas fa-trademark"></i> Ajouter marque
                     </button>
+                    <button onclick="document.getElementById('type_vehicul_modal').showModal()" 
+                            class="btn btn-sm bg-teal-600 hover:bg-teal-700 text-white border-0 shadow-sm">
+                        <i class="fas fa-car"></i> Ajouter type véhicule
+                    </button>
                     <button onclick="document.getElementById('vehicul_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-green-600 hover:bg-green-700 text-white border-0 shadow-sm">
                         <i class="fas fa-car"></i> Ajouter véhicule
                     </button>
+                </div>
+
+                <!-- ===== SECTION : PRODUITS ===== -->
+                <div class="btn-section">
+                    <span class="btn-section-label"><i class="fas fa-box mr-2"></i>Produits & Catégories</span>
                     <button onclick="document.getElementById('create_categorie_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-sm">
                         <i class="fas fa-tags"></i> Ajouter catégorie
                     </button>
+                    <button onclick="document.getElementById('create_marque_product_modal').showModal()" 
+                            class="btn btn-sm bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-sm">
+                        <i class="fas fa-trademark"></i> Ajouter marque produit
+                    </button>
+                    <button onclick="document.getElementById('create_product_unite_modal').showModal()" 
+                            class="btn btn-sm bg-yellow-600 hover:bg-yellow-700 text-white border-0 shadow-sm">
+                        <i class="fas fa-ruler"></i> Ajouter unité
+                    </button>
                     <button onclick="document.getElementById('create_product_modal').showModal()" 
-                            class="inline-flex items-center justify-center gap-2 bg-pink-600 hover:bg-pink-700 text-white px-4 py-2.5 rounded-xl transition shadow-sm text-sm">
+                            class="btn btn-sm bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-sm">
                         <i class="fas fa-box"></i> Ajouter produit
                     </button>
                 </div>
+
+                <!-- ===== SECTION : SERVICES ===== -->
+                <div class="btn-section">
+                    <span class="btn-section-label"><i class="fas fa-wrench mr-2"></i>Services</span>
+                    <button onclick="document.getElementById('types_services_modal').showModal()" 
+                            class="btn btn-sm bg-purple-600 hover:bg-purple-700 text-white border-0 shadow-sm">
+                        <i class="fas fa-layer-group"></i> Ajouter type de service
+                    </button>
+                    <button onclick="document.getElementById('services_modal').showModal()" 
+                            class="btn btn-sm bg-violet-600 hover:bg-violet-700 text-white border-0 shadow-sm">
+                        <i class="fas fa-wrench"></i> Ajouter service
+                    </button>
+                </div>
+
             </div>
 
-            <!-- Informations utilisateur -->
+            <!-- ===== INFORMATIONS UTILISATEUR ===== -->
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/30">
                 <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <i class="fas fa-user-circle text-blue-600"></i> Informations de connexion
@@ -186,58 +175,103 @@
                 </div>
             </div>
 
-            <!-- Liens rapides -->
+            <!-- ============================================================ -->
+            <!-- SECTION : ACCÈS RAPIDES (ORGANISÉS PAR CATÉGORIE)          -->
+            <!-- ============================================================ -->
             <div class="px-6 py-5">
                 <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <i class="fas fa-link text-blue-600"></i> Accès rapide
                 </h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    <a href="{% url 'vehicul_app:list-vehicul' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
+
+                <!-- 🚗 Véhicules -->
+                <p class="section-title"><i class="fas fa-car mr-2 text-blue-500"></i>Véhicules</p>
+                <div class="quick-access-grid">
+                    <a href="{% url 'vehicul_app:type-vehicul-list' %}" class="quick-link">
+                        <i class="fas fa-car text-blue-500"></i> Types véhicules
+                    </a>
+                    <a href="{% url 'vehicul_app:list-vehicul' %}" class="quick-link">
                         <i class="fas fa-car text-blue-500"></i> Véhicules
                     </a>
-                    <a href="{% url 'vehicul_app:list-marque' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
+                    <a href="{% url 'vehicul_app:list-marque' %}" class="quick-link">
                         <i class="fas fa-trademark text-blue-500"></i> Marques
                     </a>
-                    <a href="{% url 'leads_app:list-demande-financement' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-file-alt text-blue-500"></i> Demandes
-                    </a>
-                    <a href="{% url 'leads_app:documents-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-folder-open text-blue-500"></i> Dossiers
-                    </a>
-                    <a href="{% url 'products_app:categorie-products-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-tags text-blue-500"></i> Catégories
-                    </a>
-                    <a href="{% url 'products_app:products-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-box text-blue-500"></i> Produits
-                    </a>
-                    <a href="{% url 'commercial_app:maintenance-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-tools text-blue-500"></i> Maintenances
-                    </a>
+                </div>
 
-                    <a href="{% url 'commercial_app:offre-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-tags text-blue-500"></i> Offres
+                <!-- 📦 Produits -->
+                <p class="section-title"><i class="fas fa-box mr-2 text-amber-500"></i>Produits</p>
+                <div class="quick-access-grid">
+                    <a href="{% url 'products_app:categorie-products-list' %}" class="quick-link">
+                        <i class="fas fa-tags text-amber-500"></i> Catégories
                     </a>
-                    
-                    <a href="{% url 'commercial_app:vente-list' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-chart-line text-blue-500"></i> Ventes
+                    <a href="{% url 'products_app:products-list' %}" class="quick-link">
+                        <i class="fas fa-box text-amber-500"></i> Produits
                     </a>
-                    <a href="{% url 'dashboard_app:dashboard-view' %}" class="action-card flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-300 transition text-sm">
-                        <i class="fas fa-chart-pie text-blue-500"></i> Dashboard KPI
+                    <a href="{% url 'products_app:unite-produit-list' %}" class="quick-link">
+                        <i class="fas fa-ruler text-amber-500"></i> Unités
                     </a>
                 </div>
+
+                <!-- 🔧 Services -->
+                <p class="section-title"><i class="fas fa-wrench mr-2 text-purple-500"></i>Services</p>
+                <div class="quick-access-grid">
+                    <a href="{% url 'services_app:types-services-list' %}" class="quick-link">
+                        <i class="fas fa-layer-group text-purple-500"></i> Types services
+                    </a>
+                    <a href="{% url 'services_app:services-list' %}" class="quick-link">
+                        <i class="fas fa-wrench text-purple-500"></i> Services
+                    </a>
+                </div>
+
+                <!-- 📊 Commercial / Ventes -->
+                <p class="section-title"><i class="fas fa-chart-line mr-2 text-green-500"></i>Commercial & Ventes</p>
+                <div class="quick-access-grid">
+                    <a href="{% url 'leads_app:list-demande-financement' %}" class="quick-link">
+                        <i class="fas fa-file-alt text-green-500"></i> Demandes
+                    </a>
+                    <a href="{% url 'leads_app:documents-list' %}" class="quick-link">
+                        <i class="fas fa-folder-open text-green-500"></i> Dossiers
+                    </a>
+                    <a href="{% url 'commercial_app:maintenance-list' %}" class="quick-link">
+                        <i class="fas fa-tools text-green-500"></i> Maintenances
+                    </a>
+                    <a href="{% url 'commercial_app:offre-list' %}" class="quick-link">
+                        <i class="fas fa-file-signature text-green-500"></i> Offres
+                    </a>
+                    <a href="{% url 'commercial_app:vente-list' %}" class="quick-link">
+                        <i class="fas fa-chart-line text-green-500"></i> Ventes
+                    </a>
+                </div>
+
+                <!-- 📈 Dashboard -->
+                <p class="section-title"><i class="fas fa-chart-pie mr-2 text-indigo-500"></i>Analyses</p>
+                <div class="quick-access-grid">
+                    <a href="{% url 'dashboard_app:dashboard-view' %}" class="quick-link">
+                        <i class="fas fa-chart-pie text-indigo-500"></i> Dashboard KPI
+                    </a>
+                </div>
+
             </div>
 
         </div>
 
     </main>
 
-    <!-- Modales -->
+    <!-- ===== MODALES ===== -->
     {% include 'modals/auth/change_password.html' %}
     {% include 'modals/auth/userregister.html' %}
     {% include 'modals/vehicul/aj_marque.html' %}
     {% include 'modals/vehicul/aj_vehicul.html' %}
+    {% include 'modals/vehicul/aj_type_vehicul.html' %}
+    {% include 'modals/services/aj_services.html' %}
+    {% include 'modals/services/aj_type_services.html' %}
     {% include 'modals/products/create_categorie_product.html' %}
     {% include 'modals/products/create_products.html' %}
+    {% include 'modals/products/create_product_unite.html' %}
+    {% include 'modals/products/create_marque_product.html' %}
+
+    
+    
+
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white py-6 mt-12">

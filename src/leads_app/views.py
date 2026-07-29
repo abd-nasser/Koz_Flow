@@ -654,8 +654,6 @@ def upload_offre_documents(request, offre_id):
     return redirect('commercial_app:offre-detail', pk=offre.pk)
                             
                             
-    
-
 @login_required
 def valide_dossier(request, dossier_id):
     dossier = get_object_or_404(Documents, id=dossier_id)

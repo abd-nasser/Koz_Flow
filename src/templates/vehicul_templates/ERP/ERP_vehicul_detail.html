@@ -84,9 +84,9 @@
                 <!-- Miniatures (images supplémentaires) -->
                 <div class="flex gap-3 overflow-x-auto pb-2 img_miniatures">
                     <!-- Image principale en miniature -->
-                    <img src="{{ image_principal.image.url }}" 
+                    <img src="{{ vehicul.display_image.url }}" 
                          class="thumbnail w-20 h-20 rounded-lg object-cover cursor-pointer border-2 border-blue-500 transition"
-                         onclick="changeImage('{{ image_principal.image.url }}')">
+                         onclick="changeImage('{{ vehicul.display_image.url }}')">
                     
                     <!-- Images supplémentaires -->
                     {% for image in images %}

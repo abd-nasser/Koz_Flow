@@ -6,8 +6,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import CategorieProducts, Products, ProductsImage
-from .forms import CategorieProductsForm, ProductsForm, ProductImageForm
+from .models import CategorieProducts, MarqueProduit, UniteProduit, Products, ProductsImage
+from .forms import CategorieProductsForm, MarqueProduitForm, UniteProduitForm, ProductsForm, ProductImageForm
 
 # ============================================================
 # CRUD Catégories
@@ -101,7 +101,7 @@ class ProductsCreateView(CreateView):
         messages.error(self.request, "Erreur lors de la création du produit. Veuillez vérifier les informations saisies.")
         return self.render_to_response(context)
 
-class ProductsDetailView(DetailView):  # ← DetailView, pas ListView !
+class ProductsDetailView(DetailView):  # ← DetailView, 
     model = Products
     template_name = 'products_templates/products_detail.html'
     context_object_name = 'product'
@@ -235,6 +235,126 @@ class ProductsByCategoryListView(ListView):
 
 
 # ============================================================
+# CRUD Marques de produits
+# ============================================================
+
+class MarqueProduitListView(ListView):
+    model = MarqueProduit
+    template_name = 'products_templates/marque_produit_list.html'
+    context_object_name = 'marques'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'create_marque_form' not in context:
+            context['create_product_marque_form'] = MarqueProduitForm()
+        return context
+
+
+class MarqueProduitCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = MarqueProduit
+    form_class = MarqueProduitForm
+    template_name = 'products_templates/marque_produit_form.html'
+    success_url = reverse_lazy('products_app:marque-produit-list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Marque ajoutée avec succès.')
+        return response
+
+
+class MarqueProduitUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = MarqueProduit
+    form_class = MarqueProduitForm
+    template_name = 'products_templates/marque_produit_form.html'
+    success_url = reverse_lazy('products_app:marque-produit-list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Marque mise à jour avec succès.')
+        return response
+
+
+class MarqueProduitDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = MarqueProduit
+    template_name = 'products_templates/marque_produit_confirm_delete.html'
+    success_url = reverse_lazy('products_app:marque-produit-list')
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, 'Marque supprimée avec succès.')
+        return response
+
+
+# ============================================================
+# CRUD Unités de produits
+# ============================================================
+
+class UniteProduitListView(ListView):
+    model = UniteProduit
+    template_name = 'products_templates/unite_produit_list.html'
+    context_object_name = 'unites'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'create_unite_form' not in context:
+            context['create_unite_form'] = UniteProduitForm()
+        return context
+
+
+class UniteProduitCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = UniteProduit
+    form_class = UniteProduitForm
+    template_name = 'directeur_templates/directeur.html'
+    success_url = reverse_lazy('products_app:unite-produit-list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Unité ajoutée avec succès.')
+        return response
+
+
+class UniteProduitUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = UniteProduit
+    form_class = UniteProduitForm
+    template_name = 'products_templates/unite_produit_form.html'
+    success_url = reverse_lazy('products_app:unite-produit-list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Unité mise à jour avec succès.')
+        return response
+
+
+class UniteProduitDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == 'directeur'
+
+    model = UniteProduit
+    template_name = 'products_templates/unite_produit_confirm_delete.html'
+    success_url = reverse_lazy('products_app:unite-produit-list')
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, 'Unité supprimée avec succès.')
+        return response
+
+
+# ============================================================
 # API ProductLIST View
 # ============================================================
 
@@ -251,13 +371,20 @@ class ApiProductListView(generics.ListAPIView):
     
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
-    filterset_fields = ["categorie__nom", "nom", "stock"]  # ← Ajout de stock
+    filterset_fields = ["categorie__nom", "nom", "stock"]
     
-    search_fields = ['categorie__nom', "nom", "compatible_avec"]  # ← Suppression de stock (pas texte)
+    search_fields = ['categorie__nom', "nom", "compatible_avec"]
     
-    ordering_fields = ['prix', 'stock', 'nom']  # ← Ajout de nom
+    ordering_fields = ['prix', 'stock', 'nom']
     
-    ordering = ['-id']  # ← Plus fiable que '-categorie__nom'
+    ordering = ['-id']
+
+
+class ApiProductsdetail(generics.RetrieveAPIView):
+    queryset = Products.objects.all().select_related('categorie', 'marque', 'unite').prefetch_related('images')
+    serializer_class = ProductsSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'pk'
     
 
 class ApiProductsdetail(generics.RetrieveAPIView):

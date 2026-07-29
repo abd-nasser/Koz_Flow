@@ -19,11 +19,25 @@ class MarqueForm(forms.ModelForm):
             raise forms.ValidationError("Le nom de la marque est obligatoire")
         return nom.strip()
     
+    
+from .models import TypeVehicule
+
+class TypeVehiculeForm(forms.ModelForm):
+    class Meta:
+        model = TypeVehicule
+        fields = ['nom', 'description', 'icone', 'image', 'ordre']
+        widgets = {
+            'nom': forms.TextInput(attrs={'class': 'input input-bordered w-full'}),
+            'description': forms.Textarea(attrs={'class': 'textarea textarea-bordered w-full', 'rows': 3}),
+            'icone': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'fa-car'}),
+            'ordre': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'min': 0}),
+            'image':forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
+        }
 class VehiculForm(forms.ModelForm):
     class Meta:
         model = Vehicul
         fields = ["marque","modele", "annee", "stock",
-                  "prix", "kilometrage", "carburant","actualite",
+                  "prix", "kilometrage", "carburant","actualite","est_vedette",
                   "image_principale",
                   "disponible", "description",
                   ]
@@ -37,8 +51,9 @@ class VehiculForm(forms.ModelForm):
             "kilometrage": forms.NumberInput(attrs={"class":"input input-bordered w-full", "placeholder":"Saisir le kilométrage"}),
             "carburant": forms.Select(attrs={"class":"select select-bordered w-full"}),
             "image_principale": forms.ClearableFileInput(attrs={"class":"file-input file-input-bordered w-full"}),
-            
+            "actualite":forms.CheckboxInput(attrs={"class":"checkbox checkbox-primary"}),
             "disponible": forms.CheckboxInput(attrs={"class":"checkbox checkbox-primary"}),
+            "est_vedette":forms.CheckboxInput(attrs={"class":"checkbox checkbox-primary"}),
             "description": forms.Textarea(attrs={"class":"textarea textarea-info w-full", "placeholder":"Saisir la description", "rows": 4}),
             }
         

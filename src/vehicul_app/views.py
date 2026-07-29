@@ -7,18 +7,19 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 
-
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 from django.db.models import Q
 from django.urls import reverse_lazy 
 
-from .models import Vehicul, Marque, VehiculeImage
-from .forms import VehiculForm, MarqueForm, VehiculeImage, VehiculeImageFormSet, VehiculeImageForm
+from .models import Vehicul, Marque, VehiculeImage, TypeVehicule
+from .forms import VehiculForm, MarqueForm, VehiculeImage, VehiculeImageFormSet, VehiculeImageForm, TypeVehiculeForm
 from directeur_app.views import DirecteurDashboardView
 from leads_app.forms import DemandeFinancementForm
 
 
-class CreateMarqueView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class ERP_CreateMarqueView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
     
@@ -42,14 +43,14 @@ class CreateMarqueView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         context["open_marque_modal"] = True
         return self.render_to_response(context)
     
-class MarqueListView(LoginRequiredMixin, ListView):
+class ERP_MarqueListView(LoginRequiredMixin, ListView):
     model = Marque
-    template_name = "vehicul_templates/marque_list.html"
+    template_name = "vehicul_templates/ERP/ERP_marque_list.html"
     context_object_name = "marque_list"
 
-class MarqueDetailView(LoginRequiredMixin, DetailView):
+class ERP_MarqueDetailView(LoginRequiredMixin, DetailView):
     model = Marque
-    template_name = "vehicul_templates/marque_detail.html"
+    template_name = "vehicul_templates/ERP/ERP_marque_detail.html"
     context_object_name = "marque"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -58,14 +59,14 @@ class MarqueDetailView(LoginRequiredMixin, DetailView):
         return context
     
 
-class MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ERP_MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
     
     model = Marque
     form_class = MarqueForm
     context_object_name = "marque"
-    template_name = "vehicul_templates/marque_detail.html"
+    template_name = "vehicul_templates/ERP/ERP_marque_detail.html"
     
     def get_success_url(self):
         return reverse_lazy("vehicul_app:detail-marque", kwargs={"pk": self.object.pk})
@@ -76,7 +77,7 @@ class MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return response
     
     def form_invalid(self, form):
-        dashboard = MarqueListView()
+        dashboard = ERP_MarqueListView()
         dashboard.request = self.request
         dashboard.kwargs = self.kwargs
         dashboard.object = self.get_object()
@@ -88,12 +89,12 @@ class MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.render_to_response(context)
     
     
-class MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ERP_MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
         
     model = Marque
-    template_name = "vehicul_templates/detail_marque.html"
+    template_name = "vehicul_templates/ERP/ERP_detail_marque.html"
     success_url = reverse_lazy("vehicul_app:list-marque")
         
 
@@ -101,17 +102,78 @@ class MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 
 
-
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
-from .models import Vehicul, VehiculeImage
-
+class ERP_CreateTypeVehiculeView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == "directeur"
     
+    model = TypeVehicule
+    form_class = TypeVehiculeForm
+    template_name = "directeur_templates/directeur.html"
+    success_url = reverse_lazy("directeur_app:directeur-view")
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"✅ Type '{self.object.nom}' ajouté avec succès !")
+        return response
+    
+    def form_invalid(self, form):
+        dashboard = DirecteurDashboardView()
+        dashboard.request = self.request
+        context = dashboard.get_context_data()
+        context["type_vehicul_form"] = form
+        context["open_type_vehicul_modal"] = True
+        return self.render_to_response(context)
 
-class CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+
+class ERP_TypeVehiculeListView(LoginRequiredMixin, ListView):
+    model = TypeVehicule
+    template_name = "Directeur_templates/directeur_type_vehicule_list.html"
+    context_object_name = "types"
+
+
+class ERP_TypeVehiculeDetailView(LoginRequiredMixin, DetailView):
+    model = TypeVehicule
+    template_name = "directeur_templates/directeur_type_vehicule_detail.html"
+    context_object_name = "type_vehicule"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "update_type_vehicul_form" not in context:
+            context["update_type_vehicul_form"]=TypeVehiculeForm(instance=self.object)
+        return context
+
+
+class ERP_TypeVehiculeUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == "directeur"
+    
+    model = TypeVehicule
+    form_class = TypeVehiculeForm
+    template_name = "vehicul_templates/type_vehicule_detail.html"
+    success_url = reverse_lazy("vehicul_app:type-vehicul-list")
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"✅ Type '{self.object.nom}' mis à jour !")
+        return response
+
+
+class ERP_TypeVehiculeDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == "directeur"
+    
+    model = TypeVehicule
+    template_name = "vehicul_templates/type_vehicule_confirm_delete.html"
+    success_url = reverse_lazy("vehicul_app:type-vehicul-list")
+    
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, f"✅ Type '{obj.nom}' supprimé avec succès !")
+        return response
+
+
+
+class ERP_CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
@@ -136,14 +198,14 @@ class CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.render_to_response(context)
         
     
-class VehiculListView(LoginRequiredMixin, ListView):
+class ERP_VehiculListView(LoginRequiredMixin, ListView):
     model = Vehicul
     context_object_name ="vehicul_list"
     def get_template_names(self):
         if self.request.headers.get("HX-Request"):
-            return ["partials/vehiculs/partials_vehicul_list.html"]
+            return ["partials/vehiculs/ERP_partials_vehicul_list.html"]
         
-        return ["vehicul_templates/vehicul_list.html"]
+        return ["vehicul_templates/ERP/ERP_vehicul_list.html"]
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -183,9 +245,9 @@ class VehiculListView(LoginRequiredMixin, ListView):
         
         return queryset
                
-class VehiculDetailView(LoginRequiredMixin, DetailView):
+class ERP_VehiculDetailView(LoginRequiredMixin, DetailView):
     model = Vehicul
-    template_name = "vehicul_templates/vehicul_detail.html"
+    template_name = "vehicul_templates/ERP/ERP_vehicul_detail.html"
     context_object_name = "vehicul"
     
     def get_context_data(self, **kwargs):
@@ -211,13 +273,13 @@ class VehiculDetailView(LoginRequiredMixin, DetailView):
         
         return context
 
-class VehiculUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ERP_VehiculUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
     
     model = Vehicul
     form_class = VehiculForm
-    template_name = "vehicul_templates/vehicul_detail.html"
+    template_name = "vehicul_templates/ERP/ERP_vehicul_detail.html"
     
     def get_success_url(self):
         return reverse_lazy("vehicul_app:detail-vehicul", kwargs={"pk": self.object.pk})
@@ -228,7 +290,7 @@ class VehiculUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return response
     
     def form_invalid(self, form):
-        dashboard = VehiculListView()
+        dashboard = ERP_VehiculListView()
         dashboard.request = self.request
         dashboard.kwargs = self.kwargs
         dashboard.object = self.get_object()
@@ -240,23 +302,23 @@ class VehiculUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.render_to_response(context)
     
 
-class VehiculDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ERP_VehiculDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
     
     model = Vehicul
-    template_name = "vehicul_templates/detail_vehicul.html"
+    template_name = "vehicul_templates/ERP/ERP_vehicul_detail.html"
     success_url = reverse_lazy("vehicul_app:list-vehicul")
     
 
 # ============================================================
 # ✅ PAGE : Liste des images d'un véhicule (avec pagination)
 # ============================================================
-class VehiculeImageListView(LoginRequiredMixin, ListView):
+class VehiculeImageListView(ListView):
     model = VehiculeImage
     template_name = "vehicul_templates/vehicul_images.html"
     context_object_name = "images"
-    paginate_by = 8  # 8 images par page
+    
     
     def get_queryset(self):
         self.vehicule = get_object_or_404(Vehicul, pk=self.kwargs['pk'])
@@ -265,11 +327,12 @@ class VehiculeImageListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['vehicul'] = self.vehicule
-        print(f"🔍 vehicul.pk = {self.vehicule.pk}")  
         if "vehicul_image_form" not in context:
             context["vehicul_image_form"] = VehiculeImageForm()
         
         return context
+
+
     
 
 # ============================================================
@@ -388,3 +451,180 @@ class APIVehiculDetailView(generics.RetrieveAPIView):
     serializer_class = VehiculSerializer
     permission_classes = [AllowAny]
     lookup_field = 'pk'
+
+
+# ============================================================
+# ✅ SITE PUBLIC : Vues pour l'affichage public des véhicules
+# ============================================================
+
+class SITE_VehiculListView(ListView):
+    """
+    Vue publique pour afficher la liste des véhicules disponibles
+    Accessible à tous sans authentification
+    """
+    model = Vehicul
+    template_name = "vehicul_templates/SITE/SITE_vehicul_list.html"
+    context_object_name = "vehicules"
+    paginate_by = 12
+    
+    def get_queryset(self):
+        queryset = Vehicul.objects.filter(
+            disponible=True
+        ).select_related('marque', 'type_vehicule').prefetch_related('images').order_by('-date_ajout')
+        
+        # Filtres
+        search_query = self.request.GET.get('q')
+        marque = self.request.GET.get('marque')
+        carburant = self.request.GET.get('carburant')
+        type_vehicule = self.request.GET.get('type')
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(modele__icontains=search_query) |
+                Q(marque__nom__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+        
+        if marque:
+            queryset = queryset.filter(marque__pk=marque)
+        
+        if carburant:
+            queryset = queryset.filter(carburant=carburant)
+        
+        if type_vehicule:
+            queryset = queryset.filter(type_vehicule__pk=type_vehicule)
+        
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['marques'] = Marque.objects.all()
+        context['types'] = TypeVehicule.objects.all()
+        context['carburants'] = Vehicul.TYPES_CARBURANT_CHOICES
+        context['search_query'] = self.request.GET.get('q', '')
+        
+        # Ajouter l'image principale pour chaque véhicule
+        for vehicule in context['vehicules']:
+            image_principale = vehicule.images.filter(est_principale=True).first()
+            vehicule.image_display = image_principale.image if image_principale else vehicule.image_principale
+        
+        return context
+
+
+class SITE_VehiculDetailView(DetailView):
+    """
+    Vue publique pour afficher les détails d'un véhicule
+    Accessible à tous
+    """
+    model = Vehicul
+    template_name = "vehicul_templates/SITE/SITE_vehicul_detail.html"
+    context_object_name = "vehicule"
+    
+    def get_queryset(self):
+        return Vehicul.objects.select_related('marque', 'type_vehicule').prefetch_related('images')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Images du véhicule
+        images = self.object.images.all().order_by('ordre', 'date_ajout')
+        context['images'] = images
+        
+        # Image principale
+        image_principal = images.filter(est_principale=True).first()
+        if not image_principal and images.exists():
+            image_principal = images.first()
+        context['image_principal'] = image_principal
+        
+        # Formulaire de financement (pour utilisateurs connectés)
+        if self.request.user.is_authenticated:
+            initial = {"duree_mois": 36, "apport": 0}
+            context['dmd_fin_form'] = DemandeFinancementForm(initial=initial)
+        
+        # Véhicules similaires (même marque)
+        context['vehicules_similaires'] = Vehicul.objects.filter(
+            marque=self.object.marque,
+            disponible=True
+        ).exclude(pk=self.object.pk)[:4]
+        
+            # Images paginées (1 par page pour le hero)
+        images = self.object.images.all()
+        paginator = Paginator(images, 1)  # 1 image par page
+        page_number = self.request.GET.get('page', 1)
+        vehicule_imgs_page = paginator.get_page(page_number)
+        direction = self.request.GET.get('direction', 'right')
+        
+        
+        context['vehicule_imgs_page'] = vehicule_imgs_page
+        context['total_page'] = paginator.num_pages
+        context['current_page'] = page_number
+        context['direction'] = direction
+        # Image principale pour le fallback
+        context['image_principal'] = images.filter(est_principale=True).first()
+        
+        return context
+    
+
+def vehicul_image_partials(request, vehicul_id):
+    vehicule = get_object_or_404(Vehicul, pk=vehicul_id)
+    vehicule_imgs = vehicule.images.all()
+    
+    # ✅ Pagination : 1 image par page
+    paginator = Paginator(vehicule_imgs, 1)
+    page_number = request.GET.get("page", 1)
+    vehicule_imgs_page = paginator.get_page(page_number)
+    
+    direction = request.GET.get('direction', 'right')
+    
+    return render(request, 'partials/vehiculs/vehicul_detail_images.html', {
+        'vehicule_imgs_page': vehicule_imgs_page,
+        'total_page': paginator.num_pages,
+        'current_page': page_number,
+        'direction': direction,
+        'vehicule': vehicule,
+    })
+class SITE_MarqueListeView(ListView):
+    """
+    Vue publique pour afficher la liste des marques
+    """
+    model = Marque
+    template_name = "vehicul_templates/SITE/SITE_marque_list.html"
+    context_object_name = "marques"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Ajouter le nombre de véhicules par marque
+        for marque in context['marques']:
+            marque.nombre_vehicules = marque.vehicul.filter(disponible=True).count()
+        return context
+
+
+class SITE_MarqueDetailView(DetailView):
+    """
+    Vue publique pour afficher les détails d'une marque et ses véhicules
+    """
+    model = Marque
+    template_name = "vehicul_templates/SITE/SITE_marque_detail.html"
+    context_object_name = "marque"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Tous les véhicules de cette marque
+        context['vehicules'] = Vehicul.objects.filter(
+            marque=self.object,
+            disponible=True
+        ).select_related('type_vehicule').prefetch_related('images').order_by('-date_ajout')
+        
+        # Ajouter l'image principale
+        for vehicule in context['vehicules']:
+            image_principale = vehicule.images.filter(est_principale=True).first()
+            vehicule.image_display = image_principale.image if image_principale else vehicule.image_principale
+        
+        # Autres marques (suggestions)
+        context['autres_marques'] = Marque.objects.exclude(pk=self.object.pk)[:6]
+        
+        return context
+    
+
+

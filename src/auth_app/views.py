@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 
 from django.contrib import messages
@@ -111,13 +111,13 @@ class LoginView(APIView):
                 refresh = RefreshToken.for_user(user)
                 
                 if user.is_superuser or user.role == "directeur":
-                    redirect_url = 'http://127.0.0.1:8000/directeur/dashboard/'
+                    redirect_url = request.build_absolute_uri(reverse("directeur_app:directeur-view"))
                     
                 elif user.role == 'commercial':
-                    redirect_url = 'http://127.0.0.1:8000/commercial/dashboard/'
+                    redirect_url = request.build_absolute_uri(reverse("commercial_app:commercial-view"))
                 
                 else:
-                    redirect_url = 'http://127.0.0.1:8000/client/dashboard/'    
+                    redirect_url = request.build_absolute_uri(reverse("client_app:client-view"))   
                 
                 # on renvoie la reponse avec les tokens et la redirection
                 

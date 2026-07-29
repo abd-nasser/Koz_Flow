@@ -127,29 +127,34 @@ def accepter_offre(request, offre_id):
         offre=offre
     )
     
-    # ✉️ Email au commercial
-    commercial = offre.client.assigned_commercial
-    if commercial and commercial.email:
+    # ✉️ Email à tous les commerciaux
+    commerciaux = kozUser.objects.filter(role='commercial')
+    emails = [c.email for c in commerciaux if c.email]
+    if emails:
         try:
-            context_email = {
-                'client': offre.client,
-                'offre_id': offre.id,
-                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
-                'montant_finance': offre.montant_finance,
-                'lien_vente': request.build_absolute_uri(f"/commercial/vente/{vente.id}/modifier/"),
-                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
-            }
-            html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="✅ Un client a accepté son offre - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[commercial.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            # Préparer le contenu une seule fois puis l'envoyer par commercial (si besoin on personnalise)
+            for commercial in commerciaux:
+                if not commercial.email:
+                    continue
+                context_email = {
+                    'client': offre.client,
+                    'offre_id': offre.id,
+                    'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                    'montant_finance': offre.montant_finance,
+                    'lien_vente': request.build_absolute_uri(f"/commercial/vente/{vente.id}/modifier/"),
+                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'commercial': commercial,
+                }
+                html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    subject="✅ Un client a accepté son offre - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
         except Exception as e:
             print(f"Erreur envoi email: {e}")
     
@@ -167,28 +172,31 @@ def refuser_offre(request, offre_id):
     offre.statut = 'refusee'
     offre.save()
     
-    # ✉️ Email au commercial
-    commercial = offre.client.assigned_commercial
-    if commercial and commercial.email:
+    # ✉️ Email à tous les commerciaux
+    commerciaux = kozUser.objects.filter(role='commercial')
+    if commerciaux.exists():
         try:
-            context_email = {
-                'client': offre.client,
-                'offre_id': offre.id,
-                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
-                'date_refus': timezone.now(),
-                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
-            }
-            html_message = render_to_string('emails/offre_refusee_commercial.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="❌ Un client a refusé son offre - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[commercial.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            for commercial in commerciaux:
+                if not commercial.email:
+                    continue
+                context_email = {
+                    'client': offre.client,
+                    'offre_id': offre.id,
+                    'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
+                    'date_refus': timezone.now(),
+                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'commercial': commercial,
+                }
+                html_message = render_to_string('emails/offre_refusee_commercial.html', context_email)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    subject="❌ Un client a refusé son offre - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
         except Exception as e:
             print(f"Erreur envoi email au commercial: {e}")
     
@@ -207,30 +215,33 @@ def negocier_offre(request, offre_id):
     offre.statut = 'brouillon'
     offre.save()
     
-    # 2️⃣ ✉️ Email au commercial
-    commercial = offre.client.assigned_commercial
-    if commercial and commercial.email:
+    # 2️⃣ 📨 Email à tous les commerciaux
+    commerciaux = kozUser.objects.filter(role='commercial')
+    if commerciaux.exists():
         try:
-            context_email = {
-                'client': offre.client,
-                'offre_id': offre.id,
-                'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
-                'montant_finance': offre.montant_finance,
-                'date_demande': timezone.now(),
-                'lien_offre': request.build_absolute_uri(f"/commercial/offre/{offre.id}/modifier/"),
-                'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
-            }
-            html_message = render_to_string('emails/offres/offre_negociation_commercial.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="🔄 Demande de renégociation d'offre - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[commercial.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            for commercial in commerciaux:
+                if not commercial.email:
+                    continue
+                context_email = {
+                    'client': offre.client,
+                    'offre_id': offre.id,
+                    'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
+                    'montant_finance': offre.montant_finance,
+                    'date_demande': timezone.now(),
+                    'lien_offre': request.build_absolute_uri(f"/commercial/offre/{offre.id}/modifier/"),
+                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'commercial': commercial,
+                }
+                html_message = render_to_string('emails/offres/offre_negociation_commercial.html', context_email)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    subject="🔄 Demande de renégociation d'offre - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
         except Exception as e:
             print(f"Erreur envoi email au commercial: {e}")
     
@@ -353,7 +364,7 @@ class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
                 'montant_propose': offre.montant_propose,
                 'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
                 'date_expiration': offre.date_expiration,
-                'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+                'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
             }
             html_message = render_to_string('emails/offres/simple_offre.html', context_email)
             plain_message = strip_tags(html_message)
@@ -444,7 +455,7 @@ class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView
                 'duree_mois': offre.duree_mois,
                 'apport': offre.apport_demande,
                 'date_expiration': offre.date_expiration,
-                'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+                'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
             }
             html_message = render_to_string('emails/offres/offre_financement_cree_client.html', context_email)
             plain_message = strip_tags(html_message)
@@ -610,7 +621,7 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                     'duree_mois': offre.duree_mois,
                     'apport': offre.apport_demande,
                     'date_expiration': offre.date_expiration,
-                    'lien_offre': self.request.build_absolute_uri(f"/client/offres/{offre.id}/"),
+                    'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
                 }
                 html_message = render_to_string('emails/offres/offre_envoyee_client.html', context_email)
                 plain_message = strip_tags(html_message)
@@ -742,32 +753,34 @@ def confirmer_maintenance(request, maintenance_id):
     
     if maintenance.statut != 'planifiee':
         messages.warning(request, "Cette maintenance ne peut pas être confirmée.")
-        return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+        return redirect('commercial_app:maintenance-detail', maintenance.id)
     
     maintenance.statut = 'confirmee'
     maintenance.save()
     
-    # ✉️ Email au commercial
-    commercial = maintenance.client.assigned_commercial
-    if commercial and commercial.email:
+    # ✉️ Email à tous les commerciaux
+    commerciaux = kozUser.objects.filter(role='commercial')
+    if commerciaux.exists():
         try:
-            context_email = {
-                'client': maintenance.client,
-                'commercial': commercial,
-                'maintenance': maintenance,
-                'lien_maintenance': request.build_absolute_uri(f"/commercial/maintenance/{maintenance.id}/"),
-            }
-            html_message = render_to_string('emails/maintenance/maintenance_confirmee_commercial.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="✅ Un client a confirmé sa maintenance - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[commercial.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            for commercial in commerciaux:
+                if not commercial.email:
+                    continue
+                context_email = {
+                    'client': maintenance.client,
+                    'commercial': commercial,
+                    'maintenance': maintenance,
+                    'lien_maintenance': request.build_absolute_uri(reverse('commercial_app:maintenance-detail', maintenance.id)),
+                }
+                html_message = render_to_string('emails/maintenance/maintenance_confirmee_commercial.html', context_email)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    subject="✅ Un client a confirmé sa maintenance - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
         except Exception as e:
             print(f"Erreur envoi email: {e}")
     
@@ -786,27 +799,29 @@ def refuser_maintenance(request, maintenance_id):
     maintenance.statut = 'annulee'
     maintenance.save()
     
-    # ✉️ Email au commercial
-    commercial = maintenance.client.assigned_commercial
-    if commercial and commercial.email:
+    # ✉️ Email à tous les commerciaux
+    commerciaux = kozUser.objects.filter(role='commercial')
+    if commerciaux.exists():
         try:
-            context_email = {
-                'client': maintenance.client,
-                'commercial': commercial,
-                'maintenance': maintenance,
-                'lien_maintenance': request.build_absolute_uri(f"/commercial/maintenance/{maintenance.id}/"),
-            }
-            html_message = render_to_string('emails/maintenance/maintenance_annulee_commercial.html', context_email)
-            plain_message = strip_tags(html_message)
-            
-            send_mail(
-                subject="❌ Un client a annulé sa maintenance - KOZ Services",
-                message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[commercial.email],
-                html_message=html_message,
-                fail_silently=False,
-            )
+            for commercial in commerciaux:
+                if not commercial.email:
+                    continue
+                context_email = {
+                    'client': maintenance.client,
+                    'commercial': commercial,
+                    'maintenance': maintenance,
+                    'lien_maintenance': request.build_absolute_uri(reverse("commercial_app:maintenance-detail", maintenance.pk)),
+                }
+                html_message = render_to_string('emails/maintenance/maintenance_annulee_commercial.html', context_email)
+                plain_message = strip_tags(html_message)
+                send_mail(
+                    subject="❌ Un client a annulé sa maintenance - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
         except Exception as e:
             print(f"Erreur envoi email: {e}")
     
@@ -839,7 +854,7 @@ def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
             'client': maintenance.client,
             'maintenance': maintenance,
             'nouveau_statut': maintenance.get_statut_display(),
-            'lien_maintenance': request.build_absolute_uri(f"/client/maintenance/{maintenance.id}/"),
+            'lien_maintenance': request.build_absolute_uri(reverse("commercial_app:maintenance-detail", maintenance.pk)),
         }
         
         if nouveau_statut == 'en_cours':
