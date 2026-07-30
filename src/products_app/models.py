@@ -159,7 +159,7 @@ class Products(models.Model):
     
     # ===== TAGS & VISIBILITÉ =====
     tags = models.CharField(
-        max_length=255,
+        max_length=52,
         blank=True,
         null=True,
         help_text="Mots-clés séparés par des virgules",
@@ -195,6 +195,13 @@ class Products(models.Model):
         """Vérifie si le produit est en stock"""
         return self.stock > 0
     
+    
+    @property
+    def pourcentage_reduction(self):
+        if not self.prix_promo or self.prix_promo >= self.prix:
+            return 0
+        return int(((self.prix - self.prix_promo) / self.prix) * 100)
+        
     @property
     def stock_alerte(self):
         """Vérifie si le stock est en dessous du seuil d'alerte"""
@@ -213,6 +220,8 @@ class Products(models.Model):
     def get_etoiles(self):
         """Retourne la note moyenne (à implémenter avec un modèle Avis)"""
         return 0
+    
+    
 
 
 # ============================================================

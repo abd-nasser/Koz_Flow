@@ -518,7 +518,7 @@ class SITE_VehiculDetailView(DetailView):
     """
     model = Vehicul
     template_name = "vehicul_templates/SITE/SITE_vehicul_detail.html"
-    context_object_name = "vehicule"
+    context_object_name = "vehicul"
     
     def get_queryset(self):
         return Vehicul.objects.select_related('marque', 'type_vehicule').prefetch_related('images')
@@ -581,7 +581,7 @@ def vehicul_image_partials(request, vehicul_id):
         'total_page': paginator.num_pages,
         'current_page': page_number,
         'direction': direction,
-        'vehicule': vehicule,
+        'vehicul': vehicule,
     })
 class SITE_MarqueListeView(ListView):
     """

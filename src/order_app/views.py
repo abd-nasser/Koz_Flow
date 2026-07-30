@@ -9,6 +9,87 @@ from products_app.models import Products, CategorieProducts
 from .serializers import PanierSerializer, ArticlePanierSerializer, CommandeSerializer
 
 
+# order_app/views.py
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.http import JsonResponse
+from .models import Panier, ArticlePanier, Commande
+from products_app.models import Products
+
+
+@login_required
+def panier_view(request):
+    """Affiche le panier du client"""
+    panier, created = Panier.objects.get_or_create(client=request.user)
+    return render(request, 'order_templates/panier.html', {'panier': panier})
+
+@login_required
+def ajouter_article(request, product_id):
+    product = get_object_or_404(Products, pk=product_id)
+    panier, created = Panier.objects.get_or_create(client=request.user)
+    article, created = ArticlePanier.objects.get_or_create(products=product, panier=panier)
+    if not created:
+        article.quantite += 1
+        article.save()
+    return panier_view(request)
+        
+        
+    
+    
+@login_required
+def modifier_quantite(request, article_id):
+    """Modifie la quantité d'un article dans le panier (HTMX)"""
+    article = get_object_or_404(ArticlePanier, id=article_id, panier__client=request.user)
+    quantite = int(request.POST.get('quantite', 1))
+    
+    if quantite <= 0:
+        article.delete()
+    else:
+        article.quantite = quantite
+        article.save()
+    
+    return panier_view(request)
+
+
+@login_required
+def retirer_article(request, article_id):
+    """Supprime un article du panier (HTMX)"""
+    article = get_object_or_404(ArticlePanier, id=article_id, panier__client=request.user)
+    article.delete()
+    return panier_view(request)
+
+
+@login_required
+def vider_panier(request):
+    """Vide tout le panier (HTMX)"""
+    panier = get_object_or_404(Panier, client=request.user)
+    panier.articles.all().delete()
+    return panier_view(request)
+
+
+@login_required
+def valider_commande(request):
+    """Valide la commande et crée une commande"""
+    panier = get_object_or_404(Panier, client=request.user)
+    
+    if not panier.articles.exists():
+        messages.error(request, "Votre panier est vide.")
+        return redirect('order_app:panier')
+    
+    commande = Commande.objects.create(
+        panier=panier,
+        statut='Chargement'
+    )
+    
+    messages.success(request, "✅ Commande validée avec succès !")
+    return redirect('order_app:commande-detail', commande_id=commande.id)
+
+
+
+
+
 # ============================================================
 # 1. Voir le panier (GET)
 # ============================================================

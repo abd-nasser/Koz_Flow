@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from chat_app import views
 from .views import (ApiRegisterView, LoginView, 
                     MeView, LogoutView,
-                    UserRegisterView, ChangePasswordView, login_page)
+                    UserRegisterView, ChangePasswordView, login_page, login_simple, logout_simple)
 
 app_name = "auth_app"
 
@@ -38,5 +38,7 @@ urlpatterns = [
     #-------------------------ERP  URLS-------------------
     #-------------------------ERP  URLS-------------------
     path("Userregister/",UserRegisterView.as_view(), name="user-register"),
-    path("change_password/",ChangePasswordView.as_view(), name="change-password")
+    path("change_password/",ChangePasswordView.as_view(), name="change-password"),
+    path("login/simple/", login_simple, name="login-simple"),
+    path("logout/simple/", logout_simple, name="logout-simple")
 ]

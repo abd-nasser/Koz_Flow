@@ -41,9 +41,9 @@
                             <i class="fas fa-user-circle mr-1"></i>{{ user.email }}
                         </span>
                     </div>
-                    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 cursor-pointer text-white px-4 py-2 rounded-xl text-sm transition shadow-md flex items-center gap-2">
-                        <i class="fas fa-sign-out-alt"></i> Déconnexion
-                    </button>
+                    <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                </a>
                 </div>
             </div>
     </nav>
@@ -281,93 +281,6 @@
         </div>
     </footer>
 
-    <script>
-    // ============================================================
-    // 1. Gestion de la déconnexion
-    // ============================================================
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-        const accessToken = localStorage.getItem('access');
-        const refreshToken = localStorage.getItem('refresh');
-        
-        // Si refresh token présent, on le blacklist
-        if (refreshToken && accessToken) {
-            try {
-                await fetch('/api/auth/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
-                });
-            } catch (e) {
-                console.warn('Logout serveur échoué:', e);
-            }
-        }
-        
-        // Nettoyage local
-        localStorage.removeItem('access');
-        localStorage.removeItem('refresh');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-    });
-
-    // ============================================================
-    // 2. Rafraîchissement du token access
-    // ============================================================
-    async function refreshToken() {
-    const refreshToken = localStorage.getItem('refresh');
-    if (!refreshToken) return false;
-    
-    try {
-        const response = await fetch('/api/auth/token/refresh/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({refresh: refreshToken})
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('access', data.access);
-            
-            // ✅ Stocke le NOUVEAU refresh token
-            if (data.refresh) {
-                localStorage.setItem('refresh', data.refresh);
-            }
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Refresh failed:', error);
-        return false;
-    }
-}
-    // ============================================================
-    // 3. Vérification périodique du token (toutes les 60s)
-    // ============================================================
-    setInterval(async () => {
-        const token = localStorage.getItem('access');
-        if (!token) {
-            window.location.href = '/';
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/auth/me/', {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            
-            if (response.status === 401) {
-                const refreshed = await refreshToken();
-                if (!refreshed) {
-                    localStorage.clear();
-                    window.location.href = '/';
-                }
-            }
-        } catch (error) {
-            console.error('Erreur vérification token:', error);
-        }
-    }, 60000); // 60 secondes
-</script>
+   
 </body>
 </html>

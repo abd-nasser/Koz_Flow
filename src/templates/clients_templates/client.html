@@ -26,21 +26,29 @@
         {% endfor %}
     </div>
     {% endif %}
+     
 
     <!-- ========== NAVBAR ========== -->
     <nav class=" backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-200">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center flex-wrap gap-3">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
-                    <span class="text-white font-bold text-xl">K</span>
+            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105">
+                    <img src="{% static 'images/koz_logo_noBack.png' %}" alt="KOZ" class="w-7 h-7 object-contain">
                 </div>
-                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
-            </div>
+                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ <span class="text-blue-600">Services</span></span>
+            </a>
+        </div>
+           
             <div class="flex items-center gap-4">
-                <span class="text-gray-600 text-sm hidden md:inline">{{ user.email }}</span>
-                <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md">
+                <a href="{% url 'home_app:home-page' %}" 
+            class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition group">
+                <i class="fas fa-arrow-left text-xs group-hover:-translate-x-1 transition-transform duration-300"></i>
+                Retour à l'accueil
+            </a>
+                <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md">
                     <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-                </button>
+                </a>
             </div>
         </div>
     </nav>
@@ -205,94 +213,3 @@
             
         });
 </script>
-
-<script>
-    // ============================================================
-    // 1. Gestion de la déconnexion
-    // ============================================================
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-        const accessToken = localStorage.getItem('access');
-        const refreshToken = localStorage.getItem('refresh');
-        
-        // Si refresh token présent, on le blacklist
-        if (refreshToken && accessToken) {
-            try {
-                await fetch('/api/auth/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
-                });
-            } catch (e) {
-                console.warn('Logout serveur échoué:', e);
-            }
-        }
-        
-        // Nettoyage local
-        localStorage.removeItem('access');
-        localStorage.removeItem('refresh');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-    });
-
-    // ============================================================
-    // 2. Rafraîchissement du token access
-    // ============================================================
-    async function refreshToken() {
-    const refreshToken = localStorage.getItem('refresh');
-    if (!refreshToken) return false;
-    
-    try {
-        const response = await fetch('/api/auth/token/refresh/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({refresh: refreshToken})
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('access', data.access);
-            
-            // ✅ Stocke le NOUVEAU refresh token
-            if (data.refresh) {
-                localStorage.setItem('refresh', data.refresh);
-            }
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Refresh failed:', error);
-        return false;
-    }
-}
-    // ============================================================
-    // 3. Vérification périodique du token (toutes les 60s)
-    // ============================================================
-    setInterval(async () => {
-        const token = localStorage.getItem('access');
-        if (!token) {
-            window.location.href = '/';
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/auth/me/', {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            
-            if (response.status === 401) {
-                const refreshed = await refreshToken();
-                if (!refreshed) {
-                    localStorage.clear();
-                    window.location.href = '/';
-                }
-            }
-        } catch (error) {
-            console.error('Erreur vérification token:', error);
-        }
-    }, 60000); // 60 secondes
-</script>
-</body>
-</html>

@@ -1,6 +1,6 @@
 from email import header
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import(
                                 authenticate, 
                                 login as django_login, 
@@ -143,7 +143,6 @@ class LoginView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR
                             )
 
-
 # ----- VUE POUR OBTENIR L'UTILISATEUR CONNECTÉ -----
 class MeView(APIView):
     # IsAuthenticated = SEUL les utilisateurs connectés peuvent voir cette page
@@ -245,7 +244,40 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         context["user_register_form"] = form
         context["open_user_register_modal"] = True # variable pour réouvrir le modal avec les erreurs
         return self.render_to_response(context)
-             
+
+
+
+def login_simple(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None:
+            django_login(request, user)
+            messages.success(request, f"✅ Bienvenue {user.nom_complet} !")
+            
+            # Redirection selon le rôle
+            if user.is_superuser or user.role == 'directeur':
+                return redirect('directeur_app:directeur-view')
+            elif user.role == 'commercial':
+                return redirect('commercial_app:commercial-view')
+            else:
+                return redirect('home_app:home-page')
+        else:
+            messages.error(request, '❌ Email ou mot de passe incorrect')
+            
+        return redirect('home_app:home-page')
+    
+    # Si GET, rediriger vers la page d'accueil
+    return redirect('home_app:home-page')
+
+def logout_simple(request):
+    django_logout(request)
+    return redirect("home_app:home-page")
+    
+    
 class ChangePasswordView(LoginRequiredMixin, FormView):
     form_class = ChangePasswordForm
     

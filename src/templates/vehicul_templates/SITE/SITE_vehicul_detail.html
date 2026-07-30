@@ -11,20 +11,22 @@
     <link rel="stylesheet" href="{% static 'css/vehicul/site_vehicul_detail.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <title>{{ vehicule.marque.nom }} {{ vehicule.modele }} - KOZ Services</title>
+    <title>{{ vehicul.marque.nom }} {{ vehicul.modele }} - KOZ Services</title>
 </head>
 <body class="bg-gray-50 font-inter">
 
     <!-- ===== NAVBAR ===== -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
-                    <span class="text-white font-bold text-xl">K</span>
+           <div class="flex items-center gap-3">
+            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105">
+                    <img src="{% static 'images/koz_logo_noBack.png' %}" alt="KOZ" class="w-7 h-7 object-contain">
                 </div>
-                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
+                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ <span class="text-blue-600">Services</span></span>
             </a>
-            <a href="{% url 'vehicul_app:list-vehicul' %}" class="text-gray-600 hover:text-blue-600 transition flex items-center gap-2 text-sm">
+            </div>
+            <a href="{% url 'vehicul_app:site-vehicul-list' %}" class="text-gray-600 hover:text-blue-600 transition flex items-center gap-2 text-sm">
                 <i class="fas fa-arrow-left"></i> Retour
             </a>
         </div>
@@ -41,7 +43,7 @@
         <div id="hero-image-container"
              class="absolute inset-0 w-full h-full overflow-hidden"
              hx-trigger="load"
-             hx-get="{% url 'vehicul_app:vehicul-image-partial' vehicule.pk %}?page=1"
+             hx-get="{% url 'vehicul_app:vehicul-image-partial' vehicul.pk %}?page=1"
              hx-swap="innerHTML transition:true">
 
             <!-- Spinner de chargement -->
@@ -62,17 +64,17 @@
                     <div class="w-full lg:w-auto lg:max-w-2xl">
                         <!-- Badge (marque + année) -->
                         <span class="inline-block text-[10px] sm:text-xs font-semibold text-white uppercase tracking-widest bg-blue-500/20 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full mb-2 sm:mb-3 border border-blue-400/30">
-                            {{ vehicule.marque.nom }} • {{ vehicule.annee }}
+                            {{ vehicul.marque.nom }} • {{ vehicul.annee }}
                         </span>
 
                         <!-- Titre -->
                         <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-[1.1] md:leading-tight">
-                            {{ vehicule.marque.nom }} {{ vehicule.modele }}
+                            {{ vehicul.marque.nom }} {{ vehicul.modele }}
                         </h1>
 
                         <!-- Description -->
                         <p class="text-sm sm:text-base md:text-lg text-white/80 mt-1 sm:mt-2 max-w-2xl line-clamp-2">
-                            {{ vehicule.description|truncatechars:120 }}
+                            {{ vehicul.description|truncatechars:120 }}
                         </p>
                     </div>
 
@@ -80,13 +82,13 @@
                     <div class="flex flex-row flex-wrap lg:flex-col items-center lg:items-end gap-2 sm:gap-3 w-full lg:w-auto flex-shrink-0">
                         <!-- Prix -->
                         <span class="price-badge text-sm sm:text-base md:text-lg lg:text-2xl xl:text-3xl px-4 sm:px-5 md:px-6 py-1.5 sm:py-2 md:py-2.5 whitespace-nowrap">
-                            {{ vehicule.prix|intcomma }} FCFA
+                            {{ vehicul.prix|intcomma }} FCFA
                         </span>
 
                         <!-- Disponibilité -->
                         <span class="text-white/70 text-[10px] sm:text-xs md:text-sm flex items-center gap-1 sm:gap-2">
                             <i class="fas fa-car text-xs sm:text-sm"></i>
-                            {% if vehicule.disponible %}
+                            {% if vehicul.disponible %}
                                 <span class="text-green-400 font-medium">disponible</span> ✅
                             {% else %}
                                 <span class="text-red-400 font-medium">indisponible</span> ❌
@@ -116,7 +118,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-gray-400 text-[11px] sm:text-xs font-medium uppercase tracking-wider">Kilométrage</p>
-                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicule.kilometrage|intcomma }} km</p>
+                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicul.kilometrage|intcomma }} km</p>
                     </div>
                 </div>
                 <div class="connection-line"></div>
@@ -130,7 +132,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-gray-400 text-[11px] sm:text-xs font-medium uppercase tracking-wider">Carburant</p>
-                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicule.get_carburant_display }}</p>
+                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicul.get_carburant_display }}</p>
                     </div>
                 </div>
                 <div class="connection-line"></div>
@@ -144,7 +146,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-gray-400 text-[11px] sm:text-xs font-medium uppercase tracking-wider">Année</p>
-                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicule.annee }}</p>
+                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicul.annee }}</p>
                     </div>
                 </div>
                 <div class="connection-line"></div>
@@ -158,7 +160,7 @@
                     </div>
                     <div class="min-w-0">
                         <p class="text-gray-400 text-[11px] sm:text-xs font-medium uppercase tracking-wider">Stock</p>
-                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicule.stock|default:"0" }}</p>
+                        <p class="text-gray-800 text-base sm:text-xl font-bold truncate">{{ vehicul.stock|default:"0" }}</p>
                     </div>
                 </div>
                 <div class="connection-line"></div>
@@ -174,17 +176,17 @@
                 <h3 class="text-gray-800 text-lg font-bold mb-4 flex items-center gap-2">
                     <i class="fas fa-align-left text-blue-600"></i> Description
                 </h3>
-                <p class="text-gray-600 leading-relaxed">{{ vehicule.description|default:"Aucune description disponible." }}</p>
+                <p class="text-gray-600 leading-relaxed">{{ vehicul.description|default:"Aucune description disponible." }}</p>
 
                 <!-- Marque -->
                 <div class="mt-6 pt-6 border-t border-gray-100">
                     <div class="flex items-center gap-4">
-                        {% if vehicule.marque.logo %}
-                        <img src="{{ vehicule.marque.logo.url }}" alt="{{ vehicule.marque.nom }}" class="w-12 h-12 object-contain flex-shrink-0">
+                        {% if vehicul.marque.logo %}
+                        <img src="{{ vehicul.marque.logo.url }}" alt="{{ vehicul.marque.nom }}" class="w-12 h-12 object-contain flex-shrink-0">
                         {% endif %}
                         <div>
                             <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Marque</p>
-                            <p class="text-gray-800 font-semibold">{{ vehicule.marque.nom }}</p>
+                            <p class="text-gray-800 font-semibold">{{ vehicul.marque.nom }}</p>
                         </div>
                     </div>
                 </div>
@@ -196,9 +198,17 @@
                     <i class="fas fa-bolt text-blue-600"></i> Actions
                 </h3>
                 <div class="space-y-3 sm:space-y-4">
-                    <a href="#" class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
-                        <i class="fas fa-hand-holding-usd mr-2"></i> Demander un financement
-                    </a>
+                    {% if user.is_authenticated and not user.is_superuser and user.role != "directeur" %}
+                        <button onclick="document.getElementById('dmd_fin_modal').showModal()" 
+                        class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> Demander un financement
+                        </button>
+                        {% else %}
+                         <button onclick="document.getElementById('login_simple_modal').showModal()" 
+                        class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> connectez vous pour un financement
+                        </button>
+                    {% endif %}
                     <a href="#" class="block w-full text-center py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-semibold transition border border-blue-100">
                         <i class="fas fa-calendar-check mr-2"></i> Prendre rendez-vous
                     </a>
@@ -209,17 +219,16 @@
             </div>
 
         </div>
-
         <!-- ===== GALERIE D'IMAGES ===== -->
-        {% if vehicule.images.all %}
+        {% if vehicul.images.all %}
         <div class="mt-12 sm:mt-16">
             <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                 <i class="fas fa-images text-blue-600"></i> Galerie
             </h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                {% for image in vehicule.images.all %}
+                {% for image in vehicul.images.all %}
                 <button type="button" class="relative overflow-hidden rounded-xl group cursor-pointer aspect-[4/3]" onclick="openLightbox('{{ image.image.url }}')">
-                    <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:vehicule.modele }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                    <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:vehicul.modele }}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                         <i class="fas fa-search-plus text-white text-2xl"></i>
                     </div>
@@ -245,7 +254,8 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-
+        {% include 'modals/leads/demande_financement.html' %}
+         {% include 'modals/auth/login_simple_modal.html' %}
     <!-- ============================================================ -->
     <!-- SCRIPTS  -->
     <!-- ============================================================ -->

@@ -23,72 +23,112 @@
 </head>
 <body>
 
-<!-- ========== NAVBAR ========== -->
-<nav class="navbar  top-0 z-50 w-full">
+<!-- ========== NAVBAR PREMIUM ========== -->
+<nav class="navbar fixed top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-gray-200/50 shadow-sm transition-all duration-300">
     <div class="container mx-auto px-4 flex justify-between items-center h-16">
         
-        <!-- Logo -->
+        <!-- ===== LOGO ===== -->
         <div class="flex items-center gap-3">
-            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md">
-                    <img src="{% static 'images/koz_logo_noBack.png' %}" alt="KOZ" class="w-8 h-8 object-contain">
+            <a href="{% url 'home_app:home-page' %}" class="flex items-center gap-2 group">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-105">
+                    <img src="{% static 'images/koz_logo_noBack.png' %}" alt="KOZ" class="w-7 h-7 object-contain">
                 </div>
-                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
+                <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ <span class="text-blue-600">Services</span></span>
             </a>
         </div>
 
-        <!-- Liens centraux -->
-        <div class="hidden md:flex gap-6 text-white font-medium text-sm">
-            <a href="{% url 'home_app:home-page' %}" class="hover:text-blue-600 transition">Accueil</a>
-            <a href="{% url 'vehicul_app:list-vehicul' %}" class="hover:text-blue-600 transition">Catalogue</a>
-            <a href="#" class="hover:text-blue-600 transition">Financement</a>
-            <a href="#" class="hover:text-blue-600 transition">Contact</a>
+        <!-- ===== LIENS CENTRAUX ===== -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+            <a href="{% url 'home_app:home-page' %}" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                Accueil
+            </a>
+            <a href="{% url 'vehicul_app:list-vehicul' %}" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                Catalogue
+            </a>
+            <a href="#" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                Financement
+            </a>
+            <a href="#" 
+               class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                Contact
+            </a>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-4">
+        <!-- ===== ACTIONS ===== -->
+        <div class="flex items-center gap-2 sm:gap-3">
             {% if user.is_authenticated %}
-                <a href="{% url 'client_app:client-view' %}" class="hidden sm:flex items-center gap-2 text-sm text-gray-700 hover:text-blue-600 transition font-medium">
-                    <i class="fas fa-user-circle text-lg text-blue-600"></i>
-                    {{ user.nom_complet }}
+                
+                <!-- Dashboard -->
+                <a href="{% url 'client_app:client-view' %}" 
+                   class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                    <i class="fas fa-chart-simple text-blue-500"></i>
+                    <span class="hidden lg:inline">Tableau de bord</span>
                 </a>
 
-                <a href="#" class="relative text-gray-700 hover:text-blue-600 transition">
+                <!-- Panier -->
+                <a href="{% url 'order_app:panier' %}" 
+                   class="relative p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
                     <i class="fas fa-shopping-cart text-lg"></i>
-                    <span class="absolute -top-2 -right-3 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md">
-                        {{ user.panier.nb_articles|default:0 }}
+                    {% if user.panier.nb_articles > 0 %}
+                    <span class="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-md ring-2 ring-white">
+                        {{ user.panier.nb_articles }}
                     </span>
+                    {% endif %}
                 </a>
 
-                <button id="logoutBtn" class="btn btn-error btn-sm text-white hover:bg-red-700 transition shadow-sm flex items-center gap-1.5">
+                <!-- Utilisateur -->
+                <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50/50 border border-gray-100">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                        {{ user.nom_complet|slice:":1"|upper }}
+                    </div>
+                    <span class="text-sm font-medium text-gray-700 hidden sm:inline">
+                        {{ user.nom_complet|truncatechars:15 }}
+                    </span>
+                </div>
+
+                <!-- Déconnexion -->
+                <a href="{% url 'auth_app:logout-simple' %}" 
+                   class="btn btn-error btn-sm text-white hover:bg-red-700 transition shadow-sm flex items-center gap-1.5">
                     <i class="fas fa-sign-out-alt text-xs"></i>
                     <span class="hidden sm:inline">Déconnexion</span>
-                </button>
+                </a>
+
             {% else %}
-                <button onclick="document.getElementById('login_modal').showModal()" class="btn btn-ghost btn-sm hidden sm:inline-block hover:bg-gray-100">
+                
+                <!-- Connexion -->
+                <button onclick="document.getElementById('login_simple_modal').showModal()" 
+                        class="btn btn-ghost btn-sm hidden sm:inline-flex hover:bg-gray-100 transition">
                     Connexion
                 </button>
-                <button onclick="document.getElementById('register_modal').showModal()" class="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md flex items-center gap-2">
+                
+                <!-- Inscription -->
+                <button onclick="document.getElementById('register_modal').showModal()" 
+                        class="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition flex items-center gap-2">
                     <i class="fas fa-user-plus"></i>
                     <span class="hidden sm:inline">Inscription</span>
                 </button>
+
             {% endif %}
 
-            <button id="burgerBtn" class="md:hidden btn btn-ghost btn-sm">
+            <!-- Burger -->
+            <button id="burgerBtn" class="md:hidden btn btn-ghost btn-sm hover:bg-gray-100 transition">
                 <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
     </div>
 
-    <!-- Menu mobile -->
+    <!-- ===== MENU MOBILE ===== -->
     <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-200 p-4 shadow-lg">
-        <div class="flex flex-col gap-3 text-gray-600 text-sm">
-            <a href="{% url 'home_app:home-page' %}" class="hover:text-blue-600 transition">Accueil</a>
-            <a href="{% url 'vehicul_app:list-vehicul' %}" class="hover:text-blue-600 transition">Catalogue</a>
-            <a href="#" class="hover:text-blue-600 transition">Financement</a>
-            <a href="#" class="hover:text-blue-600 transition">Contact</a>
-            <hr>
-            <a href="#" class="text-blue-600 font-medium">
+        <div class="flex flex-col gap-2 text-gray-600 text-sm">
+            <a href="{% url 'home_app:home-page' %}" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Accueil</a>
+            <a href="{% url 'vehicul_app:list-vehicul' %}" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Catalogue</a>
+            <a href="#" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Financement</a>
+            <a href="#" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Contact</a>
+            <hr class="my-2">
+            <a href="#" class="px-4 py-2.5 rounded-lg text-blue-600 font-medium hover:bg-blue-50 transition">
                 <i class="fas fa-shopping-cart mr-2"></i> Panier ({{ user.panier.nb_articles|default:0 }})
             </a>
         </div>
@@ -152,15 +192,6 @@
                de financement
             </p>
 
-        </a>
-
-        <!-- Box 3 : bas -->
-        <a href="#" class="box box-bottom">
-             <div class="box-icon"><i class="fas fas-finance"></i></div>
-            <h4 class="box-title">jolie jolie</h4>
-            <p class="box-text">
-                Crédit sans banque, dossiers simplifiés, réponses rapides. Obtenez votre véhicule en toute sérénité.
-            </p>
         </a>
 
     </div>
@@ -503,43 +534,328 @@
         </div>
     </section>
 
+    <!-- ============================================================ -->
+<!-- SECTION MISSION & VALEURS (Version améliorée)               -->
 <!-- ============================================================ -->
-<!-- SECTION VALEUR ET MISSION                                    -->
-<!-- ============================================================ -->
+<section class="py-16 relative bg-white overflow-hidden">
+    
+    <!-- Dégradé de fond -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-40"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-40"></div>
+    </div>
 
-    <section class="py-16  relative bg-gradient-to-r  from-blue-400 to-white">
-        <div class="container fade-section mx-auto px-4 text-center">
-            <h2 class="text-gray-400 text-1xl mb-6">A propos de nous</h2>
-            <h1 class="text-4xl md:text-4xl font-bold mb-4">Nos valeurs</h1>
-           
-           
-        </div>
-    </section>
-<!-- ============================================================ -->
-<!-- SECTION PRODUITS VEDETTE                                     -->
-<!-- ============================================================ -->
-    <section class="py-16  relative bg-white">
-        <div class="container fade-section mx-auto px-4">
+    <div class="container relative z-10 mx-auto px-4 max-w-7xl">
+        
+        <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Pièces et accessoires</h2>
-            <p class="text-gray-500 mt-2">L'équipement qu'il vous faut pour votre véhicule</p>
+            <span class="inline-block text-xs font-semibold text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-5 py-2  mb-4 border border-blue-100">
+                ✦ Notre ADN
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-bold text-gray-800">
+                Mission & <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Valeurs</span>
+            </h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto mt-4 "></div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {% for produit in produits_vedette %}
-            <div class="bg-gray-50 rounded-xl p-4 text-center hover:shadow-md transition">
-                <div class="w-full h-32 bg-gray-200 rounded-lg mb-3 overflow-hidden">
-                    <img src="{{ produit.image_principale.url }}" alt="{{ produit.nom }}" class="w-full h-full object-cover">
+
+        <!-- ===== GRILLE ===== -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            
+            <!-- ===== COLONNE GAUCHE : MISSION ===== -->
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500  opacity-0 group-hover:opacity-20 blur-xl transition duration-500"></div>
+                <div class="relative bg-white  p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition duration-500 h-full">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12  bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
+                            <i class="fas fa-flag text-xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Notre Mission</h3>
+                            <p class="text-xs text-gray-400">Ce qui nous anime chaque jour</p>
+                        </div>
+                    </div>
+
+                    <p>
+                        <strong class="text-blue-600"> <em> Révolutionner et Démocratiser le secteur de la concession automobile en Afrique</em></strong>
+                    </p>
+                    
+                    <p class="text-gray-600 mt-4 leading-relaxed text-sm">
+                        Chez <strong class="text-blue-600">KOZ Services</strong>, nous croyons que chaque 
+                        personne mérite de rouler en toute sérénité. Notre mission est de 
+                        <strong class="text-gray-800">rendre l'accession à la voiture plus simple, 
+                        plus transparente et plus humaine</strong>, grâce à des solutions de 
+                        financement flexibles et un accompagnement personnalisé.
+                    </p>
+
+                    <div class="flex items-center mt-4 gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
+                        <i class=" fas fa-gem text-2xl text-white"></i>
+                    </div>
+                    <div>
+                         <h2 class="text-3xl sm:text-4xl font-bold text-gray-800"> 
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Vision</span>
+                         </h2>
+                        
+                        <strong class="text-gray-400 leading-relaxed text-xs"><em>Créer un pont entre l’expertise de la Diaspora et la connaissance du marché locale afin de professionnaliser le secteur de la concession automobile en Afrique</em></strong>
+
+                    </div>
                 </div>
-                <h4 class="font-semibold text-gray-800">{{ produit.nom }}</h4>
-                <p class="text-blue-600 font-bold">{{ produit.prix|intcomma }} FCFA</p>
-                <button class="btn btn-primary btn-sm w-full mt-2">Ajouter au panier</button>
+                    
+                   
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center gap-3">
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <span>Accessibilité</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <span>Transparence</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                            <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                            <span>Proximité</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- ===== COLONNE DROITE : VALEURS ===== -->
+            <div class="bg-white  p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition duration-500">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
+                        <i class="fas fa-heart text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Nos Valeurs</h3>
+                        <p class="text-xs text-gray-400">Ce qui nous guide au quotidien</p>
+                    </div>
+                </div>
+
+                <!-- ===== GRILLE DES VALEURS (responsif) ===== -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    
+                    <!-- Valeur 1 -->
+                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                            <i class="fas fa-handshake text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                               <h4 class="font-semibold text-gray-800">1. La Confiance</h4>
+                                <p class="text-sm text-gray-500 leading-relaxed">Bâtir une relation durable avec nos clients, basée sur la transparence et l'intégrité.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Valeur 2 -->
+                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                            <i class="fas fa-bolt text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">2. L'Innovation</h4>
+                            <p class="text-sm text-gray-500 leading-relaxed">Proposer des solutions simples et modernes pour simplifier l'achat automobile.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Valeur 3 -->
+                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                            <i class="fas fa-users text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                             <h4 class="font-semibold text-gray-800">2. L'Innovation</h4>
+                             <p class="text-sm text-gray-500 leading-relaxed">Proposer des solutions simples et modernes pour simplifier l'achat automobile.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Valeur 4 -->
+                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                            <i class="fas fa-shield-alt text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">4. La Sécurité</h4>
+                            <p class="text-sm text-gray-500 leading-relaxed">Garantir des transactions sécurisées et des conseils fiables à nos clients.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== BANDEAU CITATION ===== -->
+        <div class="mt-10 p-6  bg-gradient-to-r from-blue-600 to-indigo-600 text-center shadow-xl">
+            <p class="text-white text-base md:text-lg font-medium leading-relaxed max-w-3xl mx-auto">
+                <i class="fas fa-quote-left text-blue-200/50 mr-2"></i>
+                KOZ Services, n'achetez pas une auto, changez votre vie
+                <i class="fas fa-quote-right text-blue-200/50 ml-2"></i>
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION PRODUITS VEDETTE (PREMIUM)                           -->
+<!-- ============================================================ -->
+<section class="py-16 sm:py-20 relative bg-gradient-to-br from-white via-gray-50/30 to-white overflow-hidden">
+    
+    <!-- Dégradé de fond subtil -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/30 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container relative z-10 mx-auto px-4">
+        
+        <!-- ===== EN-TÊTE ===== -->
+        <div class="text-center mb-12">
+            <span class="inline-block text-xs font-semibold text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-5 py-2 rounded-full mb-4 border border-blue-100">
+                ⚡ Nos meilleurs produits
+            </span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800">
+                Pièces & <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Accessoires</span>
+            </h2>
+            <p class="text-gray-500 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
+                L'équipement qu'il vous faut pour votre véhicule, au meilleur prix.
+            </p>
+        </div>
+
+        <!-- ===== GRILLE PRODUITS ===== -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {% for produit in produits_vedette %}
+            
+            <div class="group relative bg-white shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1  border-gray-100/50 overflow-hidden">
+                
+                <!-- ===== BADGES ===== -->
+                <div class="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                    {% if produit.est_nouveau %}
+                    <span class="badge bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                        <i class="fas fa-sparkles mr-1 text-[8px]"></i> Nouveau
+                    </span>
+                    {% endif %}
+                    
+                    {% if produit.est_en_promo %}
+                    <span class="badge bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md animate-pulse">
+                        <i class="fas fa-tag mr-1 text-[8px]"></i> Promo
+                    </span>
+                    {% endif %}
+                    
+                    {% if not produit.est_en_stock %}
+                    <span class="badge bg-gradient-to-r from-gray-500 to-gray-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                        <i class="fas fa-times mr-1 text-[8px]"></i> Rupture
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- ===== IMAGE ===== -->
+                <div class="relative overflow-hidden bg-gray-100 aspect-square">
+                    {% if produit.image_principale %}
+                        <img src="{{ produit.image_principale.url }}" 
+                             alt="{{ produit.nom }}"
+                             class="w-full h-full object-contain transition duration-500 group-hover:scale-110">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                            <i class="fas fa-box text-4xl text-gray-300"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Overlay au survol -->
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center gap-2">
+                        <button class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
+                            <i class="fas fa-shopping-cart text-sm"></i>
+                        </button>
+                        <button class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
+                            <i class="fas fa-heart text-sm"></i>
+                        </button>
+                        <a href="{% url 'products_app:products-detail' produit.pk %}" class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
+                            <i class="fas fa-eye text-sm"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- Indicateur de stock (petit) -->
+                    {% if produit.est_en_stock and produit.stock <= produit.stock_min %}
+                    <div class="absolute bottom-2 right-2 bg-amber-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                        <i class="fas fa-clock mr-1"></i> Plus que {{ produit.stock }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- ===== CONTENU ===== -->
+                <div class="p-3 sm:p-4">
+                    
+                    <!-- Marque + Catégorie -->
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                            {% if produit.marque %}{{ produit.marque.nom }}{% else %}{{ produit.categorie.nom }}{% endif %}
+                        </span>
+                        {% if produit.est_vedette %}
+                        <span class="text-[9px] text-yellow-500">
+                            <i class="fas fa-star text-yellow-400 mr-0.5"></i> Vedette
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Nom -->
+                    <h4 class="font-semibold text-gray-800 text-sm sm:text-base line-clamp-1 group-hover:text-blue-600 transition">
+                        {{ produit.nom }}
+                    </h4>
+
+                    <!-- Description courte -->
+                    {% if produit.description_courte %}
+                    <p class="text-xs text-gray-400 mt-0.5 line-clamp-1">{{ produit.description_courte|truncatechars:40 }}</p>
+                    {% endif %}
+
+                    <!-- PRIX -->
+                    <div class="mt-2 flex items-center gap-2">
+                        {% if produit.est_en_promo %}
+                        <span class="text-lg font-bold text-red-600">{{ produit.prix_promo|intcomma }} FCFA</span>
+                        <span class="text-xs text-gray-400 line-through">{{ produit.prix|intcomma }} FCFA</span>
+                        {% else %}
+                        <span class="text-lg font-bold text-blue-600">{{ produit.prix|intcomma }} FCFA</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Disponibilité -->
+                    <div class="mt-1.5 flex items-center gap-1.5">
+                        {% if produit.est_en_stock %}
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                        <span class="text-[10px] text-green-600 font-medium">En stock</span>
+                        {% else %}
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        <span class="text-[10px] text-red-500 font-medium">Rupture</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- BOUTON AJOUTER -->
+                    <a href="{% url 'products_app:products-detail' produit.pk %}" class="w-full mt-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-eye text-xs"></i> 
+                    </a>
+                </div>
+            </div>
+            
             {% empty %}
-            <p class="text-gray-400 col-span-full text-center">Aucun produit disponible.</p>
+            <div class="col-span-full text-center py-12">
+                <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-box-open text-3xl text-gray-400"></i>
+                </div>
+                <p class="text-gray-500">Aucun produit disponible pour le moment.</p>
+                <p class="text-gray-400 text-sm mt-1">Revenez bientôt, nous ajoutons régulièrement de nouveaux articles.</p>
+            </div>
             {% endfor %}
         </div>
+
+        <!-- ===== BOUTON VOIR TOUT ===== -->
+        <div class="text-center mt-10">
+            <a href="#" class="inline-flex items-center gap-2 px-8 py-3.5 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-300 font-medium text-sm">
+                <span>Voir tous les produits</span>
+                <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover:translate-x-1"></i>
+            </a>
         </div>
-    </section>
+
+    </div>
+</section>
 
     
 <!-- ============================================================ -->
@@ -723,10 +1039,8 @@
 
     <!-- ========== MODALES ========== -->
     {% include 'modals/home/register.html' %}
-    {% include 'modals/home/login.html' %}
+    {% include 'modals/auth/login_simple_modal.html' %}
     <script src="{% static 'js/home/register.js' %}"></script>
-    <script src="{% static 'js/home/login.js' %}"></script>
-    <script src="{% static 'js/home/logout.js' %}"></script>
     <script src="{% static 'js/home/gsap_anim.js' %}"></script>
 
     <script>

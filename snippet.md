@@ -1,6 +1,132 @@
+    <!-- ============================================================ -->
+    <!-- SECTION MISSION ET VALEURS                                   -->
+    <!-- ============================================================ -->
+    <section class="section_mission_valeurs relative bg-white py-20  overflow-hidden">
 
-nasserdevtes@gmail.com : PNnMqFU650
+        <!-- ===== EN-TÊTE ===== -->
+        <div class="text-center mb-16">
+            <span class="inline-block text-xs font-semibold text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-5 py-2 rounded-full mb-4 border border-blue-100">
+                ✦ Notre ADN
+            </span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800">
+                Mission & <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Valeurs</span>
+            </h2>
+            <div class="w-20 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 mx-auto mt-4 rounded-full"></div>
+        </div>
+        <!-- ===== CONTENEUR GAUCHE ET DROITE ===== -->
+        <div class="left_and_right-conatiner min-w-full min-h-150">
 
+                <!-- ===== CONTENEUR GAUCHE ===== -->
+            <div class="left_container w-3xl min-h-100 ">
+                
+                <div class="relative p-8 shadow-lg  hover:shadow-2xl transition duration-500 bg-white/10 backdrop-blur-md" 
+                     style="width: 30rem;">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25">
+                            <i class="fas fa-flag text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">Notre Mission</h3>
+                            <p class="text-sm text-gray-400">Ce qui nous anime chaque jour</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Chez <strong class="text-blue-600">KOZ Services</strong>, nous croyons que chaque 
+                        personne mérite de rouler en toute sérénité. Notre mission est de 
+                        <strong class="text-gray-800">rendre l'accession à la voiture plus simple, 
+                        plus transparente et plus humaine</strong>, grâce à des solutions de 
+                        financement flexibles et un accompagnement personnalisé.
+                    </p>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-100 flex items-center gap-4">
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>Accessibilité</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>Transparence</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>Proximité</span>
+                        </div>
+                    </div>
+               
+            </div>
+        </div>
+
+            <!-- ===== CONTENEUR DROITE ===== -->
+<div class="right_container w-full max-w-2xl lg:max-w-3xl">
+
+    <!-- ===== TITRE VALEURS ===== -->
+    <div class="mb-4 shadow-lg hover:shadow-2xl transition duration-500 bg-white/10 p-4 sm:p-5 backdrop-blur-md rounded-2xl">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
+                <i class="fas fa-heart text-xl sm:text-2xl text-white"></i>
+            </div>
+            <div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-800">Nos Valeurs</h3>
+                <p class="text-xs sm:text-sm text-gray-400">Ce qui nous guide au quotidien</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GRILLE DES VALEURS ===== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        
+        <!-- Valeur 1 -->
+        <div class="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 shadow-lg hover:shadow-2xl transition duration-500 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 hover:border-blue-400/30 group">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                <i class="fas fa-handshake text-blue-600 text-sm sm:text-base"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 text-sm sm:text-base">1. La Confiance</h4>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Bâtir une relation durable basée sur la transparence et l'intégrité.</p>
+            </div>
+        </div>
+
+        <!-- Valeur 2 -->
+        <div class="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 shadow-lg hover:shadow-2xl transition duration-500 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 hover:border-blue-400/30 group">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                <i class="fas fa-bolt text-blue-600 text-sm sm:text-base"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 text-sm sm:text-base">2. L'Innovation</h4>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Des solutions simples et modernes pour simplifier l'achat.</p>
+            </div>
+        </div>
+
+        <!-- Valeur 3 -->
+        <div class="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 shadow-lg hover:shadow-2xl transition duration-500 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 hover:border-blue-400/30 group">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                <i class="fas fa-users text-blue-600 text-sm sm:text-base"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 text-sm sm:text-base">3. La Proximité</h4>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">À l'écoute et accompagner nos clients à chaque étape.</p>
+            </div>
+        </div>
+
+        <!-- Valeur 4 -->
+        <div class="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 shadow-lg hover:shadow-2xl transition duration-500 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 hover:border-blue-400/30 group">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
+                <i class="fas fa-shield-alt text-blue-600 text-sm sm:text-base"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-800 text-sm sm:text-base">4. La Sécurité</h4>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed">Des transactions sécurisées et des conseils fiables.</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+                
+        </div>
+       
+    </section>
 <div class="scroll-area">
     <div class="content-block">🚗 BIENVENUE CHEZ KOZ SERVICES</div>
     <div class="content-block">💳 CRÉDIT SANS BANQUE</div>
@@ -642,3 +768,100 @@ sections.forEach((section, index) => {
 
 </body>
 </html>
+
+
+Le W-586 est le pneu hiver d'Ovation développé pour les véhicules de tourisme.
+- Améliore le freinage, l'adhérence en courbe ainsi que l'évacuation de l'eau et de la neige fondue
+- Traction d'excellent niveau et résistance au roulement réduite
+- Améliore l'évacuation de l'eau et la stabilité par forte neige
+- Offre une excellente adhérence et réduit la friction ainsi que la résistance au roulement
+
+
+ <script>
+    // ============================================================
+    // 1. Gestion de la déconnexion
+    // ============================================================
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        const accessToken = localStorage.getItem('access');
+        const refreshToken = localStorage.getItem('refresh');
+        
+        // Si refresh token présent, on le blacklist
+        if (refreshToken && accessToken) {
+            try {
+                await fetch('/api/auth/logout/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
+                });
+            } catch (e) {
+                console.warn('Logout serveur échoué:', e);
+            }
+        }
+        
+        // Nettoyage local
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+    });
+
+    // ============================================================
+    // 2. Rafraîchissement du token access
+    // ============================================================
+    async function refreshToken() {
+    const refreshToken = localStorage.getItem('refresh');
+    if (!refreshToken) return false;
+    
+    try {
+        const response = await fetch('/api/auth/token/refresh/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({refresh: refreshToken})
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access', data.access);
+            
+            // ✅ Stocke le NOUVEAU refresh token
+            if (data.refresh) {
+                localStorage.setItem('refresh', data.refresh);
+            }
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Refresh failed:', error);
+        return false;
+    }
+}
+    // ============================================================
+    // 3. Vérification périodique du token (toutes les 60s)
+    // ============================================================
+    setInterval(async () => {
+        const token = localStorage.getItem('access');
+        if (!token) {
+            window.location.href = '/';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/auth/me/', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            
+            if (response.status === 401) {
+                const refreshed = await refreshToken();
+                if (!refreshed) {
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            }
+        } catch (error) {
+            console.error('Erreur vérification token:', error);
+        }
+    }, 60000); // 60 secondes
+</script>

@@ -66,7 +66,7 @@ class CategorieProductsDeleteView(DeleteView):
 
 class ProductsListView(ListView):
     model = Products
-    template_name = 'products_templates/products_list.html'
+    template_name = 'products_templates/SITE/SITE_products_list.html'
     context_object_name = 'products'
 
     def get_context_data(self, **kwargs):
@@ -103,8 +103,8 @@ class ProductsCreateView(CreateView):
 
 class ProductsDetailView(DetailView):  # ← DetailView, 
     model = Products
-    template_name = 'products_templates/products_detail.html'
-    context_object_name = 'product'
+    template_name = 'products_templates/SITE/SITE_product_detail.html'
+    context_object_name = 'produit'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

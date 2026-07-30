@@ -1,3 +1,15 @@
+
+# Breakpoint	Taille	Suffixe	Usage
+XS	< 576px	sm:	Smartphone
+SM	576px - 768px	md:	Smartphone large / Tablette
+MD	768px - 1024px	lg:	Tablette / Petit desktop
+LG	1024px - 1440px	xl:	Desktop standard
+XL	1440px - 1920px	2xl:	Grand écran (27 pouces)
+XXL	> 1920px	—	Ultra large (ton écran)
+
+
+
+
 # 🚗 KOZ SERVICES - ERP & CRM Automobile
 
 Plateforme complète de gestion pour concessionnaire automobile : demandes de financement, offres, ventes, maintenance, et e-commerce.
