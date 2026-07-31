@@ -3,7 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Panier, ArticlePanier, Commande
 from products_app.models import Products, CategorieProducts
 from .serializers import PanierSerializer, ArticlePanierSerializer, CommandeSerializer
@@ -40,18 +41,22 @@ def ajouter_article(request, product_id):
     
 @login_required
 def modifier_quantite(request, article_id):
-    """Modifie la quantité d'un article dans le panier (HTMX)"""
     article = get_object_or_404(ArticlePanier, id=article_id, panier__client=request.user)
-    quantite = int(request.POST.get('quantite', 1))
     
-    if quantite <= 0:
-        article.delete()
-    else:
-        article.quantite = quantite
-        article.save()
+    # ✅ Récupérer la nouvelle quantité depuis le body POST
+    quantite = request.POST.get('quantite')  # ← hx-vals envoie 'quantite'
     
-    return panier_view(request)
-
+    if quantite is not None:
+        quantite = int(quantite)
+        if quantite <= 0:
+            article.delete()
+        else:
+            article.quantite = quantite
+            article.save()
+    
+    # ✅ Retourner le panier mis à jour
+    panier = Panier.objects.get(client=request.user)
+    return render(request, 'partials/order/panier_container.html', {'panier': panier})
 
 @login_required
 def retirer_article(request, article_id):
@@ -75,18 +80,42 @@ def valider_commande(request):
     panier = get_object_or_404(Panier, client=request.user)
     
     if not panier.articles.exists():
-        messages.error(request, "Votre panier est vide.")
+        messages.error(request, "❌ Votre panier est vide.")
         return redirect('order_app:panier')
     
+    # ✅ Vérifier si une commande existe déjà (pas seulement "Chargement")
+    commande_existante = Commande.objects.filter(
+        panier=panier,
+        statut__in=['Chargement', 'validee']
+    ).first()
+    
+    if commande_existante:
+        messages.info(request, f"ℹ️ Une commande est déjà en cours ({commande_existante.get_statut_display()}).")
+        return redirect('order_app:detail-commande', commande_existante.pk)
+    
+    # ✅ Créer une nouvelle commande
     commande = Commande.objects.create(
         panier=panier,
         statut='Chargement'
     )
     
     messages.success(request, "✅ Commande validée avec succès !")
-    return redirect('order_app:commande-detail', commande_id=commande.id)
+    return redirect('order_app:detail-commande', commande.pk)
 
 
+class CommandDetailView(LoginRequiredMixin, UserPassesTestMixin ,DetailView):
+    def test_func(self):
+        return self.request.user.role == "client"
+    
+    model = Commande
+    template_name = "order_templates/commande_detail.html" 
+    context_object_name = "commande"
+    
+    def get_queryset(self):
+       return Commande.objects.filter(panier__client=self.request.user)
+    
+    
+    
 
 
 

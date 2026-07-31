@@ -1,3 +1,5 @@
 from django.contrib import admin
-
-# Register your models here.
+from .models import Commande
+@admin.register(Commande)
+class AdminCommande(admin.ModelAdmin):
+    list_display = ["panier", "statut", "paiements"]

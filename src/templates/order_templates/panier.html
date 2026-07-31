@@ -122,6 +122,16 @@
                 {% endif %}
             </div>
         </div>
+         <!-- Messages flash -->
+        {% if messages %}
+        <div class="fixed top-20 right-5 z-50 space-y-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </nav>
 
     <!-- ============================================================ -->
@@ -154,121 +164,115 @@
         <!-- ============================================================ -->
         <!-- PANIER NON VIDE                                              -->
         <!-- ============================================================ -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in-up">
+      <!-- order_templates/panier.html -->
+
+<!-- ===== GRILLE PANIER ===== -->
+<div id="panier-container" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- Articles -->
+    <div class="lg:col-span-2 space-y-4">
+        {% for article in panier.articles.all %}
+        <div class="cart-item bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <!-- Image -->
+            <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                <img src="{{ article.products.image_principale.url }}" alt="{{ article.products.nom }}" class="w-full h-full object-cover">
+            </div>
             
-            <!-- ===== COLONNE GAUCHE : ARTICLES ===== -->
-            <div class="lg:col-span-2 space-y-4">
-                {% for article in panier.articles.all %}
-                <div class="cart-item bg-white rounded-xl shadow-sm p-4 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    
-                    <!-- Image -->
-                    <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                        <img src="{{ article.products.image_principale.url }}" 
-                             alt="{{ article.products.nom }}"
-                             class="w-full h-full object-cover">
-                    </div>
-                    
-                    <!-- Infos -->
-                    <div class="flex-1 min-w-0">
-                        <h4 class="font-semibold text-gray-800 text-sm sm:text-base truncate">
-                            {{ article.products.nom }}
-                        </h4>
-                        <p class="text-xs text-gray-400">{{ article.products.categorie.nom }}</p>
-                         <p class="text-sm font-bold text-blue-600 mt-1">
-                            Quantité {{ article.quantite|intcomma }}
-                        </p>
-                        <p class="text-sm font-bold text-blue-600 mt-1">
-                            {{ article.products.prix|intcomma }} FCFA
-                        </p>
-                    </div>
-
-                    <!-- Quantité -->
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <button class="quantity-btn" 
-                                hx-post="{% url 'order_app:modifier-panier' article.id %}"
-                                hx-vals="{'quantite': '{{ article.quantite|add:'-1' }}''}"
-                                hx-target="#panier-container"
-                                hx-swap="outerHTML"
-                                {% if article.quantite <= 1 %}disabled{% endif %}>
-                            <i class="fas fa-minus text-xs"></i>
-                        </button>
-                        <span class="w-8 text-center font-semibold text-gray-700">{{ article.quantite }}</span>
-                        <button class="quantity-btn"
-                                hx-post="{% url 'order_app:modifier-panier' article.id %}"
-                                hx-vals="{'quantite': '{{ article.quantite|add:'1' }}''}"
-                                hx-target="#panier-container"
-                                hx-swap="outerHTML">
-                            <i class="fas fa-plus text-xs"></i>
-                        </button>
-                    </div>
-
-                    <!-- Sous-total + Supprimer -->
-                    <div class="flex items-center gap-4 flex-shrink-0">
-                        <span class="text-sm font-bold text-gray-800 min-w-[80px] text-right">
-                            {{ article.sous_total|intcomma }} FCFA
-                        </span>
-                        <button class="text-red-400 hover:text-red-600 transition"
-                                hx-delete="{% url 'order_app:retirer-panier' article.id %}"
-                                hx-target="#panier-container"
-                                hx-swap="outerHTML"
-                                hx-confirm="Supprimer cet article du panier ?">
-                            <i class="fas fa-trash-alt text-sm"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endfor %}
-
-                <!-- Vider le panier -->
-                <div class="flex justify-end">
-                    <button class="text-sm text-red-500 hover:text-red-700 transition flex items-center gap-2"
-                            hx-delete="{% url 'order_app:vider-panier' %}"
-                            hx-target="#panier-container"
-                            hx-swap="outerHTML"
-                            hx-confirm="Vider tout le panier ?">
-                        <i class="fas fa-trash-alt"></i> Vider le panier
-                    </button>
-                </div>
+            <!-- Infos -->
+            <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ article.products.nom }}</h4>
+                <p class="text-xs text-gray-400">{{ article.products.categorie.nom }}</p>
+                <p class="text-sm font-bold text-blue-600 mt-1"> Quantité : {{ article.quantite }} </p>
+                <p class="text-sm font-bold text-blue-600 mt-1">{{ article.sous_total|intcomma }} FCFA</p>
             </div>
 
-            <!-- ===== COLONNE DROITE : RÉSUMÉ ===== -->
-            <div class="lg:col-span-1">
-                <div class="summary-card sticky top-24">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Résumé du panier</h3>
-                    
-                    <div class="summary-row">
-                        <span class="text-gray-600">Sous-total</span>
-                        <span class="font-semibold text-gray-800">{{ panier.total_panier|intcomma }} FCFA</span>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span class="text-gray-600">Livraison</span>
-                        <span class="font-semibold text-gray-800">À calculer</span>
-                    </div>
-                    
-                    <div class="summary-row">
-                        <span class="text-gray-600">Taxes (18%)</span>
-                        <span class="font-semibold text-gray-800">{{ panier.total_panier|floatformat:0|intcomma }} FCFA</span>
-                    </div>
-                    
-                    <div class="summary-row border-t-2 border-gray-200 mt-2 pt-3">
-                        <span class="text-lg font-bold text-gray-800">Total</span>
-                        <span class="text-xl font-bold text-blue-600">{{ panier.total_panier|floatformat:0|intcomma }} FCFA</span>
-                    </div>
-                    
-                    <div class="mt-6 space-y-3">
-                        <a href="{% url 'order_app:valider-commande' %}" 
-                           class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
-                            <i class="fas fa-check-circle"></i> Valider la commande
-                        </a>
-                        <a href="#" 
-                           class="block w-full text-center py-2 text-sm text-gray-500 hover:text-blue-600 transition">
-                            <i class="fas fa-arrow-left mr-1"></i> Continuer mes achats
-                        </a>
-                    </div>
-                </div>
+            <!-- Quantité -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button class="quantity-btn" 
+                        hx-post="{% url 'order_app:modifier-panier' article.id %}"
+                        hx-vals='{"quantite": "{{ article.quantite|add:'-1' }}"}'
+                        hx-target="#panier-container"
+                        hx-swap="outerHTML"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        {% if article.quantite <= 1 %}disabled{% endif %}>
+                    <i class="fas fa-minus text-xs"></i>
+                </button>
+                <span class="w-8 text-center font-semibold text-gray-700">{{ article.quantite }}</span>
+                <button class="quantity-btn"
+                        hx-post="{% url 'order_app:modifier-panier' article.id %}"
+                        hx-vals='{"quantite": "{{ article.quantite|add:'1' }}"}'
+                        hx-target="#panier-container"
+                        hx-swap="outerHTML"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    <i class="fas fa-plus text-xs"></i>
+                </button>
             </div>
 
+            <!-- Sous-total + Supprimer -->
+            <div class="flex items-center gap-4 flex-shrink-0">
+                <span class="text-sm font-bold text-gray-800 min-w-[80px] text-right">{{ article.sous_total|intcomma }} FCFA</span>
+                <button class="text-red-400 hover:text-red-600 transition"
+                        hx-delete="{% url 'order_app:retirer-panier' article.id %}"
+                        hx-target="#panier-container"
+                        hx-swap="outerHTML"
+                        hx-confirm="Supprimer cet article du panier ?">
+                    <i class="fas fa-trash-alt text-sm"></i>
+                </button>
+            </div>
         </div>
+        {% endfor %}
+
+        <!-- Vider le panier -->
+        <div class="flex justify-end">
+            <button class="text-sm text-red-500 hover:text-red-700 transition flex items-center gap-2"
+                    hx-delete="{% url 'order_app:vider-panier' %}"
+                    hx-target="#panier-container"
+                    hx-swap="outerHTML"
+                    hx-confirm="Vider tout le panier ?">
+                <i class="fas fa-trash-alt"></i> Vider le panier
+            </button>
+        </div>
+    </div>
+
+    <!-- Résumé -->
+    <div class="lg:col-span-1">
+        <div class="summary-card sticky top-24">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Résumé du panier</h3>
+            
+            <div class="summary-row">
+                <span class="text-gray-600">Sous-total</span>
+                <span class="font-semibold text-gray-800">{{ panier.total_panier|intcomma }} FCFA</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="text-gray-600">Livraison</span>
+                <span class="font-semibold text-gray-800">À calculer</span>
+            </div>
+            
+            <div class="summary-row">
+                <span class="text-gray-600">Taxes (18%)</span>
+                <span class="font-semibold text-gray-800">{{ panier.total_panier|floatformat:0|intcomma }} FCFA</span>
+            </div>
+            
+            <div class="summary-row border-t-2 border-gray-200 mt-2 pt-3">
+                <span class="text-lg font-bold text-gray-800">Total</span>
+                <span class="text-xl font-bold text-blue-600">{{ panier.total_panier|floatformat:0|intcomma }} FCFA</span>
+            </div>
+            
+            <div class="mt-6 space-y-3">
+                <a href="{% url 'order_app:valider-commande' %}" 
+                   class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-check-circle"></i> Valider la commande
+                </a>
+                <a href="#" 
+                   class="block w-full text-center py-2 text-sm text-gray-500 hover:text-blue-600 transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Continuer mes achats
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
         {% endif %}
 
     </main>

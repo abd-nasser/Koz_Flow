@@ -17,6 +17,8 @@ class Panier(models.Model):
     def nb_articles(self):
         """Retourne le nombre total d'articles (en comptant les quantités)"""
         return sum(article.quantite for article in self.articles.all())
+    def __str__(self):
+        return self.client.nom_complet
 
 class ArticlePanier(models.Model):
     """plusieur article ou un article dans le panier"""
@@ -41,3 +43,6 @@ class Commande(models.Model):
     statut = models.CharField(max_length=20, choices=STATUT_COMMANDE, default="Chargement")
     date_commande = models.DateTimeField(auto_now_add=True)
     paiements = models.OneToOneField("paiement_app.Paiement", related_name="commande_paiement", on_delete=models.SET_NULL, null=True, blank=True)
+    
+    def __str__(self):
+        return f" commande : {self.panier.client.nom_complet}-{self.statut}"

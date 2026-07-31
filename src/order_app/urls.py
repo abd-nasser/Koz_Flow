@@ -13,4 +13,5 @@ urlpatterns = [
     path('panier/retirer/<int:article_id>/', views.retirer_article, name='retirer-panier'),
     path('panier/vider/', views.vider_panier, name='vider-panier'),
     path('valider-commande/', views.valider_commande, name='valider-commande'),
+    path('detail/commande/<int:pk>/', views.CommandDetailView.as_view(), name="detail-commande")
 ]
