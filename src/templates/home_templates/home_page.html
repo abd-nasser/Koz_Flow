@@ -135,6 +135,16 @@
             </a>
         </div>
     </div>
+       <!-- Messages flash -->
+        {% if messages %}
+        <div class="fixed top-20 right-5 z-50 space-y-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 </nav>
 
 <!-- ========== HERO IMMERSIVE (fond fixe) ========== -->
@@ -1191,7 +1201,7 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for temoignage in temoignages|slice:":6" %}
-                <div class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div class="bg-white  p-6 shadow-sm hover:shadow-xl transition-all duration-300 ">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                             {% if temoignage.photo %}
@@ -1230,7 +1240,7 @@
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {% for avis in avis_reseaux|slice:":8" %}
-                <div class="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition border border-gray-100">
+                <div class="bg-white min-w-150 p-4 shadow-sm hover:shadow-md transition">
                     <div class="flex items-center gap-2 mb-2">
                         <span class="text-lg">
                             {% if avis.reseau == 'facebook' %}
@@ -1253,9 +1263,14 @@
                         <span class="ml-auto text-[10px] text-gray-400">{{ avis.date_publication|date:"d/m/Y" }}</span>
                     </div>
                     {% if avis.image %}
-                        <img src="{{ avis.image.url }}" alt="Avis" class="w-full h-20 object-cover rounded-lg mb-2">
+                        <img src="{{ avis.image.url }}" alt="Avis" class="w-full h-30 object-contain  mb-2">
                     {% endif %}
                     <p class="text-xs text-gray-500 line-clamp-3">{{ avis.message|truncatechars:60 }}</p>
+                      {% if avis.lien %}
+                        <a href="{{ avis.lien }}" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 transition mt-1 inline-flex items-center gap-1">
+                            <i class="fas fa-external-link-alt"></i> Voir le post
+                        </a>
+                        {% endif %}
                 </div>
                 {% empty %}
                 <p class="col-span-full text-center text-gray-400">Aucun avis sur les réseaux sociaux.</p>
@@ -1273,7 +1288,7 @@
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for video in videos|slice:":6" %}
-        <div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
+        <div class="group bg-white  overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
             <!-- Vidéo -->
             <div class="relative aspect-video bg-gray-900 overflow-hidden">
                 {% if video.video_file %}
@@ -1317,6 +1332,13 @@
         {% endfor %}
     </div>
 </div>
+
+        <!-- ===== BOUTON LAISSER UN TÉMOIGNAGE ===== -->
+        <div class="text-center mt-12">
+            <button onclick="document.getElementById('temoignage_textuel_modal').showModal()" class="btn bg-blue-300 btn-lg text-white hover:bg-blue-400 shadow-lg">
+                <i class="fas fa-comment-dots"></i> Laisser un témoignage
+            </button>
+        </div>  
 
     </div>
 </section>
@@ -1420,6 +1442,7 @@
     <!-- ========== MODALES ========== -->
     {% include 'modals/home/register.html' %}
     {% include 'modals/auth/login_simple_modal.html' %}
+    {% include 'modals/home/temoignage_textuel_form.html' %}
     <script src="{% static 'js/home/register.js' %}"></script>
     <script src="{% static 'js/home/gsap_anim.js' %}"></script>
 

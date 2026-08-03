@@ -1,13 +1,19 @@
-from django.shortcuts import render
+import django
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect,render
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from home_app.forms import ActualiteForm, AvisReseauForm, TemoignageTextuelForm, VideoTemoignageForm
 from vehicul_app.models import Vehicul, TypeVehicule
 from services_app.models import Services, TypesServices
 from products_app.models import Products
 from .models import Actualite, Temoignage, AvisReseau, VideoTemoignage
+
+
 
 def home_page_view(request):
     """
@@ -35,7 +41,7 @@ def home_page_view(request):
         "produits_vedette": Products.objects.filter(est_vedette = True, est_disponible = True),
         "nouveaux_produits": Products.objects.filter(est_disponible = True,est_nouveau = True),
         "temoignages": Temoignage.objects.filter(est_approuve = True).order_by('-date_creation')[:5],
-        "avis_reseau": AvisReseau.objects.all().order_by('-date_publication')[:5],
+        "avis_reseaux": AvisReseau.objects.filter(est_actif = True).order_by('-date_publication'),
         "videos": VideoTemoignage.objects.filter(est_actif = True).order_by('-date_ajout')[:5],
         "temoignage_textuel_form": TemoignageTextuelForm(),
         "actualites": Actualite.objects.filter(est_public = True, est_vedette = True).order_by('-date_publication')
@@ -59,22 +65,89 @@ def vehicules_partial(request):
     )
 
 
-
-class TextuelTemoignageCreateView(LoginRequiredMixin, CreateView):
+class TextuelTemoignageCreateView(CreateView):
     model = Temoignage
     template_name = 'home_templates/temoignage_textuel_form.html'
     form_class = TemoignageTextuelForm
+    def form_valid(self, form):
+        messages.success(self.request, "✅ Merci pour votre témoignage ! Il sera visible après approbation.")
+        return super().form_valid(form)
     
     def get_success_url(self):
-        return reverse_lazy('home_app:home-page')  # Redirige vers la page d'accueil après la soumission du formulaire
-class TemoignageListView(ListView):
+        return reverse_lazy('home_app:home-page')
+    
+    # Redirige vers la page d'accueil après la soumission du formulaire
+
+class TemoignageTextuelListView(LoginRequiredMixin, ListView):
     model = Temoignage
-    template_name = 'directeur_templates/temoignages_list.html'
+    template_name = 'directeur_templates/temoignages_textuel_list.html'
     context_object_name = 'temoignages'
-    paginate_by = 5  # Nombre de témoignages par page
+    paginate_by = 10
+
 
     def get_queryset(self):
-        return Temoignage.objects.filter(est_approuve=True).order_by('-date_creation')
+        queryset = Temoignage.objects.all().order_by('-date_creation')
+        
+        # Filtres
+        statut = self.request.GET.get('statut')
+        if statut == 'approuve':
+            queryset = queryset.filter(est_approuve=True)
+        elif statut == 'en_attente':
+            queryset = queryset.filter(est_approuve__isnull=True)
+        elif statut == 'rejete':
+            queryset = queryset.filter(est_approuve=False)
+        
+        source = self.request.GET.get('source')
+        if source:
+            queryset = queryset.filter(source=source)
+        
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(nom__icontains=q) | 
+                Q(prenom__icontains=q) | 
+                Q(message__icontains=q)
+            )
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['source_choices'] = Temoignage.SOURCE_CHOICES
+        # Statistiques
+        context['temoignages_stats'] = {
+            'approuves': Temoignage.objects.filter(est_approuve=True).count(),
+            'en_attente': Temoignage.objects.filter(est_approuve__isnull=True).count(),
+            'rejetes': Temoignage.objects.filter(est_approuve=False).count(),
+        }
+        return context
+
+    
+@login_required
+def approuver_temoignage(request, temoignage_id):
+    temoignage = get_object_or_404(Temoignage, pk=temoignage_id)
+    temoignage.est_approuve = True
+    temoignage.save()
+    messages.success(request, f"✅ Témoignage de {temoignage.prenom} {temoignage.nom} approuvé !")
+    return redirect('home_app:temoignages-textuel-list')
+
+
+@login_required
+def rejeter_temoignage(request, temoignage_id):
+    temoignage = get_object_or_404(Temoignage, pk=temoignage_id)
+    temoignage.est_approuve = False
+    temoignage.save()
+    messages.warning(request, f"❌ Témoignage de {temoignage.prenom} {temoignage.nom} rejeté.")
+    return redirect('home_app:temoignages-textuel-list')
+
+
+@login_required
+def delete_textuel_temoignage(request, pk):
+    temoignage = get_object_or_404(Temoignage, pk=pk)
+    temoignage.delete()
+    messages.success(request, f"🗑️ Témoignage de {temoignage.prenom} {temoignage.nom} supprimé avec succès.")
+    return redirect('home_app:temoignages-textuel-list')
+    
 
 class CreateAvisReseauView(LoginRequiredMixin, CreateView):
     model = AvisReseau
@@ -82,15 +155,63 @@ class CreateAvisReseauView(LoginRequiredMixin, CreateView):
     form_class = AvisReseauForm
     def get_success_url(self):
         return reverse_lazy('directeur_app:directeur-view')  # Redirige vers la page d'accueil après la soumission du formulaire
+    
+    def form_valid(self, form):
+        messages.success(self.request, "✅ Avis ajouté avec succès !")
+        return super().form_valid(form)
 
 class ListeAvisReseauView(LoginRequiredMixin, ListView):
     model = AvisReseau
     template_name = 'directeur_templates/avis_reseau_list.html'
     context_object_name = 'avis_reseaux'
-    paginate_by = 10  # Nombre d'avis par page
 
     def get_queryset(self):
-        return AvisReseau.objects.all().order_by('-date_publication')
+        queryset = AvisReseau.objects.all().order_by('-date_publication')
+        
+        # Filtres
+        reseau = self.request.GET.get('reseau')
+        if reseau:
+            queryset = queryset.filter(reseau=reseau)
+        
+        statut = self.request.GET.get('statut')
+        if statut == 'actif':
+            queryset = queryset.filter(est_actif=True)
+        elif statut == 'inactif':
+            queryset = queryset.filter(est_actif=False)
+        
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(nom_utilisateur__icontains=q) |
+                Q(message__icontains=q)
+            )
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['reseau_choices'] = AvisReseau.RESEAUX_CHOICES
+        context['avis_actifs'] = AvisReseau.objects.filter(est_actif=True).count()
+        context['avis_inactifs'] = AvisReseau.objects.filter(est_actif=False).count()
+        return context
+
+
+@login_required
+def activer_avis_reseau(request, avis_id):
+    avis = get_object_or_404(AvisReseau, id=avis_id)
+    avis.est_actif = True
+    avis.save()
+    messages.success(request, f"✅ Avis de {avis.nom_utilisateur} activé !")
+    return redirect('home_app:avis-reseau-list')
+
+
+@login_required
+def desactiver_avis_reseau(request, avis_id):
+    avis = get_object_or_404(AvisReseau, id=avis_id)
+    avis.est_actif = False
+    avis.save()
+    messages.warning(request, f"❌ Avis de {avis.nom_utilisateur} désactivé.")
+    return redirect('home_app:avis-reseau-list')
     
 class VideoTemoignageListView(ListView):
     model = VideoTemoignage
@@ -99,7 +220,7 @@ class VideoTemoignageListView(ListView):
     paginate_by = 5  # Nombre de vidéos par page
 
     def get_queryset(self):
-        return VideoTemoignage.objects.filter(est_actif=True).order_by('-date_ajout')
+        return VideoTemoignage.objects.all().order_by('-date_ajout')
     
 class VideoTemoingnageCreateView(LoginRequiredMixin, CreateView):
     model = VideoTemoignage

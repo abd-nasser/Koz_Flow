@@ -17,7 +17,7 @@
         <form enctype="multipart/form-data" method="post" action="{% url 'home_app:ajout-textuel-temoignage' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             
-            <div class="space-y-5">
+            <div class=" text-center space-y-5">
                 {{ temoignage_textuel_form.non_field_errors }}
                 
                 {% for field in temoignage_textuel_form %}

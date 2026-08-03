@@ -239,6 +239,14 @@ class Actualite(models.Model):
         return couleurs.get(self.type_couleur, '#6b7280')
 
 class Temoignage(models.Model):
+    
+    SOURCE_CHOICES = [
+            ('site', 'Site KOZ'),
+            ('facebook', 'Facebook'),
+            ('google', 'Google Maps'),
+            ('whatsapp', 'WhatsApp'),
+            ('instagram', 'Instagram'),
+        ]
     """Témoignage client"""
     client = models.ForeignKey(
         kozUser,
@@ -247,13 +255,13 @@ class Temoignage(models.Model):
         blank=True,
         related_name='temoignages'
     )
-    nom = models.CharField(max_length=100, verbose_name="Nom du client")
-    prenom = models.CharField(max_length=100, verbose_name="Prénom du client")
+    nom = models.CharField(max_length=100, verbose_name="Nom")
+    prenom = models.CharField(max_length=100, verbose_name="Prénom")
     photo = models.ImageField(
         upload_to='temoignages/%Y/%m/%d/',
         blank=True,
         null=True,
-        verbose_name="Photo du client"
+        verbose_name="Photo"
     )
     message = models.TextField(verbose_name="Témoignage")
     note = models.PositiveSmallIntegerField(
@@ -263,17 +271,11 @@ class Temoignage(models.Model):
     )
     source = models.CharField(
         max_length=50,
-        choices=[
-            ('site', 'Site KOZ'),
-            ('facebook', 'Facebook'),
-            ('google', 'Google Maps'),
-            ('whatsapp', 'WhatsApp'),
-            ('instagram', 'Instagram'),
-        ],
+        choices=SOURCE_CHOICES,
         default='site',
         verbose_name="Source"
     )
-    est_approuve = models.BooleanField(default=True, verbose_name="Approuvé")
+    est_approuve = models.BooleanField(default=False, verbose_name="Approuvé")
     est_vedette = models.BooleanField(default=False, verbose_name="Mettre en vedette")
     date_creation = models.DateTimeField(auto_now_add=True)
     

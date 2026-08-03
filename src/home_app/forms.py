@@ -10,8 +10,8 @@ class TemoignageTextuelForm(forms.ModelForm):
         widgets = {
             'nom': forms.TextInput(attrs={'class': 'form-control input input-bordered'}),
             'prenom': forms.TextInput(attrs={'class': 'form-control input input-bordered'}),
-            'photo': forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
-            'message': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'photo': forms.ClearableFileInput(attrs={'class': 'form-control-file file-input file-input-bordered'}),
+            'message': forms.Textarea(attrs={'rows': 4, 'class': 'form-control textarea textarea-bordered'}),
             'note': forms.Select(attrs={'class': 'form-control select select-bordered'}),
             'source': forms.Select(attrs={'class': 'form-control select select-bordered'}),
             'est_approuve': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -32,10 +32,13 @@ class AvisReseauForm(forms.ModelForm):
             'est_actif',
         ]
         widgets = {
-            'message': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
+            'message': forms.Textarea(attrs={'rows': 4, 'class': 'form-control textarea textarea-bordered'}),
             'date_publication': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control input-border'}),
             'reseau': forms.Select(attrs={'class': 'form-control select select-bordered'}),
             'nom_utilisateur': forms.TextInput(attrs={'class': 'form-control input input-bordered'}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control file-input file-input-bordered'}),
+            'lien': forms.URLInput(attrs={'class': 'form-control input input-bordered'}),
+            'est_actif': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 

@@ -8,7 +8,7 @@ from vehicul_app.forms import MarqueForm, VehiculForm, TypeVehiculeForm
 from products_app.forms import CategorieProductsForm, ProductsForm, UniteProduitForm, MarqueProduitForm
 
 from services_app.forms import TypesServicesForm, ServicesForm
-from home_app.forms import AvisReseauForm, VideoTemoignageForm
+from home_app.forms import AvisReseauForm, VideoTemoignageForm, ActualiteForm
 class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView ):
     
     template_name = "directeur_templates/directeur.html"
@@ -59,8 +59,12 @@ class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView
         
         if "avis_reseau_form" not in context:
             context["avis_reseau_form"] = AvisReseauForm()
+            
         if "video_temoignage_form" not in context:
             context["video_temoignage_form"] = VideoTemoignageForm()
+        
+        if "actualite_form" not in context:
+            context["actualite_form"] = ActualiteForm()
             
         return context 
        

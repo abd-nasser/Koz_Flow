@@ -50,6 +50,15 @@
             <h1 class="text-lg font-semibold text-gray-800 hidden md:block">Types de services</h1>
             <div class="w-10"></div>
         </div>
+        {% if messages %}
+        <div class="fixed top-20 right-5 z-50 space-y-2">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
     </nav>
 <style>
     main{
