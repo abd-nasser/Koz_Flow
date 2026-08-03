@@ -1,9 +1,13 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse, reverse_lazy
+from home_app.forms import ActualiteForm, AvisReseauForm, TemoignageTextuelForm, VideoTemoignageForm
 from vehicul_app.models import Vehicul, TypeVehicule
 from services_app.models import Services, TypesServices
 from products_app.models import Products
+from .models import Actualite, Temoignage, AvisReseau, VideoTemoignage
 
 def home_page_view(request):
     """
@@ -29,7 +33,12 @@ def home_page_view(request):
         "types_vehicule" : TypeVehicule.objects.all(),
         "services_vedette": Services.objects.filter(est_vedette = True),
         "produits_vedette": Products.objects.filter(est_vedette = True, est_disponible = True),
-        "nouveaux_produits": Products.objects.filter(est_disponible = True,est_nouveau = True)
+        "nouveaux_produits": Products.objects.filter(est_disponible = True,est_nouveau = True),
+        "temoignages": Temoignage.objects.filter(est_approuve = True).order_by('-date_creation')[:5],
+        "avis_reseau": AvisReseau.objects.all().order_by('-date_publication')[:5],
+        "videos": VideoTemoignage.objects.filter(est_actif = True).order_by('-date_ajout')[:5],
+        "temoignage_textuel_form": TemoignageTextuelForm(),
+        "actualites": Actualite.objects.filter(est_public = True, est_vedette = True).order_by('-date_publication')
     }
     return render(request, "home_templates/home_page.html", ctx)
 
@@ -48,3 +57,110 @@ def vehicules_partial(request):
             "current_page":page_number
         }
     )
+
+
+
+class TextuelTemoignageCreateView(LoginRequiredMixin, CreateView):
+    model = Temoignage
+    template_name = 'home_templates/temoignage_textuel_form.html'
+    form_class = TemoignageTextuelForm
+    
+    def get_success_url(self):
+        return reverse_lazy('home_app:home-page')  # Redirige vers la page d'accueil après la soumission du formulaire
+class TemoignageListView(ListView):
+    model = Temoignage
+    template_name = 'directeur_templates/temoignages_list.html'
+    context_object_name = 'temoignages'
+    paginate_by = 5  # Nombre de témoignages par page
+
+    def get_queryset(self):
+        return Temoignage.objects.filter(est_approuve=True).order_by('-date_creation')
+
+class CreateAvisReseauView(LoginRequiredMixin, CreateView):
+    model = AvisReseau
+    template_name = 'directeur_templates/avis_reseau_form.html'
+    form_class = AvisReseauForm
+    def get_success_url(self):
+        return reverse_lazy('directeur_app:directeur-view')  # Redirige vers la page d'accueil après la soumission du formulaire
+
+class ListeAvisReseauView(LoginRequiredMixin, ListView):
+    model = AvisReseau
+    template_name = 'directeur_templates/avis_reseau_list.html'
+    context_object_name = 'avis_reseaux'
+    paginate_by = 10  # Nombre d'avis par page
+
+    def get_queryset(self):
+        return AvisReseau.objects.all().order_by('-date_publication')
+    
+class VideoTemoignageListView(ListView):
+    model = VideoTemoignage
+    template_name = 'directeur_templates/video_temoignages_list.html'
+    context_object_name = 'video_temoignages'
+    paginate_by = 5  # Nombre de vidéos par page
+
+    def get_queryset(self):
+        return VideoTemoignage.objects.filter(est_actif=True).order_by('-date_ajout')
+    
+class VideoTemoingnageCreateView(LoginRequiredMixin, CreateView):
+    model = VideoTemoignage
+    template_name = 'directeur_templates/video_temoignage_form.html'
+    form_class = VideoTemoignageForm
+    
+    def get_success_url(self):
+        return reverse_lazy('directeur_app:directeur-view')  # Redirige vers la page d'accueil après la soumission du formulaire
+
+
+class ActualiteListView(LoginRequiredMixin, ListView):
+    model = Actualite
+    template_name = 'directeur_templates/actualites_list.html'
+    context_object_name = 'actualites'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Actualite.objects.all().order_by('-date_publication', '-date_evenement')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'actualite_form' not in context:
+            context['actualite_form'] = ActualiteForm()
+        return context
+
+
+class ActualiteDetailView(LoginRequiredMixin, DetailView):
+    model = Actualite
+    template_name = 'directeur_templates/actualite_detail.html'
+    context_object_name = 'actualite'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'actualite_form' not in context:
+            context['actualite_form'] = ActualiteForm()
+        return context
+
+
+class ActualiteCreateView(LoginRequiredMixin, CreateView):
+    model = Actualite
+    form_class = ActualiteForm
+    template_name = 'directeur_templates/actualite_form.html'
+
+    def get_success_url(self):
+        return reverse_lazy('directeur_app:actualites-list')
+
+
+class ActualiteUpdateView(LoginRequiredMixin, UpdateView):
+    model = Actualite
+    form_class = ActualiteForm
+    template_name = 'directeur_templates/actualite_form.html'
+    context_object_name = 'actualite'
+
+    def get_success_url(self):
+        return reverse_lazy('directeur_app:actualites-list')
+
+
+class ActualiteDeleteView(LoginRequiredMixin, DeleteView):
+    model = Actualite
+    template_name = 'directeur_templates/actualite_confirm_delete.html'
+    context_object_name = 'actualite'
+
+    def get_success_url(self):
+        return reverse_lazy('directeur_app:actualites-list')
+    
+

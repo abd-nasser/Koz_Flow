@@ -1,3 +1,9 @@
+from rest_framework import generics, filters
+from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Vehicul
+from .serializers import VehiculSerializer
+
 from django.shortcuts import render, redirect
 from django.views.generic import CreateView, ListView,DetailView, UpdateView, DeleteView, FormView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -11,14 +17,25 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
 from django.db.models import Q
-from django.urls import reverse_lazy 
+from django.urls import reverse_lazy, reverse
 
 from .models import Vehicul, Marque, VehiculeImage, TypeVehicule
 from .forms import VehiculForm, MarqueForm, VehiculeImage, VehiculeImageFormSet, VehiculeImageForm, TypeVehiculeForm
 from directeur_app.views import DirecteurDashboardView
 from leads_app.forms import DemandeFinancementForm
+from auth_app.models import kozUser
 
 
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.conf import settings
+from chat_app.models import Message
+
+
+
+
+############################ CRUD ERP MARQUE, TYPE VEHICULE, VEHICULES ############################
 class ERP_CreateMarqueView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
@@ -58,7 +75,6 @@ class ERP_MarqueDetailView(LoginRequiredMixin, DetailView):
             context["marque_form"] = MarqueForm(instance=self.object)
         return context
     
-
 class ERP_MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
@@ -87,8 +103,7 @@ class ERP_MarqueUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context["marque_form"] = form
         context["open_marque_modal"] = True
         return self.render_to_response(context)
-    
-    
+       
 class ERP_MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
@@ -98,10 +113,8 @@ class ERP_MarqueDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy("vehicul_app:list-marque")
         
 
-#========================================= Vehicul Views =========================================
 
-
-
+############################# CRUD ERP TYPE VEHICULE ###########################################################
 class ERP_CreateTypeVehiculeView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == "directeur"
@@ -173,6 +186,7 @@ class ERP_TypeVehiculeDeleteView(LoginRequiredMixin, UserPassesTestMixin, Delete
 
 
 
+########################## CRUD ERP VEHICULES ###########################################################
 class ERP_CreateVehiculView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def test_func(self):
@@ -311,9 +325,7 @@ class ERP_VehiculDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView)
     success_url = reverse_lazy("vehicul_app:list-vehicul")
     
 
-# ============================================================
-# ✅ PAGE : Liste des images d'un véhicule (avec pagination)
-# ============================================================
+################################ ERP CRUD VEHICULE IMAGES ########################################################
 class VehiculeImageListView(ListView):
     model = VehiculeImage
     template_name = "vehicul_templates/vehicul_images.html"
@@ -333,12 +345,6 @@ class VehiculeImageListView(ListView):
         return context
 
 
-    
-
-# ============================================================
-# ✅ AJOUT : Ajouter une image (CBV)
-# ============================================================
-# views.py
 @login_required
 @require_POST
 def ajouter_image(request, pk):
@@ -370,10 +376,6 @@ def ajouter_image(request, pk):
     # ✅ Redirection vers la page d'images
     return redirect('vehicul_app:vehicul-images-list', pk=vehicule.pk)
     
-
-# ============================================================
-# ✅ SUPPRESSION : Supprimer une image (CBV)
-# ============================================================
 class VehiculeImageDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = VehiculeImage
     template_name = "vehicul_templates/vehicul_image_confirm_delete.html"
@@ -393,15 +395,6 @@ class VehiculeImageDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
 # ============================================================
 # ✅ API
 # ============================================================
-
-
-from rest_framework import generics, filters
-from rest_framework.permissions import AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import Vehicul
-from .serializers import VehiculSerializer
-
-
 class APIVehiculListView(generics.ListAPIView):
     """
     API publique pour récupérer tous les véhicules disponibles.
@@ -442,7 +435,6 @@ class APIVehiculListView(generics.ListAPIView):
     ]
     ordering = ['-date_ajout']  # ✅ Tri par défaut
 
-
 class APIVehiculDetailView(generics.RetrieveAPIView):
     """
     API publique pour récupérer les détails d'un véhicule.
@@ -453,9 +445,44 @@ class APIVehiculDetailView(generics.RetrieveAPIView):
     lookup_field = 'pk'
 
 
+
+
 # ============================================================
 # ✅ SITE PUBLIC : Vues pour l'affichage public des véhicules
 # ============================================================
+
+
+
+
+@login_required
+def contacter_vehicule(request, vehicul_id):
+    vehicule = get_object_or_404(Vehicul, id=vehicul_id)
+    
+    # ✅ Message pré-rempli
+    message_content = f"""Bonjour,
+
+    Je suis intéressé par le véhicule suivant :
+    🚗 {vehicule.marque.nom} {vehicule.modele} ({vehicule.annee})
+    📍 Prix : {vehicule.prix} FCFA
+    🔗 Lien : {request.build_absolute_uri(reverse('vehicul_app:vehicul-detail',  vehicule.pk))}
+
+    Pouvez-vous me donner plus d'informations ?
+
+    Cordialement,
+    {request.user.nom_complet}"""
+
+    # ✅ Envoyer dans le chat
+    commerciaux = kozUser.objects.filter(role='commercial')
+    for commercial in commerciaux:
+        Message.objects.create(
+            client=request.user,
+            commercial=commercial,
+            contenu=message_content,
+            est_client=True
+    )
+    
+    messages.success(request, f"✅ Votre message a été envoyé au commercial pour {vehicule.marque.nom} {vehicule.modele}")
+    return redirect('chat_app:chat-view')
 
 class SITE_VehiculListView(ListView):
     """
@@ -510,7 +537,6 @@ class SITE_VehiculListView(ListView):
         
         return context
 
-
 class SITE_VehiculDetailView(DetailView):
     """
     Vue publique pour afficher les détails d'un véhicule
@@ -564,26 +590,8 @@ class SITE_VehiculDetailView(DetailView):
         
         return context
     
-
-def vehicul_image_partials(request, vehicul_id):
-    vehicule = get_object_or_404(Vehicul, pk=vehicul_id)
-    vehicule_imgs = vehicule.images.all()
-    
-    # ✅ Pagination : 1 image par page
-    paginator = Paginator(vehicule_imgs, 1)
-    page_number = request.GET.get("page", 1)
-    vehicule_imgs_page = paginator.get_page(page_number)
-    
-    direction = request.GET.get('direction', 'right')
-    
-    return render(request, 'partials/vehiculs/vehicul_detail_images.html', {
-        'vehicule_imgs_page': vehicule_imgs_page,
-        'total_page': paginator.num_pages,
-        'current_page': page_number,
-        'direction': direction,
-        'vehicul': vehicule,
-    })
 class SITE_MarqueListeView(ListView):
+ 
     """
     Vue publique pour afficher la liste des marques
     """
@@ -597,7 +605,6 @@ class SITE_MarqueListeView(ListView):
         for marque in context['marques']:
             marque.nombre_vehicules = marque.vehicul.filter(disponible=True).count()
         return context
-
 
 class SITE_MarqueDetailView(DetailView):
     """
@@ -626,5 +633,22 @@ class SITE_MarqueDetailView(DetailView):
         
         return context
     
-
+def vehicul_image_partials(request, vehicul_id):
+    vehicule = get_object_or_404(Vehicul, pk=vehicul_id)
+    vehicule_imgs = vehicule.images.all()
+    
+    # ✅ Pagination : 1 image par page
+    paginator = Paginator(vehicule_imgs, 1)
+    page_number = request.GET.get("page", 1)
+    vehicule_imgs_page = paginator.get_page(page_number)
+    
+    direction = request.GET.get('direction', 'right')
+    
+    return render(request, 'partials/vehiculs/vehicul_detail_images.html', {
+        'vehicule_imgs_page': vehicule_imgs_page,
+        'total_page': paginator.num_pages,
+        'current_page': page_number,
+        'direction': direction,
+        'vehicul': vehicule,
+    })
 

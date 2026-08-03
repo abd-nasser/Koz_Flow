@@ -3,6 +3,7 @@ from . import views
 app_name = "leads_app"
 
 urlpatterns = [
+    path('envoyer/contact/email/', views.envoyer_contact_email, name='envoyer-contact-email'),
     path('demande/de/financement/<int:vehicul_id>/',views.demande_financement_view, name="demande-financement"),
     path("attente/de/document/<int:demande_id>/",views.attente_document, name="attente-document" ),
     path("upload/document/<int:demande_id>/",views.upload_multiple_documents, name="upload-document"),
@@ -33,4 +34,5 @@ urlpatterns = [
     
     #################################  API pour les demande depuis le sie site############################ ...
     path('api/demande/<int:vehicul_id>/',views.ApiDemandeFinancementView.as_view(), name='api-demande-financement'),
+
 ]

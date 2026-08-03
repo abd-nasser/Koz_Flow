@@ -244,7 +244,20 @@ MEDIA_ROOT = os.path.join(BASE_DIR/"media/")
 STATICFILES_DIRS = [os.path.join(BASE_DIR/"koz_flow/static/"),
                     os.path.join(BASE_DIR/"node_modules/")]
 
-#Taiwlind configurations
+# Taille max d'upload (augmenter pour les vidéos)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB
+
+# Types MIME autorisés pour les vidéos
+VIDEO_MIME_TYPES = [
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',
+    'video/x-msvideo',
+]
+
+#Tailwind configurations
 TAILWIND_APP_NAME = "theme"
 INTERNAL_IPS = [
     "127.0.0.1"

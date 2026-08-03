@@ -14,7 +14,7 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'products_app:marque-produit-create' %}" class="p-6">
+        <form enctype="multipart/form-data" method="post" action="{% url 'products_app:marque-produit-create' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             
             <!-- AFFICHAGE DES ERREURS GLOBALES -->

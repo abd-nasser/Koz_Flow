@@ -24,17 +24,40 @@ from products_app.models import Products
 def panier_view(request):
     """Affiche le panier du client"""
     panier, created = Panier.objects.get_or_create(client=request.user)
-    return render(request, 'order_templates/panier.html', {'panier': panier})
+    commande = panier.commande.order_by('-date_commande').first()
+    return render(request, 'order_templates/panier.html', {'panier': panier,
+                                                           'commande': commande})
 
 @login_required
 def ajouter_article(request, product_id):
-    product = get_object_or_404(Products, pk=product_id)
-    panier, created = Panier.objects.get_or_create(client=request.user)
-    article, created = ArticlePanier.objects.get_or_create(products=product, panier=panier)
+    produit = get_object_or_404(Products, id=product_id)
+    panier, _ = Panier.objects.get_or_create(client=request.user)
+    
+    # ✅ VÉRIFICATION : est-ce qu'une commande est en cours ?
+    commande_active = Commande.objects.filter(
+        panier=panier,
+        statut__in=['validee', 'payee', 'livraison', 'terminee']
+    ).first()
+    
+    if commande_active:
+        messages.error(request, f"❌ Vous avez déjà une commande en cours de {commande_active.get_statut_display()}. Vous ne pouvez pas modifier le panier.")
+        return redirect('order_app:panier')
+    
+    # ✅ Ajout normal
+    article, created = ArticlePanier.objects.get_or_create(
+        panier=panier,
+        products=produit,
+        defaults={'quantite': 1}
+    )
+    
     if not created:
         article.quantite += 1
         article.save()
-    return panier_view(request)
+        messages.success(request, f"✅ Quantité augmentée pour {produit.nom}")
+    else:
+        messages.success(request, f"✅ {produit.nom} ajouté au panier")
+    
+    return redirect('order_app:panier')
         
         
     
@@ -56,7 +79,9 @@ def modifier_quantite(request, article_id):
     
     # ✅ Retourner le panier mis à jour
     panier = Panier.objects.get(client=request.user)
-    return render(request, 'partials/order/panier_container.html', {'panier': panier})
+    commande = panier.commande.order_by('-date_commande').first()
+    return render(request, 'partials/order/panier_container.html', {'panier': panier,
+                                                                    'commande': commande})
 
 @login_required
 def retirer_article(request, article_id):
@@ -86,7 +111,7 @@ def valider_commande(request):
     # ✅ Vérifier si une commande existe déjà (pas seulement "Chargement")
     commande_existante = Commande.objects.filter(
         panier=panier,
-        statut__in=['Chargement', 'validee']
+        statut__in=['validee', 'payee', 'livraison', 'terminee']
     ).first()
     
     if commande_existante:
@@ -94,14 +119,30 @@ def valider_commande(request):
         return redirect('order_app:detail-commande', commande_existante.pk)
     
     # ✅ Créer une nouvelle commande
-    commande = Commande.objects.create(
+    commande, _ = Commande.objects.get_or_create(
         panier=panier,
-        statut='Chargement'
     )
+   
+    commande.statut = 'validee'
+    commande.save()
     
     messages.success(request, "✅ Commande validée avec succès !")
     return redirect('order_app:detail-commande', commande.pk)
 
+@login_required
+def annuler_commande(request, commande_id):
+    """Annule une commande en cours"""
+    commande = get_object_or_404(Commande, id=commande_id, panier__client=request.user)
+    
+    if commande.statut in ["payee", "livraison", "terminee"]:
+        messages.error(request, "❌ Cette commande ne peut pas être annulée.")
+        return redirect('order_app:detail-commande', commande.pk)
+    
+    commande.statut = 'annulee'
+    commande.save()
+    
+    messages.success(request, "✅ Commande annulée avec succès !")
+    return redirect('order_app:panier')
 
 class CommandDetailView(LoginRequiredMixin, UserPassesTestMixin ,DetailView):
     def test_func(self):

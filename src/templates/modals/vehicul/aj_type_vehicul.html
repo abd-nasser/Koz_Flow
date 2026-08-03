@@ -14,7 +14,7 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'vehicul_app:type-vehicul-create' %}" class="p-6">
+        <form enctype="multipart/form-data" method="post" action="{% url 'vehicul_app:type-vehicul-create' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             <div class="scrollable-form">
                 <div class="space-y-5">
@@ -49,7 +49,7 @@
                         <i class="fas fa-times mr-2"></i>Annuler
                     </button>
                     <button type="submit" class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
-                        <i class="fas fa-save"></i> Ajouter le véhicule
+                        <i class="fas fa-save"></i> Ajouter le type de véhicule
                     </button>
                 </div>
             </div>

@@ -8,3 +8,6 @@ class AdminDemandeFinancement(admin.ModelAdmin):
 @admin.register(Vente)
 class AminVente(admin.ModelAdmin):
     list_display = ['client', "montant"]
+    
+    
+    

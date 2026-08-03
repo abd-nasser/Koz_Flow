@@ -186,107 +186,7 @@ body {
     font-style: italic;
 }
 
-/* Style de base pour Splitting */
-.splitting .char {
-    display: inline-block;
-}
 
-/* Si tu utilises GSAP, assure-toi que les éléments sont visibles au départ */
-.splitting .char {
-    opacity: 1; /* Au lieu de 0 */
-    transform: none; /* Au lieu de translateY(50px) */
-}
-/* ============================================
-   CARTES ACTUALITÉS (style Mercedes)
-============================================ */
-.fade-section-actualité{
-    min-height: 85vh;
-}
-
-.fade-section-actualité .text-center{
-    margin-top: -2rem;
-}
-.actualite-containt{
-    display: flex;
-    margin-top: -4rem;
-    align-items: center;
-    justify-content: space-between;
-}
-.campaign-card {
-    background: white;
-    transform: translateY(0);
-    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.campaign-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-}
-
-.campaign-image {
-    position: relative;
-    overflow: hidden;
-    min-width: 40%;
-    top:1px;
-    min-height: 70vh;
-    margin-bottom: 3rem;
-    
-}
-
-.campaign-image img {
-    transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.campaign-card:hover .campaign-image img {
-    transform: scale(1.08);
-}
-
-/* Effet de brillance au survol */
-.campaign-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-    opacity: 1;
-    transition: opacity 0.6s;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.campaign-card:hover::before {
-    opacity: 1;
-}
-
-/* Animation d'entrée GSAP (à ajouter) */
-.campaign-card {
-    opacity: 1;
-    transform: translateY(40px);
-}
-
-.campaign-card.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-
-.text-nouveau{
-    position: relative;
-    top: -10rem;
-    right: 30rem;
-}
-
-.reveal-text{
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    text-align: right;
-    color: black;
-    opacity: 1;
-    top: -15rem;
-}
 
 /* ============================================================
    SERVICES SECTION – PINNED SCROLL
@@ -422,7 +322,7 @@ body {
   align-items: flex-start;
   justify-content: flex-end;
   visibility: visible;
-  opacity: 1;
+  
   color: #111827;
   backdrop-filter: blur(2px);
 }
@@ -676,4 +576,11 @@ body {
     .fleche{
         display: none;
     }
+}
+
+/* Vérifie que la vidéo n'est pas cachée */
+video {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }

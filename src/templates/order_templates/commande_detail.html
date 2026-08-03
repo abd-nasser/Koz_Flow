@@ -285,7 +285,7 @@
                             
                             <!-- Prix unitaire -->
                             <div class="text-right text-sm text-gray-500 flex-shrink-0">
-                                <span class="block">{{ article.products.prix|intcomma }} FCFA</span>
+                                <span class="block">{{ article.products.prix_actuel|intcomma }} FCFA</span>
                                 <span class="text-xs text-gray-400">l'unité</span>
                             </div>
                         </div>
@@ -333,8 +333,8 @@
                     
                     <!-- Actions -->
                     <div class="mt-6 space-y-3">
-                        {% if commande.statut == 'Chargement' %}
-                        <a href="#" class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+                        {% if commande.statut == 'validee' %}
+                        <a href="{% url 'paiement_app:page-paiement' commande.pk %}" class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
                             <i class="fas fa-credit-card"></i> Payer la commande
                         </a>
                         {% endif %}

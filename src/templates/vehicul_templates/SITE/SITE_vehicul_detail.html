@@ -199,19 +199,28 @@
                 </h3>
                 <div class="space-y-3 sm:space-y-4">
                     {% if user.is_authenticated and not user.is_superuser and user.role != "directeur" %}
+                        <!-- Contacter -->
+                        <a href="{% url 'vehicul_app:contacter-vehicule' vehicul.pk %}" 
+                            class="btn btn-outline w-full text-center py-3 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                            <i class="fas fa-comment-dots mr-2"></i> Contacter pour ce véhicule
+                        </a>
+                        <!-- Demander un financement -->
                         <button onclick="document.getElementById('dmd_fin_modal').showModal()" 
-                        class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
-                            <i class="fas fa-hand-holding-usd mr-2"></i> Demander un financement
+                                class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
+                                <i class="fas fa-hand-holding-usd mr-2"></i> Demander un financement
                         </button>
+
                         {% else %}
-                         <button onclick="document.getElementById('login_simple_modal').showModal()" 
-                        class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
-                            <i class="fas fa-hand-holding-usd mr-2"></i> connectez vous pour un financement
+                         <button onclick="document.getElementById('contact_modal').showModal()" 
+                                 class="btn btn-outline w-full text-center py-3 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-envelope mr-2"></i> Contacter le commercial
                         </button>
-                    {% endif %}
-                    <a href="#" class="block w-full text-center py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-semibold transition border border-blue-100">
-                        <i class="fas fa-calendar-check mr-2"></i> Prendre rendez-vous
-                    </a>
+                        <button onclick="document.getElementById('login_simple_modal').showModal()" 
+                                class="block w-full text-center py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition shadow-lg shadow-blue-600/20">
+                                <i class="fas fa-hand-holding-usd mr-2"></i> connectez vous pour un financement
+                        </button>
+                        {% endif %}
+                   
                     <button class="block w-full text-center py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl font-semibold transition border border-gray-100">
                         <i class="fas fa-heart mr-2"></i> Ajouter aux favoris
                     </button>
@@ -255,7 +264,8 @@
         </button>
     </div>
         {% include 'modals/leads/demande_financement.html' %}
-         {% include 'modals/auth/login_simple_modal.html' %}
+        {% include 'modals/auth/login_simple_modal.html' %}
+        {% include 'modals/contact/contact_modal.html' %}
     <!-- ============================================================ -->
     <!-- SCRIPTS  -->
     <!-- ============================================================ -->

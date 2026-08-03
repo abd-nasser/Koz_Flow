@@ -14,7 +14,7 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'services_app:services-create' %}" class="p-6">
+        <form enctype="multipart/form-data" method="post" action="{% url 'services_app:services-create' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             <div class="scrollable-form">
                 <div class="space-y-5">

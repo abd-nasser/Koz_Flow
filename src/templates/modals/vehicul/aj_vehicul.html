@@ -14,9 +14,9 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'vehicul_app:ajout-vehicul' %}" class="p-6">
+        <form enctype="multipart/form-data" method="post" action="{% url 'vehicul_app:ajout-vehicul' %}" class="p-6 scrollable-form">
             {% csrf_token %}
-            <div class="scrollable-form">
+            
                 <div class="space-y-5">
                     {{ vehicul_form.non_field_errors }}
                     
@@ -52,7 +52,7 @@
                         <i class="fas fa-save"></i> Ajouter le véhicule
                     </button>
                 </div>
-            </div>
+            
         </form>
     </div>
 </dialog>

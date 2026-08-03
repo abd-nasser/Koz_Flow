@@ -256,9 +256,7 @@
                 <p class="text-3xl font-bold mt-2 text-yellow-300">
                     <i class="fas fa-info-circle mr-2"></i> Sur devis
                 </p>
-                <p class="text-sm text-blue-200/70 mt-1">
-                    Contactez-nous pour obtenir un tarif personnalisé
-                </p>
+              
             {% endif %}
 
             <!-- ===== INFORMATIONS COMPLÉMENTAIRES ===== -->
@@ -285,11 +283,18 @@
             </div>
 
             <!-- ===== BOUTON ===== -->
-            <a href="#" class="btn-glow block text-center mt-8 py-3.5 rounded-xl font-semibold transition hover:scale-105">
-                <i class="fas fa-calendar-check mr-2"></i> 
-                {% if service.prix %}Prendre rendez-vous{% else %}Demander un devis{% endif %}
-            </a>
-
+        
+             {% if user.is_authenticated %}
+                <a href="{% url 'services_app:contacter-service' service.pk %}" 
+                class="btn btn-primary w-full text-center py-3 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-calendar-check"></i> Réserver ce service
+                </a>
+            {% else %}
+                <button onclick="document.getElementById('contact_modal').showModal()" 
+                        class="btn-glow block text-center mt-8 py-3.5 rounded-xl font-semibold transition hover:scale-105">
+                    <i class="fas fa-envelope"></i> Demander un devis
+                </button>
+            {% endif %}
         </div>
     </div>
             </div>
@@ -372,6 +377,7 @@
     <!-- ============================================================ -->
     <!-- MODALE AVIS                                                   -->
     <!-- ============================================================ -->
+    {% include 'modals/contact/contact_modal.html' %}
     <dialog id="avis_modal" class="modal">
         <div class="modal-box bg-white rounded-2xl shadow-2xl max-w-lg">
             <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">

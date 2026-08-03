@@ -1,0 +1,41 @@
+<!-- modal/contact_modal.html -->
+<dialog id="contact_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="text-xl font-bold mb-4">📧 Contactez-nous</h3>
+        <p class="text-sm text-gray-500 mb-4">
+            Remplissez ce formulaire pour être recontacté par un commercial.
+        </p>
+        
+        <form method="post" action="{% url 'leads_app:envoyer-contact-email' %}">
+            {% csrf_token %}
+            <input type="hidden" name="reference" value="{{ reference }}">
+            <input type="hidden" name="type" value="{{ type }}">
+            
+            <div class="space-y-3">
+                <input type="text" name="nom" placeholder="Votre nom" class="input input-bordered w-full" required>
+                <input type="email" name="email" placeholder="Votre email" class="input input-bordered w-full" required>
+                <input type="tel" name="telephone" placeholder="Votre téléphone" class="input input-bordered w-full">
+                <textarea name="message" rows="3" placeholder="Votre message..." class="textarea textarea-bordered w-full"></textarea>
+            </div>
+            
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700 flex items-start gap-2">
+                <i class="fas fa-info-circle mt-0.5"></i>
+                <div>
+                    <p class="font-medium">Créez un compte pour bénéficier de :</p>
+                    <ul class="list-disc list-inside text-xs">
+                        <li>Suivi en temps réel de vos échanges</li>
+                        <li>Accès à des offres exclusives</li>
+                        <li>paiement de produits en ligne sécurisé</li>
+                        <li>Consultation de vos documents en ligne</li>
+                        <li>Reservation, suivi et rappel de maintenance </li>
+                        <li>Historique complet de vos demandes</li>
+                        <li>Interface client dédiée via notre plateforme</li>
+                        <li>Discuter à tout moment avec nos conseillers via le chat interne</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full mt-4">Envoyer</button>
+        </form>
+    </div>
+</dialog>

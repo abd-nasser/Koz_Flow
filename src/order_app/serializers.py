@@ -9,7 +9,7 @@ class ArticlePanierSerializer(serializers.ModelSerializer):
         read_only=True # read_only=True : ce champ est uniquement envoyé au client, jamais reçu du client
         )
     produit_prix = serializers.DecimalField(
-        source="products.prix", 
+        source="products.prix_actuel", 
         read_only=True, max_digits=10,  # read_only=True : ce champ est uniquement envoyé au client, jamais reçu du client
         decimal_places=0
         )

@@ -1,0 +1,236 @@
+{% load static %}
+{% load tailwind_tags %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    {% tailwind_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>{{ actualite.titre }} - KOZ Services</title>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .hero-actu {
+            position: relative;
+            min-height: 50vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+        }
+        .hero-actu img {
+            width: 100%;
+            height: 60vh;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+        .hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15,23,42,0.6) 0%, rgba(30,41,59,0.3) 50%, rgba(15,23,42,0.7) 100%);
+        }
+        .hero-content {
+            position: absolute;
+            bottom: 10%;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            padding: 0 20px;
+        }
+        .gallery-thumb {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .gallery-thumb:hover, .gallery-thumb.active {
+            border-color: #3b82f6;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter">
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="glass-nav sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="{% url 'home_app:home-page' %}" class="font-bold text-2xl text-blue-600">
+                    KOZ Services
+                </a>
+                <a href="{% url 'home_app:actualites-list' %}" class="text-gray-500 hover:text-blue-600 transition text-sm flex items-center gap-1 ml-4">
+                    <i class="fas fa-arrow-left text-xs"></i> Retour
+                </a>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500">
+                    <i class="fas fa-newspaper text-blue-600 mr-1"></i>
+                    Actualité
+                </span>
+                {% if user.is_authenticated %}
+                    <span class="text-sm text-gray-600">{{ user.nom_complet }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- HERO                                                         -->
+    <!-- ============================================================ -->
+    <section class="hero-actu">
+        <img src="{{ actualite.image_principale.url }}" alt="{{ actualite.titre }}">
+        <div class="hero-overlay"></div>
+        <div class="hero-content container mx-auto">
+            <div class="flex flex-wrap items-start gap-3">
+                <span class="inline-block text-xs font-bold text-white px-3 py-1 rounded-full shadow-lg"
+                      style="background: {{ actualite.type_couleur_hex }};">
+                    <i class="fas {{ actualite.type_icone }} mr-1"></i>
+                    {{ actualite.get_type_display }}
+                </span>
+                {% if actualite.est_en_cours %}
+                <span class="text-xs font-bold bg-green-500 text-white px-3 py-1 rounded-full shadow-lg animate-pulse">
+                    <i class="fas fa-circle text-[6px] mr-1 inline-block animate-ping"></i> En cours
+                </span>
+                {% elif actualite.est_a_venir %}
+                <span class="text-xs font-bold bg-amber-500 text-white px-3 py-1 rounded-full shadow-lg">
+                    <i class="fas fa-clock mr-1"></i> À venir
+                </span>
+                {% endif %}
+            </div>
+            <h1 class="text-3xl md:text-5xl font-bold text-white mt-4 leading-tight">
+                {{ actualite.titre }}
+            </h1>
+            <p class="text-white/80 text-lg mt-2 max-w-2xl">{{ actualite.sous_titre }}</p>
+            <div class="flex items-center gap-4 text-white/60 text-sm mt-4">
+                <span><i class="fas fa-calendar-alt mr-1"></i> {{ actualite.date_evenement|date:"d/m/Y" }}</span>
+                {% if actualite.date_fin %}
+                <span><i class="fas fa-clock mr-1"></i> Jusqu'au {{ actualite.date_fin|date:"d/m/Y" }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- MAIN CONTENT                                                 -->
+    <!-- ============================================================ -->
+    <main class="max-w-4xl mx-auto px-4 py-12">
+
+        <!-- Description -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
+            <div class="prose prose-lg max-w-none">
+                <p class="text-gray-700 leading-relaxed">{{ actualite.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <!-- ===== GALERIE D'IMAGES ===== -->
+        {% if actualite.nb_images > 1 %}
+        <div class="mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-images text-blue-600"></i> Galerie
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {% for image in actualite.images_list %}
+                    {% if forloop.counter0 > 0 %}
+                    <div class="overflow-hidden rounded-xl bg-gray-100 aspect-square">
+                        <img src="{{ image.url }}" alt="{{ actualite.titre }}" 
+                             class="w-full h-full object-cover hover:scale-105 transition duration-500 cursor-pointer"
+                             onclick="openLightbox('{{ image.url }}')">
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== VIDÉO ===== -->
+        {% if actualite.video_file or actualite.video_url %}
+        <div class="mb-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-video text-red-500"></i> Vidéo
+            </h3>
+            <div class="rounded-2xl overflow-hidden bg-black aspect-video shadow-lg">
+                {% if actualite.video_file %}
+                    <video class="w-full h-full" controls>
+                        <source src="{{ actualite.video_file.url }}" type="video/mp4">
+                        Votre navigateur ne supporte pas la vidéo.
+                    </video>
+                {% elif actualite.video_url %}
+                    <iframe class="w-full h-full" src="{{ actualite.video_url }}" frameborder="0" allowfullscreen></iframe>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== BOUTONS ===== -->
+        <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-200">
+            {% if actualite.lien_interne %}
+            <a href="{{ actualite.lien_interne }}" class="btn-primary px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2">
+                <i class="fas fa-arrow-right"></i> En savoir plus
+            </a>
+            {% endif %}
+            {% if actualite.lien_externe %}
+            <a href="{{ actualite.lien_externe }}" target="_blank" class="btn-primary px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2">
+                <i class="fas fa-external-link-alt"></i> Voir l'événement
+            </a>
+            {% endif %}
+            <a href="{% url 'home_app:actualites-list' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-xl transition flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Retour aux actualités
+            </a>
+        </div>
+
+    </main>
+
+    <!-- ===== LIGHTBOX ===== -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden items-center justify-center" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Agrandissement" class="max-w-5xl max-h-[90vh] object-contain rounded-xl shadow-2xl">
+        <button onclick="closeLightbox()" class="absolute top-5 right-5 text-white text-3xl hover:text-gray-300 transition">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p>&copy; {% now "Y" %} KOZ Services — Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script>
+        function openLightbox(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').classList.remove('hidden');
+            document.getElementById('lightbox').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.add('hidden');
+            document.getElementById('lightbox').classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+
+</body>
+</html>

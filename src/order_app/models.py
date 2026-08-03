@@ -28,18 +28,18 @@ class ArticlePanier(models.Model):
     
     
     def sous_total(self):
-        return  self.quantite * self.products.prix
+        return self.quantite * self.products.prix_actuel
     
 
 class Commande(models.Model):
     STATUT_COMMANDE = [
-        ("Chargement","Chargement"),
         ("validee", "Validée"),
+        ("annulee", "Annulée"),
         ("payee", "Payée"),
         ("livraison", "En livraison"),
         ("terminee", "Terminée"),
     ]
-    panier = models.ForeignKey(Panier, on_delete=models.CASCADE)
+    panier = models.ForeignKey(Panier, on_delete=models.CASCADE, related_name="commande")
     statut = models.CharField(max_length=20, choices=STATUT_COMMANDE, default="Chargement")
     date_commande = models.DateTimeField(auto_now_add=True)
     paiements = models.OneToOneField("paiement_app.Paiement", related_name="commande_paiement", on_delete=models.SET_NULL, null=True, blank=True)

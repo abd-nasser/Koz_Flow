@@ -1,75 +1,7 @@
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Faire apparaître les sections avec un fondu
-        const sections = document.querySelectorAll(".fade-section-actualité");
-        sections.forEach((section, index) => {
-            gsap.from(section, {
-                scrollTrigger: {
-                    trigger: section,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 50,
-                duration: 1,
-                delay: index * 0.15
-            });
-        });
+gsap.registerPlugin(ScrollTrigger);
 
         
-
-        gsap.from(".fade-text",  {
-                scrollTrigger: {
-                    trigger: ".services-section",
-                    start: "top -210%",
-                    end: "top -150%",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 100,
-                duration: 1,
-            
-            });
-
-        gsap.from(".services-contain",  {
-                scrollTrigger: {
-                    trigger: ".services-section",
-                    start: "top -230%",
-                    end: "top -150%",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 100,
-                duration: 1,
-            
-            });
-
-        gsap.from(".fade-section", {
-                scrollTrigger: {
-                    trigger: ".fade-section",
-                    start: "top -500%",
-                    end: "top -150%",
-                    toggleActions: "play none none reverse",
-                   
-                },
-                opacity: 0,
-                y: 100,
-                duration: 1,
-            
-            });
-
-        gsap.from(".fade-hero-contain", {
-                scrollTrigger: {
-                    trigger: ".hero-section",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 100,
-                duration: 1.5,
-            
-            });
-
-
+        
         // NAVBAR PREMIUM
         // ============================================
         const navbar = document.querySelector('.navbar');
@@ -161,94 +93,12 @@
         });
 
 
-        // GSAP text-nouveau et details
-        gsap.from(".text-nouveau", {
-                    scrollTrigger:{
-                        trigger: ".campaign-card",
-                        start: "top 65%",
-                        end: "top 45%",
-                        toggleActions: "play none none reverse",
-                    },
-                    opacity: 0,
-                    x: 300,
-                    duration: 2,
-                    ease: "power3.out"
-                });
-
-
-        // --- ÉTAPE 2 : PIN DE LA SECTION (le scroll reste bloqué) ---
-        ScrollTrigger.create({
-            trigger: ".pin-trigger",
-            start: "top 9%",
-            end: "+=300%",  // La section reste "épinglée" pendant 300% de la hauteur d'écran
-            pin: true,
-            pinSpacing: true,
-
-        });
-
-
-                
-        // ============================================
-        // CARTES ACTUALITÉS : apparition au scroll
-        // ============================================
-        // 2. Définir campaignCards
-        const campaignCards = document.querySelectorAll('.campaign-card');
-                gsap.from('.campaign-card',{
-                    scrollTrigger: {
-                        trigger: ".actualite-containt",
-                        start: "top 60%",
-                        end: "top 50%",
-                        toggleActions: "play none none reverse",
-                    },
-                    opacity: 0,
-                    x: -300,
-                    duration: 1.5,
-                    ease: "power3.out"
-                });
         
-            // Animation de survol supplémentaire (flottement)
-            campaignCards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    gsap.to(card, {
-                        y: -8,
-                        duration: 0.4,
-                        ease: "power2.out"
-                    });
-                });
-                card.addEventListener('mouseleave', () => {
-                    gsap.to(card, {
-                        y: 0,
-                        duration: 0.4,
-                        ease: "power2.out"
-                    });
-                });
-            });
+        // --- ÉTAPE 2 : ANIMATION INDÉPENDANTE DE LA SECTION ACTUALITÉ ---
+        // La section actualité ne pinne plus le scroll et n'interfère pas avec les sections suivantes.
 
 
-
-
-gsap.registerPlugin(ScrollTrigger);
-
-        // 1️⃣ Splitting pour découper les caractères
-       let selection = Splitting();
-        console.log(selection)
-        // 2️⃣ Animation GSAP
-        gsap.from(selection[0].chars, {
-            y : 100,
-            scaleY:0,
-            rotation: 90,
-            color: "rgb(255,255,255)",
-            stagger: 0.05,
-            opacity:0,
-            scrollTrigger:{
-                trigger :".pin-trigger",
-                start :"top 9%",
-                end: '+=250%',
-                scrub: true,
-            }
-            
-        });
-
+    
 // ============================================================
 // SERVICES – PINNED SCROLL ANIMATION
 // ============================================================
@@ -526,17 +376,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// Initialize a new Lenis instance for smooth scrolling
-const lenis = new Lenis();
-
-// Synchronize Lenis scrolling with GSAP's ScrollTrigger plugin
-lenis.on('scroll', ScrollTrigger.update);
-
-// Add Lenis's requestAnimationFrame (raf) method to GSAP's ticker
-// This ensures Lenis's smooth scroll animation updates on each GSAP tick
-gsap.ticker.add((time) => {
-  lenis.raf(time * 500); // Convert time from seconds to milliseconds
-});
-
-// Disable lag smoothing in GSAP to prevent any delay in scroll animations
-gsap.ticker.lagSmoothing(0);

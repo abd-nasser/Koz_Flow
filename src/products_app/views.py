@@ -64,18 +64,91 @@ class CategorieProductsDeleteView(DeleteView):
 # CRUD Produits
 # ============================================================
 
+from django.views.generic import ListView
+from django.db.models import Q
+from .models import Products, CategorieProducts, MarqueProduit, UniteProduit
+from .forms import ProductsForm
+
 class ProductsListView(ListView):
     model = Products
     template_name = 'products_templates/SITE/SITE_products_list.html'
     context_object_name = 'products'
+    paginate_by = 12
+
+    def get_queryset(self):
+        queryset = Products.objects.filter(est_disponible=True).select_related('categorie', 'marque', 'unite')
+        
+        # ✅ Recherche
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(
+                Q(nom__icontains=q) |
+                Q(description__icontains=q) |
+                Q(description_courte__icontains=q) |
+                Q(marque__nom__icontains=q) |
+                Q(categorie__nom__icontains=q)
+            )
+        
+        # ✅ Filtre par catégorie
+        categorie = self.request.GET.get('categorie')
+        if categorie:
+            queryset = queryset.filter(categorie_id=categorie)
+        
+        # ✅ Filtre par marque
+        marque = self.request.GET.get('marque')
+        if marque:
+            queryset = queryset.filter(marque_id=marque)
+        
+        # ✅ Filtre par prix min
+        prix_min = self.request.GET.get('prix_min')
+        if prix_min:
+            try:
+                queryset = queryset.filter(prix__gte=prix_min)
+            except ValueError:
+                pass
+        
+        # ✅ Filtre par prix max
+        prix_max = self.request.GET.get('prix_max')
+        if prix_max:
+            try:
+                queryset = queryset.filter(prix__lte=prix_max)
+            except ValueError:
+                pass
+        
+        # ✅ Filtre par stock
+        stock = self.request.GET.get('stock')
+        if stock == 'en_stock':
+            queryset = queryset.filter(stock__gt=0)
+        elif stock == 'rupture':
+            queryset = queryset.filter(stock__lte=0)
+        
+        # ✅ Filtre par promo
+        promo = self.request.GET.get('promo')
+        if promo == 'true':
+            queryset = queryset.filter(prix_promo__isnull=False)
+        
+        # ✅ Tri
+        sort = self.request.GET.get('sort')
+        if sort == 'prix_asc':
+            queryset = queryset.order_by('prix')
+        elif sort == 'prix_desc':
+            queryset = queryset.order_by('-prix')
+        elif sort == 'nom_asc':
+            queryset = queryset.order_by('nom')
+        else:
+            queryset = queryset.order_by('-date_ajout')  # Par défaut : plus récent
+        
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = CategorieProducts.objects.all()
-        if 'create_product_form' not in context:
-            context['create_product_form'] = ProductsForm()
+        context['categories'] = CategorieProducts.objects.filter(est_active=True)
+        context['marques'] = MarqueProduit.objects.filter(est_active=True)
+        
+        # ✅ Conserver les filtres dans l'URL pour la pagination
+        context['filters'] = self.request.GET.copy()
+        
         return context
-
 class ProductsCreateView(CreateView):
     model = Products
     form_class = ProductsForm

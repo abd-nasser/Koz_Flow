@@ -5,7 +5,7 @@ from .views import (
     ERP_ServiceAvisApprobationView, SITE_ServiceDetailView,SITE_ServicesListView, 
     ERP_ServiceDeleteView, 
     ERP_ServiceImagesCreateView, 
-    ERP_ServiceUpdateView
+    ERP_ServiceUpdateView, contacter_service
     )
 
 
@@ -27,7 +27,9 @@ urlpatterns = [
         
     # Services_SITE
     path('detail/<int:pk>/service/public',SITE_ServiceDetailView.as_view(), name="service-detail-public"),
+    path('contacter/<int:pk>/service/public', contacter_service, name="contacter-service"),
     path('list/', SITE_ServicesListView.as_view(), name='services-list-public'),
+
     
     # Avis
     path("donner/<int:service_pk>/avis", SITE_ServiceAvisCreateView.as_view(), name="service-avis-create"),

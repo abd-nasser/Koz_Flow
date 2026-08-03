@@ -134,7 +134,45 @@ class ApiDemandeFinancementView(APIView):
             )
                 
             
-
+def envoyer_contact_email(request):
+    if request.method == 'POST':
+        nom = request.POST.get('nom')
+        email = request.POST.get('email')
+        telephone = request.POST.get('telephone')
+        message = request.POST.get('message')
+        reference = request.POST.get('reference')
+        type_ref = request.POST.get('type')
+        
+        context = {
+            'nom': nom,
+            'email': email,
+            'telephone': telephone,
+            'message': message,
+            'reference': reference,
+            'type': type_ref,
+        }
+        
+        html_message = render_to_string('emails/contact/contact_client.html', context)
+        plain_message = strip_tags(html_message)
+        
+        # Envoyer aux commerciaux
+        commercials = kozUser.objects.filter(role='commercial')
+        try:
+                send_mail(
+                    subject=f"📩 Nouvelle demande de contact - {type_ref}",
+                    message=plain_message,
+                    from_email=email,
+                    recipient_list=[commercial.email for commercial in commercials],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+        except Exception as e:
+            logger.error(f"Erreur envoi email aux commerciaux: {e}")
+            messages.error(request, "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.")
+            return redirect('home_app:home-page')
+                
+        messages.success(request, "✅ Votre demande a été envoyée. Un commercial vous contactera rapidement.")
+        return redirect('home_app:home-page')
 
 ##################################################___Demande et Gestion de Financement_______###########################################
 @login_required

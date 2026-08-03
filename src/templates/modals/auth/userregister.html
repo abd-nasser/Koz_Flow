@@ -14,10 +14,10 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form method="post" action="{% url 'auth_app:user-register' %}" class="p-6">
+        <form method="post" action="{% url 'auth_app:user-register' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             
-            <div class="scrollable-form space-y-5">
+            <div class="space-y-5">
                 {{ user_register_form.non_field_errors }}
                 
                 {% for field in user_register_form %}
