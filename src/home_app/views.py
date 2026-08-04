@@ -44,7 +44,7 @@ def home_page_view(request):
         "avis_reseaux": AvisReseau.objects.filter(est_actif = True).order_by('-date_publication'),
         "videos": VideoTemoignage.objects.filter(est_actif = True).order_by('-date_ajout')[:5],
         "temoignage_textuel_form": TemoignageTextuelForm(),
-        "actualites": Actualite.objects.filter(est_public = True, est_vedette = True).order_by('-date_publication')
+        "actualites": Actualite.objects.filter(est_vedette = True).order_by('-date_publication')
     }
     return render(request, "home_templates/home_page.html", ctx)
 
@@ -235,10 +235,10 @@ class ActualiteListView(LoginRequiredMixin, ListView):
     model = Actualite
     template_name = 'directeur_templates/actualites_list.html'
     context_object_name = 'actualites'
-    paginate_by = 10
 
     def get_queryset(self):
         return Actualite.objects.all().order_by('-date_publication', '-date_evenement')
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'actualite_form' not in context:
@@ -252,9 +252,13 @@ class ActualiteDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'actualite'
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         if 'actualite_form' not in context:
-            context['actualite_form'] = ActualiteForm()
+            context['update_actualite_form'] = ActualiteForm(instance=self.object)  # Pré-remplir le formulaire avec l'actualité actuelle
         return context
+    
+    def get_success_url(self):
+        return reverse_lazy('home_app:actualites-list')  # Redirige vers la liste des actualités après la soumission du formulaire
 
 
 class ActualiteCreateView(LoginRequiredMixin, CreateView):
@@ -263,25 +267,34 @@ class ActualiteCreateView(LoginRequiredMixin, CreateView):
     template_name = 'directeur_templates/actualite_form.html'
 
     def get_success_url(self):
-        return reverse_lazy('directeur_app:actualites-list')
+        return reverse_lazy('home_app:actualites-list')
 
 
 class ActualiteUpdateView(LoginRequiredMixin, UpdateView):
     model = Actualite
     form_class = ActualiteForm
-    template_name = 'directeur_templates/actualite_form.html'
-    context_object_name = 'actualite'
+    success_url = reverse_lazy('home_app:actualites-list')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"✅ Actualité '{self.object.titre}' modifiée avec succès !")
+        return response
+
+    def form_invalid(self, form):
+        messages.error(self.request, "❌ Erreur dans le formulaire. Vérifiez les champs.")
+        return super().form_invalid(form)
     def get_success_url(self):
-        return reverse_lazy('directeur_app:actualites-list')
+        return reverse_lazy('home_app:actualites-list')  # Redirige vers la liste des actualités après la soumission du formulaire
 
 
-class ActualiteDeleteView(LoginRequiredMixin, DeleteView):
-    model = Actualite
-    template_name = 'directeur_templates/actualite_confirm_delete.html'
-    context_object_name = 'actualite'
+@login_required
+def delete_actualite(request, pk):
+    """FBV pour supprimer une actualité"""
+    actualite = get_object_or_404(Actualite, pk=pk)
+    titre = actualite.titre
+    actualite.delete()
+    messages.success(request, f"✅ Actualité '{titre}' supprimée avec succès !")
+    return redirect('home_app:actualites-list')
 
-    def get_success_url(self):
-        return reverse_lazy('directeur_app:actualites-list')
-    
+
 

@@ -24,8 +24,8 @@ from django.contrib import admin
 from .models import Actualite
 
 class ActualiteAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'type', 'date_evenement', 'est_public', 'est_vedette', 'vues']
-    list_filter = ['type', 'est_public', 'est_vedette', 'date_evenement']
+    list_display = ['titre', 'type', 'date_evenement', 'est_publie', 'est_vedette', 'vues']
+    list_filter = ['type', 'est_publie', 'est_vedette', 'date_evenement']
     search_fields = ['titre', 'description', 'sous_titre']
     readonly_fields = ['vues', 'date_creation', 'date_modification']
     ordering = ['-date_evenement']

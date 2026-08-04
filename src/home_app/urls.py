@@ -31,7 +31,7 @@ urlpatterns = [
     path("actualites/ajouter/", views.ActualiteCreateView.as_view(), name="actualites-create"),
     path("actualites/<int:pk>/", views.ActualiteDetailView.as_view(), name="actualites-detail"),
     path("actualites/<int:pk>/modifier/", views.ActualiteUpdateView.as_view(), name="actualites-update"),
-    path("actualites/<int:pk>/supprimer/", views.ActualiteDeleteView.as_view(), name="actualites-delete"),
+    path("actualites/<int:pk>/supprimer/", views.delete_actualite, name="actualites-delete"),
     
-   
+ 
 ]

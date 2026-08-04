@@ -85,10 +85,11 @@ class ActualiteForm(forms.ModelForm):
             'video_file',
             'video_url',
             'lien_externe',
+            'lien_interne',
             'date_evenement',
             'date_publication',
             'date_fin',
-            'est_public',
+            'est_publie',
             'est_vedette',
             'ordre',
         ]
@@ -111,6 +112,7 @@ class ActualiteForm(forms.ModelForm):
             'date_publication': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'input input-bordered w-full'}),
             'date_fin': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'input input-bordered w-full'}),
             'ordre': forms.NumberInput(attrs={'class': 'input input-bordered w-full'}),
-            'est_public': forms.CheckboxInput(attrs={'class': 'checkbox'}),
+            'est_publie': forms.CheckboxInput(attrs={'class': 'checkbox'}),
             'est_vedette': forms.CheckboxInput(attrs={'class': 'checkbox'}),
+            'lien_interne': forms.URLInput(attrs={'class': 'input input-bordered w-full'}),
         }

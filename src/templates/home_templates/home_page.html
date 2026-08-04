@@ -49,11 +49,11 @@
                class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
                 Catalogue
             </a>
-            <a href="#" 
+            <a href="#financement" 
                class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
                 Financement
             </a>
-            <a href="#" 
+            <a href="#contact" 
                class="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
                 Contact
             </a>
@@ -212,11 +212,17 @@
 </section>
 
 <!-- ============================================================ -->
-<!-- SECTION : ACTUALITÉS                                         -->
+<!-- SECTION ACTUALITÉ – PREMIUM                                  -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative bg-gray-50 overflow-hidden">
+<section class="py-16 sm:py-20 relative bg-white overflow-hidden">
     
-    <div class="container mx-auto px-4 max-w-7xl">
+    <!-- Dégradé de fond -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-50/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-50/30 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 max-w-7xl relative z-10">
         
         <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12">
@@ -227,109 +233,131 @@
                 Dernières <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">actualités</span>
             </h2>
             <p class="text-gray-500 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
-                Restez informés des dernières nouveautés, événements et offres de KOZ Services.
+                Restez informés des dernières nouveautés de KOZ Services
             </p>
         </div>
 
-        <!-- ===== GRILLE ACTUALITÉS ===== -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for actualite in actualites %}
-            <div class="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+        <!-- ===== GRILLE PRINCIPALE ===== -->
+        {% if actualites %}
+        {% with actu=actualites.0 %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            
+            <!-- ===== COLONNE GAUCHE : HERO (50%) ===== -->
+            <div class="relative rounded-2xl overflow-hidden bg-gray-900 aspect-[4/3] lg:aspect-auto group">
                 
-                <!-- Image -->
-                <div class="relative overflow-hidden aspect-[16/9] bg-gray-200">
-                    {% if actualite.image_principale %}
-                        <img src="{{ actualite.image_principale.url }}" 
-                             alt="{{ actualite.titre }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    {% else %}
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-                            <i class="fas fa-image text-4xl text-blue-300"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Badge type -->
-                    <span class="absolute top-3 left-3 text-xs font-bold text-white px-3 py-1 rounded-full shadow-lg"
-                          style="background: {{ actualite.type_couleur_hex }};">
-                        <i class="fas {{ actualite.type_icone }} mr-1"></i>
-                        {{ actualite.get_type_display }}
+                <!-- VIDÉO OU IMAGE -->
+                {% if actu.video_file or actu.video_url %}
+                    <!-- Vidéo -->
+                    <div class="w-full h-full">
+                        {% if actu.video_file %}
+                            <video class="w-full h-full object-cover" controls playsinline preload="metadata">
+                                <source src="{{ actu.video_file.url }}" type="video/mp4">
+                            </video>
+                        {% elif actu.video_url %}
+                            <iframe class="w-full h-full" src="{{ actu.video_url }}" frameborder="0" allowfullscreen></iframe>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <!-- Image -->
+                    <img src="{{ actu.image_principale.url }}" 
+                         alt="{{ actu.titre }}"
+                         class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                {% endif %}
+                
+                <!-- Badges superposés -->
+                <div class="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+                    <span class="text-xs font-bold text-white px-3 py-1 rounded-full shadow-lg"
+                          style="background: {{ actu.type_couleur_hex }};">
+                        <i class="fas {{ actu.type_icone }} mr-1"></i>
+                        {{ actu.get_type_display }}
                     </span>
-                    
-                    <!-- Badge "En cours" ou "À venir" -->
-                    {% if actualite.est_en_cours %}
-                    <span class="absolute top-3 right-3 text-xs font-bold bg-green-500 text-white px-3 py-1 rounded-full shadow-lg animate-pulse">
-                        <i class="fas fa-circle text-[6px] mr-1 inline-block animate-ping"></i>
-                        En cours
-                    </span>
-                    {% elif actualite.est_a_venir %}
-                    <span class="absolute top-3 right-3 text-xs font-bold bg-amber-500 text-white px-3 py-1 rounded-full shadow-lg">
-                        <i class="fas fa-clock mr-1"></i>
-                        À venir
-                    </span>
-                    {% endif %}
-                    
-                    <!-- Nombre d'images -->
-                    {% if actualite.nb_images > 1 %}
-                    <span class="absolute bottom-3 right-3 text-xs bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full">
-                        <i class="fas fa-images mr-1"></i> {{ actualite.nb_images }}
+                    {% if actu.est_vedette %}
+                    <span class="text-xs font-bold bg-yellow-500 text-white px-3 py-1 rounded-full shadow-lg">
+                        <i class="fas fa-star mr-1"></i> Vedette
                     </span>
                     {% endif %}
                 </div>
-
-                <!-- Contenu -->
-                <div class="p-5">
-                    <!-- Date -->
-                    <div class="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                
+                <!-- Contenu superposé en bas -->
+                <div class="absolute bottom-0 left-0 right-0 p-6 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+                    <span class="text-xs text-white/60 flex items-center gap-2">
                         <i class="fas fa-calendar-alt"></i>
-                        <span>{{ actualite.date_evenement|date:"d/m/Y" }}</span>
-                        {% if actualite.date_fin %}
-                        <span class="text-gray-300">|</span>
-                        <i class="fas fa-clock"></i>
-                        <span>Jusqu'au {{ actualite.date_fin|date:"d/m/Y" }}</span>
-                        {% endif %}
-                    </div>
-
-                    <!-- Titre -->
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition">
-                        {{ actualite.titre }}
-                    </h3>
-                    
-                    <!-- Sous-titre -->
-                    {% if actualite.sous_titre %}
-                    <p class="text-sm text-gray-500 mb-2">{{ actualite.sous_titre }}</p>
-                    {% endif %}
-
-                    <!-- Description courte -->
-                    <p class="text-sm text-gray-600 line-clamp-3">
-                        {{ actualite.description_courte|default:actualite.description|truncatechars:120 }}
-                    </p>
-
-                    <!-- Bouton -->
-                    <a href="{% url 'home_app:actualite-detail' actualite.pk %}" 
-                       class="mt-4 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition group/btn">
+                        {{ actu.date_evenement|date:"d/m Y" }}
+                    </span>
+                    <h3 class="text-xl sm:text-2xl font-bold text-white mt-1">{{ actu.titre }}</h3>
+                    <p class="text-sm text-white/70 mt-1 line-clamp-2">{{ actu.description_courte|default:actu.description|truncatechars:120 }}</p>
+                    <a href="#" 
+                       class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium text-sm mt-3 transition group/link">
                         Lire la suite
-                        <i class="fas fa-arrow-right text-xs group-hover/btn:translate-x-1 transition-transform"></i>
+                        <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
                     </a>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-span-full text-center py-12">
-                <div class="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-newspaper text-3xl text-gray-400"></i>
-                </div>
-                <p class="text-gray-500">Aucune actualité pour le moment.</p>
-            </div>
-            {% endfor %}
-        </div>
 
-        <!-- ===== BOUTON VOIR TOUT ===== -->
-        <div class="text-center mt-10">
-            <a href="{% url 'home_app:actualites-list' %}" 
-               class="inline-flex items-center gap-2 px-8 py-3.5 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-300 font-medium text-sm">
-                <span>Voir toutes les actualités</span>
-                <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover:translate-x-1"></i>
-            </a>
+            <!-- ===== COLONNE DROITE (50%) ===== -->
+            <div class="flex flex-col gap-4">
+                
+                <!-- ===== HAUT (60%) : DESCRIPTION AVEC SPLITTING ===== -->
+                <div class="flex-1 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-2xl p-6 border border-blue-100/50 relative overflow-hidden">
+                    <!-- Icône de fond -->
+                    <div class="absolute -top-10 -right-10 text-8xl text-blue-100/20">
+                        <i class="fas fa-quote-right"></i>
+                    </div>
+                    
+                    <span class="text-xs font-semibold text-blue-600 uppercase tracking-wider">
+                        <i class="fas fa-align-left mr-1"></i> À découvrir
+                    </span>
+                    
+                    <!-- Description avec Splitting -->
+                    <div data-splitting class="description-splitting mt-2">
+                        <p class="text-base sm:text-lg text-gray-700 leading-relaxed">
+                            {{ actu.description|truncatechars:200 }}
+                        </p>
+                    </div>
+                    
+                    <a href="#" 
+                       class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm mt-4 group/link">
+                        En savoir plus
+                        <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+
+                <!-- ===== BAS (40%) : GALERIE D'IMAGES ===== -->
+                {% if actu.images_list|length > 1 %}
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {% for image in actu.images_list %}
+                        {% if forloop.counter0 > 0 and forloop.counter0 < 4 %}
+                        <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-200 group/img cursor-pointer hover:shadow-lg transition"
+                             onclick="openLightbox('{{ image.url }}')">
+                            <img src="{{ image.url }}" 
+                                 alt="{{ actu.titre }}" 
+                                 class="w-full h-full object-cover group-hover/img:scale-110 transition duration-500">
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition flex items-center justify-center">
+                                <i class="fas fa-search-plus text-white text-xl"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
         </div>
+        {% endwith %}
+        {% else %}
+        
+        <!-- ===== AUCUNE ACTUALITÉ ===== -->
+        <div class="text-center py-16">
+            <div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-newspaper text-4xl text-gray-400"></i>
+            </div>
+            <p class="text-gray-500 text-lg">Aucune actualité disponible</p>
+            <p class="text-gray-400 text-sm mt-1">Revenez bientôt pour découvrir nos dernières nouvelles</p>
+        </div>
+        
+        {% endif %}
 
     </div>
 </section>
@@ -1082,7 +1110,7 @@
 <!-- ============================================================ -->
 <!-- SECTION STATS – STYLE ANIME                                  -->
 <!-- ============================================================ -->
-<section class="py-20 relative bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 overflow-hidden">
+<section class="py-20 relative bg-white overflow-hidden">
     
     <!-- Effet de fond "aura" -->
     <div class="absolute inset-0 opacity-30">
@@ -1165,6 +1193,105 @@
 
     </div>
 </section>
+
+
+
+<!-- ============================================================ -->
+<!-- SECTION 1 : MODÈLES DE FINANCEMENT                            -->
+<!-- ============================================================ -->
+<section id="financement" class="py-16 sm:py-20 relative bg-white overflow-hidden">
+    
+    <!-- Effet de fond -->
+    <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-200 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 max-w-7xl relative z-10">
+        
+        <!-- En-tête -->
+        <div class="text-center mb-12">
+            <span class="inline-block text-xs font-semibold text-blue-300 uppercase tracking-[0.2em] bg-blue-500/20 px-5 py-2 rounded-full mb-4 border border-blue-400/30">
+                💰 Financement
+            </span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-black">
+                Nos modèles de <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800">financement</span>
+            </h2>
+            <p class="text-gray-400 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
+                Des solutions flexibles adaptées à votre budget et à vos besoins
+            </p>
+        </div>
+
+        <!-- Grille -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Financement KOZ -->
+            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 mb-4">
+                    <i class="fas fa-building text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Financement KOZ</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Financement direct par KOZ Services. Pas d'intermédiaire, des conditions avantageuses et un suivi personnalisé.
+                </p>
+                <ul class="mt-4 space-y-2 text-sm text-gray-300">
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400"></i> Taux à partir de 5%</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400"></i> Durée flexible (12-60 mois)</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-blue-400"></i> Zéro frais de dossier</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium text-sm mt-4 transition group/link">
+                    En savoir plus <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
+            <!-- Fidelis -->
+            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/25 mb-4">
+                    <i class="fas fa-handshake text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Fidelis Finance</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Partenaire financier de confiance. Des solutions de crédit auto adaptées à votre profil.
+                </p>
+                <ul class="mt-4 space-y-2 text-sm text-gray-300">
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> Taux à partir de 6.5%</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> Étude rapide (48h)</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> Accompagnement personnalisé</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium text-sm mt-4 transition group/link">
+                    En savoir plus <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
+            <!-- Alios -->
+            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/25 mb-4">
+                    <i class="fas fa-star text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Alios Finance</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Partenaire financier spécialiste du crédit automobile. Des offres sur mesure pour tous les budgets.
+                </p>
+                <ul class="mt-4 space-y-2 text-sm text-gray-300">
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400"></i> Taux à partir de 5.9%</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400"></i> Financement jusqu'à 80%</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-purple-400"></i> Réponse sous 24h</li>
+                </ul>
+                <a href="#" class="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 font-medium text-sm mt-4 transition group/link">
+                    En savoir plus <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Mention -->
+        <div class="mt-8 text-center text-xs text-gray-500 border-t border-white/5 pt-6">
+            <i class="fas fa-info-circle mr-1"></i> Offres sous conditions. Consultez nos conseillers pour plus d'informations.
+        </div>
+
+    </div>
+</section>
+
 <!-- ============================================================ -->
 <!-- SECTION : TÉMOIGNAGES & RÉSEAUX SOCIAUX                     -->
 <!-- ============================================================ -->
@@ -1279,59 +1406,59 @@
         </div>
 
        <!-- ===== VIDÉOS ===== -->
-<div>
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <i class="fas fa-video text-red-500"></i> Vidéos
-        </h3>
-        <span class="text-sm text-gray-400">{{ videos|length }} vidéos</span>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for video in videos|slice:":6" %}
-        <div class="group bg-white  overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-            <!-- Vidéo -->
-            <div class="relative aspect-video bg-gray-900 overflow-hidden">
-                {% if video.video_file %}
-                    <!-- ✅ BALISE CORRECTE (SANS POSTER SI PAS DISPO) -->
-                    <video class="w-full h-full object-cover" controls preload="metadata" playsinline>
-                        <source src="{{ video.video_file.url }}" type="video/mp4">
-                        Votre navigateur ne supporte pas la vidéo.
-                    </video>
-                {% elif video.video_url %}
-                    <iframe class="w-full h-full" src="{{ video.video_url }}" frameborder="0" allowfullscreen></iframe>
-                {% elif video.embed_code %}
-                    {{ video.embed_code|safe }}
-                {% else %}
-                    <div class="w-full h-full flex items-center justify-center bg-gray-800">
-                        <i class="fas fa-video text-4xl text-gray-600"></i>
-                    </div>
-                {% endif %}
-                
-                <!-- Badge durée -->
-                {% if video.duree %}
-                <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
-                    {{ video.duree_formatee }}
-                </div>
-                {% endif %}
-                
-                <!-- Bouton play (overlay) -->
-                <div class="absolute inset-0 bg-black/30 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        <i class="fas fa-play text-blue-600 text-xl ml-1"></i>
-                    </div>
-                </div>
+        <div>
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-video text-red-500"></i> Vidéos
+                </h3>
+                <span class="text-sm text-gray-400">{{ videos|length }} vidéos</span>
             </div>
-            <!-- Infos -->
-            <div class="p-4">
-                <h4 class="font-semibold text-gray-800 text-sm">{{ video.titre }}</h4>
-                <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ video.description|truncatechars:60 }}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for video in videos|slice:":6" %}
+                <div class="group bg-white  overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                    <!-- Vidéo -->
+                    <div class="relative aspect-video bg-gray-900 overflow-hidden">
+                        {% if video.video_file %}
+                            <!-- ✅ BALISE CORRECTE (SANS POSTER SI PAS DISPO) -->
+                            <video class="w-full h-full object-cover" controls preload="metadata" playsinline>
+                                <source src="{{ video.video_file.url }}" type="video/mp4">
+                                Votre navigateur ne supporte pas la vidéo.
+                            </video>
+                        {% elif video.video_url %}
+                            <iframe class="w-full h-full" src="{{ video.video_url }}" frameborder="0" allowfullscreen></iframe>
+                        {% elif video.embed_code %}
+                            {{ video.embed_code|safe }}
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-gray-800">
+                                <i class="fas fa-video text-4xl text-gray-600"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Badge durée -->
+                        {% if video.duree %}
+                        <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-md">
+                            {{ video.duree_formatee }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Bouton play (overlay) -->
+                        <div class="absolute inset-0 bg-black/30 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <i class="fas fa-play text-blue-600 text-xl ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Infos -->
+                    <div class="p-4">
+                        <h4 class="font-semibold text-gray-800 text-sm">{{ video.titre }}</h4>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ video.description|truncatechars:60 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="col-span-full text-center text-gray-400">Aucune vidéo disponible.</p>
+                {% endfor %}
             </div>
         </div>
-        {% empty %}
-        <p class="col-span-full text-center text-gray-400">Aucune vidéo disponible.</p>
-        {% endfor %}
-    </div>
-</div>
 
         <!-- ===== BOUTON LAISSER UN TÉMOIGNAGE ===== -->
         <div class="text-center mt-12">
@@ -1345,18 +1472,364 @@
 <script>
     const player = new Plyr('#player');
 </script>
+
+<!-- ============================================================ -->
+<!-- SECTION 3 : À PROPOS DE KOZ SERVICES                          -->
+<!-- ============================================================ -->
+<section class="py-16 sm:py-20 relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+    
+    <div class="container mx-auto px-4 max-w-7xl">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <!-- ===== GAUCHE : TEXTE ===== -->
+            <div>
+                <span class="inline-block text-xs font-semibold text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-5 py-2 rounded-full mb-4 border border-blue-100">
+                    ✦ Qui sommes-nous
+                </span>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800 mb-6">
+                    À propos de <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">KOZ Services</span>
+                </h2>
+                <p class="text-gray-600 leading-relaxed text-base mb-4">
+                    <strong>KOZ Services</strong> est un concessionnaire automobile innovant basé au Burkina Faso. 
+                    Notre mission est de rendre l'accession à la voiture <strong>simple, transparente et accessible</strong> à tous.
+                </p>
+                <p class="text-gray-600 leading-relaxed text-base mb-6">
+                    Avec des années d'expérience dans le secteur automobile, nous proposons des véhicules de qualité, 
+                    des solutions de financement flexibles et un accompagnement personnalisé à chaque étape de votre projet.
+                </p>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <p class="text-2xl font-bold text-blue-600">5+</p>
+                        <p class="text-sm text-gray-500">Années d'expérience</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <p class="text-2xl font-bold text-blue-600">150+</p>
+                        <p class="text-sm text-gray-500">Véhicules vendus</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <p class="text-2xl font-bold text-blue-600">98%</p>
+                        <p class="text-sm text-gray-500">Clients satisfaits</p>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                        <p class="text-2xl font-bold text-blue-600">24/7</p>
+                        <p class="text-sm text-gray-500">Support client</p>
+                    </div>
+                </div>
+
+                <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition shadow-md hover:shadow-lg">
+                    En savoir plus <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- ===== DROITE : IMAGE/VIDÉO ===== -->
+            <div class="relative">
+                <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+                    {% if actualites.0 and actualites.0.image_principale %}
+                        <img src="{{ actualites.0.image_principale.url }}" 
+                             alt="KOZ Services" 
+                             class="w-full h-96 object-cover">
+                    {% else %}
+                        <div class="w-full h-96 bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                            <i class="fas fa-car text-6xl text-blue-400/50"></i>
+                        </div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-6 left-6 right-6 text-white">
+                        <span class="text-sm font-semibold text-blue-300">KOZ Services</span>
+                        <h3 class="text-2xl font-bold">La confiance en mouvement</h3>
+                        <p class="text-sm text-white/70">Votre partenaire automobile de confiance</p>
+                    </div>
+                </div>
+                
+                <!-- Badge flottant -->
+                <div class="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                            <i class="fas fa-check text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-gray-800">100% fiable</p>
+                            <p class="text-xs text-gray-500">Des véhicules contrôlés</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2 : NOUS CONTACTER + PRISE DE RENDEZ-VOUS             -->
+<!-- ============================================================ -->
+<section id="contact" class="py-16 sm:py-20 relative bg-white overflow-hidden">
+    
+    <div class="container mx-auto px-4 max-w-7xl">
+        
+        <!-- En-tête -->
+        <div class="text-center mb-12">
+            <span class="inline-block text-xs font-semibold text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-5 py-2 rounded-full mb-4 border border-blue-100">
+                📞 Contact
+            </span>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800">
+                Nous <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">contacter</span>
+            </h2>
+            <p class="text-gray-500 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
+                Une question ? Un projet ? N'hésitez pas à nous contacter
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- ===== GAUCHE : FORMULAIRE DE CONTACT ===== -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-paper-plane text-blue-600"></i> Envoyez-nous un message
+                </h3>
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                                <input type="text" name="nom" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Votre nom">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                <input type="email" name="email" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="votre@email.com">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                            <input type="tel" name="telephone" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="70 00 00 00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sujet *</label>
+                            <select name="sujet" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                <option value="">Choisissez un sujet</option>
+                                <option value="financement">Demande de financement</option>
+                                <option value="achat">Achat de véhicule</option>
+                                <option value="service">Service après-vente</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Message *</label>
+                            <textarea name="message" rows="4" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Votre message..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ===== DROITE : INFOS + RDV ===== -->
+            <div class="space-y-6">
+                
+                <!-- Coordonnées -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-phone text-blue-600"></i> Coordonnées
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center gap-3 text-gray-700">
+                            <i class="fas fa-phone text-blue-600 w-5"></i>
+                            <span>+226 70 00 00 00</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-gray-700">
+                            <i class="fas fa-envelope text-blue-600 w-5"></i>
+                            <span>contact@koz-corporate.pro</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-gray-700">
+                            <i class="fas fa-map-marker-alt text-blue-600 w-5"></i>
+                            <span>Ouagadougou, Burkina Faso</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-gray-700">
+                            <i class="fas fa-clock text-blue-600 w-5"></i>
+                            <span>Lun-Ven : 8h00 - 18h00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Réseaux sociaux -->
+                    <div class="mt-4 pt-4 border-t border-blue-200/50">
+                        <p class="text-sm font-medium text-gray-700 mb-3">Suivez-nous</p>
+                        <div class="flex gap-3">
+                            <a href="#" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition shadow-md hover:shadow-lg hover:-translate-y-1">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-pink-600 text-white flex items-center justify-center hover:bg-pink-700 transition shadow-md hover:shadow-lg hover:-translate-y-1">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition shadow-md hover:shadow-lg hover:-translate-y-1">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-900 transition shadow-md hover:shadow-lg hover:-translate-y-1">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prise de rendez-vous -->
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <i class="fas fa-calendar-check text-blue-600"></i> Prendre rendez-vous
+                    </h3>
+                    <form method="post" action="#">
+                        {% csrf_token %}
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                                <input type="date" name="date" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Heure *</label>
+                                <input type="time" name="heure" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Motif *</label>
+                                <select name="motif" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <option value="">Choisissez un motif</option>
+                                    <option value="essai_routier">Essai routier</option>
+                                    <option value="financement">Demande de financement</option>
+                                    <option value="achat">Achat de véhicule</option>
+                                    <option value="service">Service après-vente</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                                <i class="fas fa-calendar-plus"></i> Prendre rendez-vous
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
     
 
-     <!-- CTA -->
-    <section class="py-16  relative bg-gradient-to-r  from-blue-400 to-indigo-500 text-indigo-800">
-        <div class="container fade-section mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">Prêt à rouler avec KOZ ?</h2>
-            <p class="text-blue-100 text-lg mb-6">Créez votre compte et faites votre demande de financement en quelques minutes.</p>
-            <button onclick="document.getElementById('register_modal').showModal()" class="btn btn-white btn-lg text-blue-700 hover:bg-blue-50 shadow-lg">
-                <i class="fas fa-user-plus mr-2"></i> Créer un compte
-            </button>
+<!-- ============================================================ -->
+<!-- CTA : PRÊT À ROULER AVEC KOZ ?                              -->
+<!-- ============================================================ -->
+<section class="py-16 sm:py-20 relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800">
+    
+    <!-- Effet de fond animé -->
+    <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-400 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-400 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Particules (petites étoiles) -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-10 left-10 w-1 h-1 bg-white/30 rounded-full animate-ping"></div>
+        <div class="absolute top-20 right-20 w-1.5 h-1.5 bg-white/20 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-10 left-1/3 w-1 h-1 bg-white/25 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-20 right-1/4 w-2 h-2 bg-white/15 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
+    </div>
+
+    <div class="container mx-auto px-4 max-w-6xl relative z-10">
+        
+        <div class="text-center">
+            <!-- Badge -->
+            <span class="inline-block text-xs font-semibold text-white uppercase tracking-[0.2em] bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full mb-6 border border-white/20 animate-pulse">
+                <i class="fas fa-rocket mr-2"></i> Rejoignez l'aventure
+            </span>
+            
+            <!-- Titre -->
+            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
+                Prêt à rouler avec <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">KOZ</span> ?
+            </h2>
+            
+            <!-- Sous-titre -->
+            <p class="text-blue-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8">
+                Créez votre compte en quelques clics et accédez à tous nos services
+            </p>
+
+            <!-- ===== AVANTAGES ===== -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                
+                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-car text-white text-sm"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-white font-semibold text-sm">Catalogue premium</h4>
+                            <p class="text-white/60 text-xs">Accès à tous nos véhicules</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-hand-holding-usd text-white text-sm"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-white font-semibold text-sm">Financement flexible</h4>
+                            <p class="text-white/60 text-xs">Jusqu'à 60 mois sans stress</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-headset text-white text-sm"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-white font-semibold text-sm">Support 24/7</h4>
+                            <p class="text-white/60 text-xs">Une équipe à votre écoute</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-gift text-white text-sm"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-white font-semibold text-sm">Offres exclusives</h4>
+                            <p class="text-white/60 text-xs">Des avantages réservés aux membres</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ===== BOUTONS ===== -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="document.getElementById('register_modal').showModal()" 
+                        class="group relative overflow-hidden px-8 py-4 bg-white text-blue-700 rounded-xl font-bold text-base shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                    <span class="relative z-10 flex items-center gap-2">
+                        <i class="fas fa-user-plus"></i> Créer mon compte
+                        <i class="fas fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                    <span class="absolute inset-0 bg-gradient-to-r from-blue-100 to-indigo-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </button>
+                
+                <button onclick="document.getElementById('login_modal').showModal()" 
+                        class="px-8 py-4 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold text-base transition-all duration-300 hover:bg-white/30 hover:scale-105 shadow-lg flex items-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i> J'ai déjà un compte
+                </button>
+            </div>
+
+            <!-- Mention légère -->
+            <p class="text-white/30 text-xs mt-6">
+                <i class="fas fa-lock mr-1"></i> Vos données sont sécurisées • Inscription gratuite
+            </p>
         </div>
-    </section>
+
+    </div>
+</section>
 
  <footer class="footer sm:footer-horizontal bg-blue-400 relative z-10 text-base-content p-10">
   <nav>

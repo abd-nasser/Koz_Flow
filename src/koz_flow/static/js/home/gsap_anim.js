@@ -97,7 +97,25 @@ gsap.registerPlugin(ScrollTrigger);
         // --- ÉTAPE 2 : ANIMATION INDÉPENDANTE DE LA SECTION ACTUALITÉ ---
         // La section actualité ne pinne plus le scroll et n'interfère pas avec les sections suivantes.
 
+// ============================================================
+// SPLITTING ANIMATION
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    Splitting();
 
+    // Animation au scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animated');
+            }
+        });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.description-splitting').forEach(el => {
+        observer.observe(el);
+    });
+});
     
 // ============================================================
 // SERVICES – PINNED SCROLL ANIMATION

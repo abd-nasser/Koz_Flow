@@ -119,6 +119,13 @@ class Actualite(models.Model):
         help_text="Rediriger vers une page externe"
     )
     
+    lien_interne = models.URLField(
+            blank=True,
+            null=True,
+            verbose_name="Lien interne",
+            help_text="Rediriger vers une page interne"
+        )
+    
     # ===== DATES =====
     date_evenement = models.DateTimeField(
         verbose_name="Date de l'événement",
@@ -136,7 +143,7 @@ class Actualite(models.Model):
     )
     
     # ===== VISIBILITÉ =====
-    est_public = models.BooleanField(
+    est_publie = models.BooleanField(
         default=True,
         verbose_name="Publié"
     )
