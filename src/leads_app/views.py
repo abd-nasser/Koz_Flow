@@ -23,6 +23,7 @@ from commercial_app.models import Offre
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 from auth_app.models import kozUser
+from .utils import generer_echeances_demande, generer_echeances_offre
 
 
 ###API
@@ -549,28 +550,32 @@ def upload_multiple_documents(request, demande_id):
                 
                 messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
                 
-                # ✉️ Email au commercial assigné
-                if demande.client.assigned_commercial and demande.client.assigned_commercial.email:
-                    try:
-                        context_email = {
-                            'client': demande.client,
-                            'demande_id': demande.id,
-                            'vehicule': str(demande.Vehicul_interested) if demande.Vehicul_interested else "Non renseigné",
-                            'lien_demande': request.build_absolute_uri(reverse("leads_app:detail-demande", kwargs={"pk": demande.id}))
-                        }
-                        html_message = render_to_string('emails/documents/dossier_complet_commercial.html', context_email)
-                        plain_message = strip_tags(html_message)
-                        
-                        send_mail(
-                            subject="📄 Dossier complet à étudier - KOZ Services",
-                            message=plain_message,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[demande.client.assigned_commercial.email],
-                            html_message=html_message,
-                            fail_silently=False,
-                        )
-                    except Exception as e:
-                        print(f"Erreur envoi email au commercial: {e}")
+                # ✉️ Email à tous les commerciaux
+                try:
+                    commerciaux = kozUser.objects.filter(role="commercial")
+                    for commercial in commerciaux:
+                        if commercial and commercial.email:
+                            context_email = {
+                                               'client': demande,
+                                               'demande_id': demande.id,
+                                               'vehicule': str(demande.vehicule_propose) if demande.vehicule_propose else "Non renseigné",
+                                               'lien_offre': request.build_absolute_uri(
+                                                   reverse('commercial_app:offre-detail', kwargs={'pk': demande.id})  # ← CORRIGÉ
+                                               )
+                                           }
+                            html_message = render_to_string('emails/documents/dossier_complet_commercial.html', context_email)
+                            plain_message = strip_tags(html_message)
+                                           
+                            send_mail(
+                                        subject="📄 Dossier complet à étudier - KOZ Services",
+                                        message=plain_message,
+                                        from_email=settings.DEFAULT_FROM_EMAIL,
+                                        recipient_list=[commercial.email],
+                                        html_message=html_message,
+                                        fail_silently=False,
+                                           )
+                except Exception as e:
+                                   logger.error(f"Erreur envoi email aux commerciaux: {e}")
                 
                 return redirect('leads_app:detail-demande', demande.pk)
             else:
@@ -749,8 +754,14 @@ def valide_dossier(request, dossier_id):
         Vente.objects.create(
             client=demande.client,
             demande_financement=demande,
-            statut='conclue',
-            montant=demande.Vehicul_interested.prix if demande.Vehicul_interested else 0
+            statut='gestion_de_statut',
+            montant=demande.apport,
+            montant_finance=demande.montant_finance,
+            mensualite=demande.mensualite,
+            duree_mois=demande.duree_mois,
+            montant_total_paye=demande.apport,
+            echeances=generer_echeances_demande(demande)
+            
         )
         
         # ✅ Mettre à jour la demande
@@ -806,13 +817,18 @@ def valide_dossier(request, dossier_id):
         # ✅ CRÉER LA VENTE AVANT DE CHANGER LE STATUT
         Vente.objects.create(
             client=offre.client,
-            offre_financement=offre,
-            statut='conclue_par_acceptation_offre_financement',
-            montant=offre.vehicule_propose.prix if offre.vehicule_propose else 0
+            offre=offre,
+            statut='gestion_de_statut',
+            montant=offre.apport_demande,
+            montant_finance=offre.montant_finance,
+            mensualite=offre.mensualite,
+            duree_mois=offre.duree_mois,
+            montant_total_paye=offre.apport_demande,
+            echeances=generer_echeances_offre(offre)
         )
         
         # ✅ Mettre à jour l'offre
-        offre.statut = nouveau_statut
+       
         offre.save()
         
         client = offre.client

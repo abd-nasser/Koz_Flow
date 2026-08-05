@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin #
 
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
+from home_app.models import RendezVous
 from vehicul_app.forms import MarqueForm, VehiculForm, TypeVehiculeForm
 from products_app.forms import CategorieProductsForm, ProductsForm, UniteProduitForm, MarqueProduitForm
 
@@ -67,7 +68,35 @@ class DirecteurDashboardView(LoginRequiredMixin,UserPassesTestMixin,TemplateView
             context["actualite_form"] = ActualiteForm()
             
         return context 
-       
+    
+class DirecteurRendezVousListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = RendezVous
+    template_name = 'directeur_templates/rendez_vous_list.html'
+    context_object_name = 'rendez_vous'
+    paginate_by = 10
+
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.role == "directeur"
+
+    def get_queryset(self):
+        queryset = RendezVous.objects.all().order_by('-date_rendez_vous')
+        
+        statut = self.request.GET.get('statut')
+        if statut:
+            queryset = queryset.filter(statut=statut)
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statut_choices'] = RendezVous.STATUT_CHOICES
+        context['statistiques'] = {
+            'en_attente': RendezVous.objects.filter(statut='en_attente').count(),
+            'confirme': RendezVous.objects.filter(statut='confirme').count(),
+            'annule': RendezVous.objects.filter(statut='annule').count(),
+            'termine': RendezVous.objects.filter(statut='termine').count(),
+        }
+        return context
     
 
         

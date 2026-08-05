@@ -464,7 +464,7 @@ def contacter_vehicule(request, vehicul_id):
     Je suis intéressé par le véhicule suivant :
     🚗 {vehicule.marque.nom} {vehicule.modele} ({vehicule.annee})
     📍 Prix : {vehicule.prix} FCFA
-    🔗 Lien : {request.build_absolute_uri(reverse('vehicul_app:vehicul-detail',  vehicule.pk))}
+    🔗 Lien : {request.build_absolute_uri(reverse('vehicul_app:detail-vehicul', kwargs={'pk': vehicule.pk}))}
 
     Pouvez-vous me donner plus d'informations ?
 
@@ -479,7 +479,7 @@ def contacter_vehicule(request, vehicul_id):
             commercial=commercial,
             contenu=message_content,
             est_client=True
-    )
+        )
     
     messages.success(request, f"✅ Votre message a été envoyé au commercial pour {vehicule.marque.nom} {vehicule.modele}")
     return redirect('chat_app:chat-view')

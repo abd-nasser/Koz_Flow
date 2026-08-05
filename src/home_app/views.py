@@ -7,6 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
+from auth_app.models import kozUser
 from home_app.forms import ActualiteForm, AvisReseauForm, TemoignageTextuelForm, VideoTemoignageForm
 from vehicul_app.models import Vehicul, TypeVehicule
 from services_app.models import Services, TypesServices
@@ -44,7 +45,7 @@ def home_page_view(request):
         "avis_reseaux": AvisReseau.objects.filter(est_actif = True).order_by('-date_publication'),
         "videos": VideoTemoignage.objects.filter(est_actif = True).order_by('-date_ajout')[:5],
         "temoignage_textuel_form": TemoignageTextuelForm(),
-        "actualites": Actualite.objects.filter(est_vedette = True).order_by('-date_publication')
+        "actualites": Actualite.objects.filter(est_vedette = True).order_by('-date_publication'),
     }
     return render(request, "home_templates/home_page.html", ctx)
 
@@ -296,5 +297,72 @@ def delete_actualite(request, pk):
     messages.success(request, f"✅ Actualité '{titre}' supprimée avec succès !")
     return redirect('home_app:actualites-list')
 
+
+# home_app/views.py
+
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
+from .models import RendezVous
+
+def contact_form(request):
+    if request.method == 'POST':
+        nom = request.POST.get('nom')
+        email = request.POST.get('email')
+        telephone = request.POST.get('telephone')
+        sujet = request.POST.get('sujet')
+        message = request.POST.get('message')
+        
+        context = {
+            'nom': nom,
+            'email': email,
+            'telephone': telephone,
+            'sujet': sujet,
+            'message': message,
+        }
+        
+        html_message = render_to_string('emails/contact/contact.html', context)
+        plain_message = strip_tags(html_message)
+        commerciaux = kozUser.objects.filter(role='commercial', is_active=True)
+        for commercial in commerciaux:
+            send_mail(
+                subject=f"📩 Nouveau message de {nom} - {sujet}",
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[commercial.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        
+        messages.success(request, "✅ Votre message a été envoyé. Nous vous répondrons rapidement.")
+        return redirect('home_app:home-page')
+
+
+def prise_rdv(request):
+    if request.method == 'POST':
+        nom = request.POST.get('nom')
+        prenom = request.POST.get('prenom')
+        telephone = request.POST.get('telephone')
+        date = request.POST.get('date')
+        heure = request.POST.get('heure')
+        motif = request.POST.get('motif')
+        
+        
+        # Créer le rendez-vous
+        rendez_vous = RendezVous.objects.create(
+            client=request.user if request.user.is_authenticated else None,
+            nom = nom if nom else None,
+            prenom = prenom if prenom else None,
+            telephone = telephone if telephone else None,
+            date_rendez_vous=f"{date} {heure}",
+            motif=motif,
+            statut='en_attente'
+        )
+        
+        messages.success(request, f"✅ Rendez-vous pris pour le {date} à {heure}. Un commercial vous contactera.")
+        return redirect('home_app:home-page')
 
 

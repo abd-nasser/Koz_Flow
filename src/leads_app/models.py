@@ -87,10 +87,10 @@ class demande_financement(models.Model):
     
     #------3.Financement SIMULATOR()--------------------
     apport = models.DecimalField(max_digits=12, decimal_places=0, default=0)
+    montant_finance = models.DecimalField(max_digits=12, decimal_places=0, default=0)
     
+    mensualite = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     duree_mois = models.IntegerField(default=36)
-    
-    mensualite_simulee = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
     revenus_mensuel = models.DecimalField(max_digits=12, decimal_places=0, blank=True, null=True)
     
@@ -112,11 +112,12 @@ class Vente(models.Model):
     
     STATUT_VENTE = [
         ('non_classifie', 'Non classifié'),
-        ('gestion_de_status', "Gérer l'état de la vente"),
+        ('gestion_de_statut', "Gérer l'état de la vente"),
         ('en_cours', 'En cours'),
         ('conclue', 'Conclue'),
         ('conclue_par_acceptation_offre_simple', "Conclue par acceptation d'offre simple"),
         ('conclue_par_acceptation_offre_financement', "Conclue par acceptation d'offre financement"),
+        ('conclue_sur_acceptation_demande_financement', "Conclue sur acceptation demande de financement"),
         ('perdue', 'Perdue'),
         ('perdue_par_refus_offre_simple', "Perdue par refus d'offre simple"),
         ('perdue_par_refus_offre_financement', "Perdue par refus d'offre financement"),
@@ -132,7 +133,7 @@ class Vente(models.Model):
         null=True, 
         blank=True
     )
-    offre_financement = models.OneToOneField(
+    offre = models.OneToOneField(
         "commercial_app.offre", 
         on_delete=models.CASCADE, 
         related_name='vente', 
@@ -141,8 +142,60 @@ class Vente(models.Model):
     )
     
     statut = models.CharField(max_length=70, choices=STATUT_VENTE, default='non_classifie')
-    montant = models.DecimalField(max_digits=12, decimal_places=0, help_text="Montant total de la vente")
+    
     date_vente = models.DateTimeField(auto_now_add=True)
+    
+    montant = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        default=0,
+        verbose_name="Montant total payé")
+    
+    montant_finance = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name="Montant financé"
+    )
+    
+    montant_total_paye = models.DecimalField(
+            max_digits=12,
+            decimal_places=0,
+            default=0,
+            verbose_name="Montant total payé"
+        )
+    
+    mensualite = models.DecimalField(
+        max_digits=12,
+        decimal_places=0,
+        null=True,
+        blank=True,
+        verbose_name="Mensualité"
+    )
+    duree_mois = models.IntegerField(null=True, blank=True, verbose_name="Durée en mois")
+    
+    
+    echeances = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Échéances",
+        help_text="Liste des échéances avec dates et montants"
+    )
+    
+    @property
+    def reste_a_payer(self):
+        """Calcule le reste à payer"""
+        if self.montant_finance:
+            return self.montant_finance - self.montant_total_paye
+        return 0
+    
+    @property
+    def nb_echeances_restantes(self):
+        """Nombre d'échéances restantes"""
+        if self.echeances:
+            return len([e for e in self.echeances if not e.get('paye')])
+        return 0
     
     @property
     def type_vente(self):
@@ -154,7 +207,7 @@ class Vente(models.Model):
         - externe_alios : Financement Alios
         - non_classifie : Non déterminé
         """
-        offre = self.offre_financement
+        offre = self.offre
         demande = self.demande_financement
         
         # ✅ CAS 1 : Vente cash (offre simple)
@@ -186,3 +239,32 @@ class Vente(models.Model):
     
     def __str__(self):
         return f"Vente {self.id} - {self.client.nom_complet} - {self.statut}"
+    
+    
+class PaiementFinancement(models.Model):
+    """Suivi des paiements mensuels d'un financement"""
+    
+    vente = models.ForeignKey(
+        Vente,
+        on_delete=models.CASCADE,
+        related_name='paiements_financement'
+    )
+    client = models.ForeignKey(
+        'auth_app.kozUser',
+        on_delete=models.CASCADE,
+        related_name='paiements_financement'
+    )
+    montant = models.DecimalField(max_digits=12, decimal_places=0)
+    date_echeance = models.DateField()
+    date_paiement = models.DateField(null=True, blank=True)
+    est_paye = models.BooleanField(default=False)
+    reference = models.CharField(max_length=50, blank=True, null=True)
+    date_creation = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['date_echeance']
+        verbose_name = "Paiement de financement"
+        verbose_name_plural = "Paiements de financement"
+    
+    def __str__(self):
+        return f"{self.client} - {self.montant} - {self.date_echeance}"

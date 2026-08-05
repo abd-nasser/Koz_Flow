@@ -162,8 +162,8 @@
       
 
         <!-- Section dossiers (conditionnelle) -->
-        {% for doc in client.documents.all %}
-            {% if doc.statut_dossier != "vide" %}
+        
+            {% if client.documents.all %}
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-100">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div>
@@ -176,7 +176,7 @@
                 </div>
             </div>
             {% endif %}
-        {% endfor %}
+
 
     </main>
 

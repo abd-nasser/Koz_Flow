@@ -96,9 +96,32 @@
 
                 <!-- ✅ SI OFFRE DE FINANCEMENT -->
                 {% if offre.type_offre == "offre_financement" %}
+                <p class="ml-60">
+                                        <i class="fas fa-building text-purple-500 w-4"></i>
+                                        <strong>Financement :</strong>
+                                        {% if offre.financement_type == 'maison' %}
+                                            <span class="badge bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-home mr-1"></i> Financement interne (KOZ SERVICES)
+                                            </span>
+                                        {% elif offre.financement_type == 'externe' %}
+                                            <span class="badge bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-handshake mr-1"></i> Externe
+                                                {% if offre.financement_par %}
+                                                    <span class="ml-1">
+                                                        ({{ offre.get_financement_par_display }})
+                                                    </span>
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                                <i class="fas fa-question-circle mr-1"></i> Non défini
+                                            </span>
+                                        {% endif %}
+                                    </p>
                 
                 <!-- Grille financement -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
                     <div class="bg-gray-50 rounded-xl p-3">
                         <p class="text-xs text-gray-500">Prix du véhicule</p>
                         <p class="font-bold text-gray-800">{{ offre.prix_vehicule|intcomma }} FCFA</p>
@@ -135,7 +158,7 @@
                 </div>
 
                 <!-- 🔥 SI OFFRE DE FINANCEMENT ACCEPTÉE → BOUTON TÉLÉCHARGER -->
-                {% if offre.statut == 'acceptee' %}
+                {% if offre.statut == 'acceptee' and offre.documents.statut_dossier == "incomplet" %}
                 <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
                     <button onclick="document.getElementById('upload_doc_modal').showModal()" 
                                         class="btn-glow px-6 py-2 rounded-xl">

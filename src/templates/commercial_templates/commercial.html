@@ -85,6 +85,15 @@
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
+                        <p class="text-gray-500 text-sm">🗓 Demande de rendez vous</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ demande_rendez_vous }}</p>
+                    </div>
+                    <i class="fas fa-calendar-plus text-3xl text-blue-500 opacity-50"></i>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
                         <p class="text-gray-500 text-sm">📋 Demandes en cours</p>
                         <p class="text-2xl font-bold text-gray-800">{{demande_financement_en_cours }}</p>
                     </div>
@@ -122,6 +131,11 @@
 
         <!-- Navigation rapide -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+            <a href="{% url 'commercial_app:rendez-vous-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
+                <i class="fas fa-calendar-plus text-xl text-blue-500 group-hover:scale-110 transition"></i>
+                <p class="text-sm font-medium text-gray-700 mt-1">Rendez-vous</p>
+            </a>
+
             <a href="{% url 'leads_app:list-demande-financement' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-file-alt text-xl text-blue-500 group-hover:scale-110 transition"></i>
                 <p class="text-sm font-medium text-gray-700 mt-1">Demandes</p>
@@ -233,95 +247,6 @@
         </div>
     </footer>
 
-   
-   <script>
-    // ============================================================
-    // 1. Gestion de la déconnexion
-    // ============================================================
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-        const accessToken = localStorage.getItem('access');
-        const refreshToken = localStorage.getItem('refresh');
-        
-        // Si refresh token présent, on le blacklist
-        if (refreshToken && accessToken) {
-            try {
-                await fetch('/api/auth/logout/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
-                    },
-                    body: JSON.stringify({refresh: refreshToken})  // ✅ Envoie REFRESH
-                });
-            } catch (e) {
-                console.warn('Logout serveur échoué:', e);
-            }
-        }
-        
-        // Nettoyage local
-        localStorage.removeItem('access');
-        localStorage.removeItem('refresh');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-    });
-
-    // ============================================================
-    // 2. Rafraîchissement du token access
-    // ============================================================
-    async function refreshToken() {
-    const refreshToken = localStorage.getItem('refresh');
-    if (!refreshToken) return false;
-    
-    try {
-        const response = await fetch('/api/auth/token/refresh/', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({refresh: refreshToken})
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('access', data.access);
-            
-            // ✅ Stocke le NOUVEAU refresh token
-            if (data.refresh) {
-                localStorage.setItem('refresh', data.refresh);
-            }
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Refresh failed:', error);
-        return false;
-    }
-}
-    // ============================================================
-    // 3. Vérification périodique du token (toutes les 60s)
-    // ============================================================
-    setInterval(async () => {
-        const token = localStorage.getItem('access');
-        if (!token) {
-            window.location.href = '/';
-            return;
-        }
-        
-        try {
-            const response = await fetch('/api/auth/me/', {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            
-            if (response.status === 401) {
-                const refreshed = await refreshToken();
-                if (!refreshed) {
-                    localStorage.clear();
-                    window.location.href = '/';
-                }
-            }
-        } catch (error) {
-            console.error('Erreur vérification token:', error);
-        }
-    }, 60000); // 60 secondes
-</script>
 
 </body>
 </html>

@@ -155,7 +155,7 @@
                                     {% if vente.type_vente == 'cash' %}
                                         <span class="text-green-600">💰 Paiement comptant</span>
                                     {% elif vente.type_vente == 'maison' %}
-                                        <span class="text-blue-600">🏠 KOZ Finance</span>
+                                        <span class="text-blue-600">🏠 Financement interne (KOZ SERVICE)</span>
                                     {% elif vente.type_vente == 'externe_fidelis' %}
                                         <span class="text-purple-600">🏦 Fidelis</span>
                                     {% elif vente.type_vente == 'externe_alios' %}
@@ -237,22 +237,27 @@
                     {% endif %}
 
                     <!-- ✅ CAS 2 : VENTE LIÉE À UNE OFFRE -->
-                    {% if vente.offre_financement %}
+                    {% if vente.offre %}
                     <div class="bg-gray-50 rounded-xl p-5 info-card lg:col-span-2">
                         <h3 class="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-file-signature text-blue-600"></i> Offre de financement associée
+                            
+                            {% if vente.offre.type_offre == "simple" %}
+                                <i class="fas fa-file-signature text-blue-600"></i> Offre simple associée
+                                {% else %}
+                                <i class="fas fa-file-signature text-blue-600"></i> Offre de financement associée
+                            {% endif %}
                         </h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-id-card text-blue-500 w-5"></i>
                                 <span class="text-gray-600">Offre n° :</span>
-                                <strong>{{ vente.offre_financement.id }}</strong>
+                                <strong>{{ vente.offre.id }}</strong>
                             </div>
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-car text-blue-500 w-5"></i>
                                 <span class="text-gray-600">Véhicule :</span>
                                 <strong>
-                                    {{ vente.offre_financement.vehicule_propose.marque.nom }} {{ vente.offre_financement.vehicule_propose.modele }}
+                                    {{ vente.offre.vehicule_propose.marque.nom }} {{ vente.offre.vehicule_propose.modele }}
                                 </strong>
                             </div>
                             <div class="flex items-center gap-2">
@@ -260,9 +265,9 @@
                                 <span class="text-gray-600">Type offre :</span>
                                 <strong>
                                     <span class="badge px-2 py-0.5 rounded-full text-xs font-semibold
-                                        {% if vente.offre_financement.type_offre == 'simple' %}bg-purple-100 text-purple-700
+                                        {% if vente.offre.type_offre == 'simple' %}bg-purple-100 text-purple-700
                                         {% else %}bg-blue-100 text-blue-700{% endif %}">
-                                        {{ vente.offre_financement.get_type_offre_display }}
+                                        {{ vente.offre.get_type_offre_display }}
                                     </span>
                                 </strong>
                             </div>
@@ -270,26 +275,28 @@
                                 <i class="fas fa-handshake text-blue-500 w-5"></i>
                                 <span class="text-gray-600">Statut offre :</span>
                                 <strong class="
-                                    {% if vente.offre_financement.statut == 'offre_financement_fidelis' or vente.offre_financement.statut == 'offre_financement_alios' or vente.offre_financement.statut == 'offre_financement_maison' %}text-green-600
-                                    {% elif vente.offre_financement.statut == 'refusee' or vente.offre_financement.statut == 'expiree' %}text-red-600
+                                    {% if vente.offre.statut == 'offre_financement_fidelis' or vente.offre.statut == 'offre_financement_alios' or vente.offre.statut == 'offre_financement_maison' %}text-green-600
+                                    {% elif vente.offre.statut == 'refusee' or vente.offre.statut == 'expiree' %}text-red-600
                                     {% else %}text-yellow-600{% endif %}">
-                                    {{ vente.offre_financement.get_statut_display }}
+                                    {{ vente.offre.get_statut_display }}
                                 </strong>
                             </div>
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
+                                {% if vente.offre.type_offre == 'offre_financement' %}
                                 <span class="text-gray-600">Montant financier :</span>
                                 <strong class="text-green-600">
-                                    {% if vente.offre_financement.type_offre == 'offre_financement' %}
-                                        {{ vente.offre_financement.montant_finance|intcomma }} FCFA
-                                    {% else %}
-                                        {{ vente.offre_financement.montant_propose|intcomma }} FCFA
+                                    {{ vente.offre.montant_finance|intcomma }} FCFA
+                                {% else %}
+                                     <span class="text-gray-600">Montant proposé :</span>
+                                    <strong class="text-green-600">
+                                        {{ vente.offre.montant_propose|intcomma }} FCFA
                                     {% endif %}
-                                </strong>
+                                    </strong>
                             </div>
                         </div>
                         <div class="mt-3 text-right">
-                            <a href="{% url 'commercial_app:offre-detail' vente.offre_financement.id %}" 
+                            <a href="{% url 'commercial_app:offre-detail' vente.offre.id %}" 
                                class="text-blue-600 hover:text-blue-800 transition text-sm inline-flex items-center gap-1">
                                 <i class="fas fa-external-link-alt"></i> Voir l'offre
                             </a>
@@ -300,7 +307,7 @@
                 </div>
 
                 <!-- Actions (pour commercial/directeur uniquement) -->
-                {% if vente.statut == 'gestion_de_status' %}
+                {% if vente.statut == 'gestion_de_statut' %}
                 <div class="mt-6">
                     <button onclick="document.getElementById('gestion_statut_modal').showModal()" 
                             class="btn-glow px-6 py-2 rounded-xl flex items-center gap-2">
@@ -311,6 +318,166 @@
 
                 <!-- Inclusion du modal -->
                 {% include 'modals/vente/gestion_statut.html' with statut_choices=statut_choices %}
+
+                <!-- ============================================================ -->
+<!-- SECTION : ÉCHÉANCES DE FINANCEMENT                          -->
+<!-- ============================================================ -->
+{% if vente.statut in "conclue_par_acceptation_offre_financement,conclue_sur_acceptation_demande_financement" %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mt-6 animate-fade-in-up">
+    
+    <!-- En-tête -->
+    <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+        <div>
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-calendar-alt text-blue-600"></i>
+                Échéances de financement
+            </h3>
+            <p class="text-xs text-gray-400">
+                {{ vente.nb_echeances_restantes }} échéance{{ vente.nb_echeances_restantes|pluralize }} restante{{ vente.nb_echeances_restantes|pluralize }}
+            </p>
+        </div>
+        <div class="flex gap-3 text-sm">
+            <span class="text-green-600 font-medium">
+                <i class="fas fa-check-circle"></i> Payé : {{ vente.montant_total_paye|intcomma }} FCFA
+            </span>
+            <span class="text-blue-600 font-medium">
+                <i class="fas fa-clock"></i> Restant : {{ vente.reste_a_payer|intcomma }} FCFA
+            </span>
+        </div>
+    </div>
+
+    <!-- Tableau des échéances -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N°</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date échéance</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                    <th class="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for echeance in vente.echeances %}
+                <tr class="{% if not echeance.paye %}hover:bg-blue-50/30{% endif %} transition">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-700">
+                        #{{ echeance.numero }}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-600">
+                        {{ echeance.date|date:"d/m/Y" }}
+                        {% if not echeance.paye and echeance.date|date:"Y-m-d" < now|date:"Y-m-d" %}
+                            <span class="ml-2 text-xs text-red-500 font-medium">
+                                <i class="fas fa-exclamation-triangle"></i> En retard
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm font-medium text-gray-800">
+                        {{ echeance.montant|intcomma }} FCFA
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if echeance.paye %}
+                            <span class="badge-statut confirme">
+                                <i class="fas fa-check-circle"></i> Payé
+                                {% if echeance.date_paiement %}
+                                    <span class="text-xs text-gray-400 ml-1">
+                                        ({{ echeance.date_paiement|date:"d/m/Y" }})
+                                    </span>
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge-statut en_attente">
+                                <i class="fas fa-clock"></i> En attente
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if not echeance.paye %}
+                            <button onclick="document.getElementById('paiement_modal_{{ forloop.counter0 }}').showModal()"
+                                    class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition">
+                                <i class="fas fa-check"></i> Marquer payé
+                            </button>
+                        {% else %}
+                            <span class="text-xs text-gray-400">✅ Payé</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">
+                        <i class="fas fa-calendar-times text-2xl block mb-2"></i>
+                        Aucune échéance enregistrée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Résumé -->
+    <div class="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg flex flex-wrap justify-between items-center text-sm border border-blue-100">
+        <div>
+            <span class="text-gray-600">Total financé :</span>
+            <strong class="text-gray-800">{{ vente.montant_finance|intcomma }} FCFA</strong>
+        </div>
+        <div>
+            <span class="text-gray-600">Mensualité :</span>
+            <strong class="text-gray-800">{{ vente.mensualite|intcomma }} FCFA</strong>
+        </div>
+        <div>
+            <span class="text-gray-600">Durée :</span>
+            <strong class="text-gray-800">{{ vente.duree_mois }} mois</strong>
+        </div>
+        <div>
+            <span class="text-gray-600">Reste :</span>
+            <strong class="text-blue-600">{{ vente.reste_a_payer|intcomma }} FCFA</strong>
+        </div>
+        <div>
+            <span class="text-green-600">
+                <i class="fas fa-check-circle mr-1"></i>
+                {{ vente.nb_echeances_restantes }} restante{{ vente.nb_echeances_restantes|pluralize }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL POUR MARQUER PAYÉ ===== -->
+{% for echeance in vente.echeances %}
+    {% if not echeance.paye %}
+    <dialog id="paiement_modal_{{ forloop.counter0 }}" class="modal">
+        <div class="modal-box bg-white rounded-2xl shadow-2xl max-w-md">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-4">
+                <i class="fas fa-check-circle text-green-600"></i>
+                Marquer comme payé
+            </h3>
+            <div class="space-y-3">
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <p class="text-sm text-gray-600">Échéance #{{ echeance.numero }}</p>
+                    <p class="text-lg font-bold text-gray-800">{{ echeance.montant|intcomma }} FCFA</p>
+                    <p class="text-xs text-gray-400">Date : {{ echeance.date|date:"d/m/Y" }}</p>
+                </div>
+                <form method="post" action="{% url 'commercial_app:marquer_paye' vente.id echeance.numero %}">
+                    {% csrf_token %}
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date de paiement</label>
+                        <input type="date" name="date_paiement" value="{% now 'Y-m-d' %}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl transition font-semibold flex items-center justify-center gap-2">
+                            <i class="fas fa-check"></i> Confirmer paiement
+                        </button>
+                        <button type="button" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl transition"
+                                onclick="document.getElementById('paiement_modal_{{ forloop.counter0 }}').close()">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </dialog>
+    {% endif %}
+{% endfor %}
+{% endif %}
 
                 <!-- Bouton retour -->
                 <div class="flex justify-center pt-4">
@@ -323,6 +490,7 @@
             </div>
         </div>
     </main>
+    
 
     <footer class="bg-gray-800 text-white py-6 mt-12">
         <div class="container mx-auto px-4 text-center text-sm text-gray-400">

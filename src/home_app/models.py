@@ -401,3 +401,52 @@ class VideoTemoignage(models.Model):
             '.avi': 'video/x-msvideo',
         }
         return mime_types.get(ext, 'video/mp4')
+    
+    
+# home_app/models.py
+
+# home_app/models.py
+
+class RendezVous(models.Model):
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('confirme', 'Confirmé'),
+        ('annule', 'Annulé'),
+        ('termine', 'Terminé'),
+    ]
+    
+    client = models.ForeignKey(
+        'auth_app.kozUser',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='rendez_vous',
+        verbose_name="Client"
+    )
+    nom = models.CharField(max_length=255, verbose_name="Nom", null=True, blank=True )
+    prenom = models.CharField(max_length=255, verbose_name="Prenom", null=True, blank=True)
+    telephone = models.CharField(max_length=255, verbose_name="telephone", null=True, blank=True)
+    date_rendez_vous = models.DateTimeField(verbose_name="Date et heure")
+    duree = models.PositiveIntegerField(default=60, verbose_name="Durée (minutes)")
+    motif = models.CharField(max_length=255, verbose_name="Motif")
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_modification = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['date_rendez_vous']
+        verbose_name = "Rendez-vous"
+        verbose_name_plural = "Rendez-vous"
+    
+    def __str__(self):
+        return f"{self.client} - {self.date_rendez_vous.strftime('%d/%m/%Y %H:%M')}"
+    
+    @property
+    def est_passe(self):
+        from django.utils import timezone
+        return self.date_rendez_vous < timezone.now()
+    
+    @property
+    def est_a_venir(self):
+        from django.utils import timezone
+        return self.date_rendez_vous >= timezone.now()

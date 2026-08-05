@@ -44,6 +44,7 @@ class DemandeFinancementForm(forms.ModelForm):
             'apport',
             'duree_mois',
             'revenus_mensuel',
+            'mensualite'
             
         ]
         widgets = {

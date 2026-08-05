@@ -33,5 +33,8 @@ urlpatterns = [
     path("actualites/<int:pk>/modifier/", views.ActualiteUpdateView.as_view(), name="actualites-update"),
     path("actualites/<int:pk>/supprimer/", views.delete_actualite, name="actualites-delete"),
     
- 
+    #Actions for contact form
+    path("contact/", views.contact_form, name="contact-form"),
+    path("rdv/", views.prise_rdv, name="prise-rdv"),
+
 ]

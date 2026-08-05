@@ -19,7 +19,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from auth_app.models import kozUser
 from client_app.views import ClientDetailView
 from client_app.models import Documents
-from leads_app.models import Vente, demande_financement
+from leads_app.models import Vente, demande_financement, PaiementFinancement
 from client_app.models import Maintenance
 from commercial_app.models import Offre
 from chat_app.models import Message
@@ -120,12 +120,13 @@ def accepter_offre(request, offre_id):
     offre.save()
     
     # 2️⃣ Créer une vente avec statut "gestion_de_statut" (à gérer manuellement par le commercial)
-    vente = Vente.objects.create(
-        client=request.user,
-        statut="gestion_de_statut",  # ← statut temporaire, le commercial le modifiera
-        montant=offre.montant_finance,
-        offre=offre
-    )
+    if offre.type_offre == "simple":
+        vente = Vente.objects.create(
+            client=request.user,
+            statut="gestion_de_statut",  # ← statut temporaire, le commercial le modifiera
+            montant=offre.montant_propose,
+            offre=offre
+        )
     
     # ✉️ Email à tous les commerciaux
     commerciaux = kozUser.objects.filter(role='commercial')
@@ -254,29 +255,6 @@ def negocier_offre(request, offre_id):
     else:
         return redirect('commercial_app:offre-detail', offre.pk)
     
-# commercial_app/views.py
-
-@login_required
-def changer_statut_vente(request, vente_id):
-    """Change le statut d'une vente"""
-    vente = get_object_or_404(Vente, id=vente_id)
-    
-    # Vérifier que l'utilisateur a le droit (commercial ou directeur)
-    if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "Action non autorisée.")
-        return redirect('commercial_app:vente-detail', vente.pk)
-    
-    if request.method == 'POST':
-        nouveau_statut = request.POST.get('statut')
-        
-        if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
-            vente.statut = nouveau_statut
-            vente.save()
-            messages.success(request, f"Statut de la vente mis à jour : {vente.get_statut_display()}")
-        else:
-            messages.error(request, "Statut invalide.")
-    
-    return redirect('commercial_app:vente-detail', vente.pk)
 
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
@@ -322,7 +300,8 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
             client__in=tous_les_clients,
             statut="planifiee"
         ).count()
-        
+        from home_app.models import RendezVous
+        context["demande_rendez_vous"] = RendezVous.objects.filter(statut="en_attente").count()
         # ========================================
         # ✅ 3. TOTAL DES NON-LUS (via la propriété)
         # ========================================
@@ -677,19 +656,122 @@ class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
 ######################################___________VENTE/GESTION_View__________________#########################################################
 
-def vente_update_statut(request, pk):
-    vente = get_object_or_404(Vente, id=pk)
+# commercial_app/views.py
+from leads_app.utils import generer_echeances_offre, generer_echeances_demande
+def changer_statut_vente(request, vente_id):
+    vente = get_object_or_404(Vente, id=vente_id)
     
     if request.method == 'POST':
         nouveau_statut = request.POST.get('statut')
+        
         if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
+            ancien_statut = vente.statut
             vente.statut = nouveau_statut
             vente.save()
-            messages.success(request, f"Statut de la vente mis à jour : {vente.get_statut_display()}")
+            
+            # ============================================================
+            # ✅ SI LA VENTE PASSE À "CONCLUE AVEC FINANCEMENT"
+            # ============================================================
+            statuts_avec_financement = [
+                'conclue_par_acceptation_offre_financement',
+                'conclue_sur_acceptation_demande_financement',
+            ]
+            
+            if nouveau_statut in statuts_avec_financement:
+                # ✅ Vérifier si les échéances existent déjà
+                if not vente.echeances:
+                    # ✅ Générer les échéances
+                    if vente.offre:
+                        echeances = generer_echeances_offre(vente.offre)
+                    elif vente.demande_financement:
+                        echeances = generer_echeances_demande(vente.demande_financement)
+                    else:
+                        echeances = []
+                    
+                    if echeances:
+                        vente.echeances = echeances
+                        vente.save()
+                        
+                        # ✅ Créer les PaiementFinancement
+                        for echeance in echeances:
+                            PaiementFinancement.objects.create(
+                                vente=vente,
+                                client=vente.client,
+                                montant=echeance['montant'],
+                                date_echeance=echeance['date'],
+                                est_paye=False,
+                                reference=f"PAY-{vente.id}-{echeance['numero']}"
+                            )
+                        
+                        messages.success(request, 
+                            f"✅ {len(echeances)} échéances créées pour le financement."
+                        )
+                else:
+                    messages.info(request, "Les échéances existent déjà.")
+            
+            # ============================================================
+            # ❌ SI LA VENTE PASSE À "PERDUE"
+            # ============================================================
+            elif nouveau_statut.startswith('perdue'):
+                # ✅ Annuler les échéances non payées
+                PaiementFinancement.objects.filter(
+                    vente=vente,
+                    est_paye=False
+                ).update(est_paye=True, date_paiement=timezone.now().date())
+                
+                messages.info(request, "Les échéances impayées ont été annulées.")
+            
+            else:
+                messages.success(request, f"Statut mis à jour : {vente.get_statut_display()}")
+                
         else:
             messages.error(request, "Statut invalide")
     
-    return redirect('commercial_app:vente-list')
+    return redirect('commercial_app:vente-detail', pk=vente.id)
+
+
+# commercial_app/views.py
+
+@login_required
+def marquer_paye(request, vente_id, numero_echeance):
+    vente = get_object_or_404(Vente, id=vente_id)
+    
+    # ✅ Vérifier que l'utilisateur est commercial ou directeur
+    if request.user.role not in ['commercial', 'directeur']:
+        messages.error(request, "Action non autorisée.")
+        return redirect('commercial_app:vente-detail', vente.pk)
+    
+    if request.method == 'POST':
+        date_paiement = request.POST.get('date_paiement')
+        
+        # ✅ Mettre à jour l'échéance
+        for echeance in vente.echeances:
+            if echeance['numero'] == numero_echeance and not echeance['paye']:
+                echeance['paye'] = True
+                echeance['date_paiement'] = date_paiement
+                break
+        
+        vente.save()
+        
+        # ✅ Mettre à jour le montant total payé
+        montant_total_paye = sum(e['montant'] for e in vente.echeances if e['paye'])
+        vente.montant_total_paye = montant_total_paye
+        vente.save()
+        
+        # ✅ Mettre à jour le PaiementFinancement
+        paiement = PaiementFinancement.objects.filter(
+            vente=vente,
+            reference=f"PAY-{vente.id}-{numero_echeance}"
+        ).first()
+        
+        if paiement:
+            paiement.est_paye = True
+            paiement.date_paiement = date_paiement
+            paiement.save()
+        
+        messages.success(request, f"✅ Échéance #{numero_echeance} marquée comme payée !")
+    
+    return redirect('commercial_app:vente-detail', vente_id)
 
 class VenteListView(LoginRequiredMixin, ListView):
     model = Vente
@@ -1111,3 +1193,66 @@ class MaintenanceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView)
         return super().delete(request, *args, **kwargs)
 
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import ListView
+from home_app.models import RendezVous
+
+
+class CommercialRendezVousListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = RendezVous
+    template_name = 'commercial_templates/rendez_vous_list.html'
+    context_object_name = 'rendez_vous'
+    paginate_by = 10
+
+    def test_func(self):
+        return self.request.user.role == 'commercial' or self.request.user.is_staff
+
+    def get_queryset(self):
+        queryset = RendezVous.objects.all().order_by('date_rendez_vous')
+        
+        statut = self.request.GET.get('statut')
+        if statut:
+            queryset = queryset.filter(statut=statut)
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['statut_choices'] = RendezVous.STATUT_CHOICES
+        context['statistiques'] = {
+            'en_attente': RendezVous.objects.filter(statut='en_attente').count(),
+            'confirme': RendezVous.objects.filter(statut='confirme').count(),
+            'annule': RendezVous.objects.filter(statut='annule').count(),
+            'termine': RendezVous.objects.filter(statut='termine').count(),
+        }
+        return context
+
+
+@login_required
+def confirmer_rdv(request, rdv_id):
+    rdv = get_object_or_404(RendezVous, id=rdv_id)
+    rdv.statut = 'confirme'
+    rdv.save()
+    messages.success(request, f"✅ Rendez-vous du {rdv.date_rendez_vous.strftime('%d/%m/%Y à %H:%M')} confirmé !")
+    return redirect('commercial_app:rendez-vous-list')
+
+
+@login_required
+def annuler_rdv(request, rdv_id):
+    rdv = get_object_or_404(RendezVous, id=rdv_id)
+    rdv.statut = 'annule'
+    rdv.save()
+    messages.warning(request, f"❌ Rendez-vous du {rdv.date_rendez_vous.strftime('%d/%m/%Y à %H:%M')} annulé.")
+    return redirect('commercial_app:rendez-vous-list')
+
+
+@login_required
+def terminer_rdv(request, rdv_id):
+    rdv = get_object_or_404(RendezVous, id=rdv_id)
+    rdv.statut = 'termine'
+    rdv.save()
+    messages.success(request, f"✅ Rendez-vous du {rdv.date_rendez_vous.strftime('%d/%m/%Y à %H:%M')} terminé !")
+    return redirect('commercial_app:rendez-vous-list')

@@ -234,14 +234,13 @@ class SITE_ServiceAvisCreateView(LoginRequiredMixin, CreateView):
 
 @login_required
 def contacter_service(request, service_id):
-    service = get_object_or_404(Services, id=service_id)
+    service = get_object_or_404(Services, pk=service_id)
     
     message_content = f"""Bonjour,
 
     Je suis intéressé par le service suivant :
     🔧 {service.nom}
     📋 {service.description_courte}
-    💵 {service.prix} FCFA
 
     Pouvez-vous me donner plus d'informations ou me proposer un rendez-vous ?
 

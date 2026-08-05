@@ -6,8 +6,8 @@ class AdminDemandeFinancement(admin.ModelAdmin):
     list_display = ["client", "Vehicul_interested", "etape", "date_creation"]
 
 @admin.register(Vente)
-class AminVente(admin.ModelAdmin):
-    list_display = ['client', "montant"]
+class AdminVente(admin.ModelAdmin):
+    list_display = ['client']
     
     
     

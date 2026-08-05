@@ -339,59 +339,41 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-   <script>
-  // ============================================================
-// 1. On attend que toute la page HTML soit chargée
-// ============================================================
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 'DOMContentLoaded' = événement déclenché quand le HTML est entièrement chargé
-    // On met notre code à l'intérieur pour être sûr que le canvas existe
 
-    // ============================================================
-    // 2. On récupère l'élément canvas (là où le graphique va s'afficher)
-    // ============================================================
     const ctx = document.getElementById('caChart');
-    // document.getElementById('caChart') = cherche l'élément HTML avec id="caChart"
-    // Si trouvé → on le stocke dans la variable 'ctx'
     
-    // ============================================================
-    // 3. Sécurité : si le canvas n'existe pas, on arrête tout
-    // ============================================================
     if (!ctx) {
         console.error("Canvas #caChart non trouvé");
-        // console.error = affiche une erreur dans la console du navigateur
-        return;  // return = on sort de la fonction (on n'exécute pas la suite)
+        return;
     }
 
     // ============================================================
-    // 4. On prépare les données du graphique
+    // 4. On prépare les données du graphique (UN SEUL OBJET)
     // ============================================================
     const chartData = {
-        // Les labels (étiquettes) sur l'axe X (ex: "Jan 2025", "Fév 2025")
         labels: {{ chart_labels|safe }},
-        // {{ chart_labels|safe }} = variable Django convertie en tableau JavaScript
-        
-        // Les 4 courbes (datasets)
         datasets: [
             // ----- Courbe Fidelis (bleue) -----
             {
-                label: 'Fidelis',           // Nom affiché dans la légende
-                data: {{ chart_fidelis|safe }},  // Les valeurs (ex: [100000, 200000])
-                borderColor: '#3b82f6',     // Couleur de la ligne (bleu)
-                backgroundColor: 'rgba(59,130,246,0.1)', // Couleur sous la ligne (bleu transparent)
-                tension: 0.3,               // Arrondi des courbes (0 = ligne droite, 1 = très courbé)
-                fill: true,                 // Remplir sous la ligne
-                pointBackgroundColor: '#3b82f6', // Couleur des points
-                pointBorderColor: '#fff',   // Couleur du contour des points
-                pointRadius: 4,             // Taille des points (en pixels)
-                pointHoverRadius: 6         // Taille des points au survol
+                label: 'Fidelis',
+                data: {{ chart_fidelis|safe }},
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                pointHoverRadius: 6
             },
             // ----- Courbe Alios (violette) -----
             {
                 label: 'Alios',
                 data: {{ chart_alios|safe }},
-                borderColor: '#8b5cf6',     // Violet
+                borderColor: '#8b5cf6',
                 backgroundColor: 'rgba(139,92,246,0.1)',
                 tension: 0.3,
                 fill: true,
@@ -404,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 label: 'KOZ Finance (Maison)',
                 data: {{ chart_maison|safe }},
-                borderColor: '#10b981',     // Vert
+                borderColor: '#10b981',
                 backgroundColor: 'rgba(16,185,129,0.1)',
                 tension: 0.3,
                 fill: true,
@@ -417,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 label: 'Paiement cash',
                 data: {{ chart_cash|safe }},
-                borderColor: '#f59e0b',     // Orange
+                borderColor: '#f59e0b',
                 backgroundColor: 'rgba(245,158,11,0.1)',
                 tension: 0.3,
                 fill: true,
@@ -425,79 +407,71 @@ document.addEventListener('DOMContentLoaded', function() {
                 pointBorderColor: '#fff',
                 pointRadius: 4,
                 pointHoverRadius: 6
+            },
+            // ✅ NOUVELLE COURBE : TOTAL (pointillés)
+            {
+                label: 'Total CA',
+                data: {{ chart_total|safe }},
+                borderColor: '#1e293b',
+                backgroundColor: 'rgba(30,41,59,0.05)',
+                borderWidth: 3,
+                borderDash: [8, 4],
+                fill: false,
+                pointBackgroundColor: '#1e293b',
+                pointBorderColor: '#1e293b',
+                pointRadius: 5,
+                pointHoverRadius: 8,
+                tension: 0.3,
             }
         ]
     };
 
     // ============================================================
-    // 5. On crée le graphique Chart.js
+    // 5. On crée le graphique
     // ============================================================
     new Chart(ctx.getContext('2d'), {
-        // ctx.getContext('2d') = on récupère le contexte 2D du canvas (nécessaire pour dessiner)
-        
-        type: 'line',           // Type de graphique: 'line' = courbe, 'bar' = barres, 'pie' = camembert
-        data: chartData,        // Les données qu'on a préparées juste avant
-        options: {              // Options de personnalisation
-            responsive: true,   // Le graphique s'adapte à la taille de l'écran
-            maintainAspectRatio: true, // Conserve les proportions (hauteur/largeur)
-            
-            // ========================================================
-            // Interaction (survol des points)
-            // ========================================================
-            interaction: { 
-                mode: 'index',      // Affiche les infos de TOUTES les courbes au même index
-                intersect: false    // Pas besoin que la souris soit exactement sur le point
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                mode: 'index',
+                intersect: true,
             },
-            
-            // ========================================================
-            // Plugins (tooltips, légende, etc.)
-            // ========================================================
             plugins: {
-                // ---- Info-bulle au survol ----
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            // context = l'élément survolé
-                            // context.dataset.label = nom de la courbe (ex: "Fidelis")
-                            // context.raw = valeur du point (ex: 200000)
-                            // .toLocaleString() = formate le nombre (200000 → "200 000")
                             return context.dataset.label + ': ' + context.raw.toLocaleString() + ' FCFA';
                         }
                     }
                 },
-                // ---- Légende en bas du graphique ----
                 legend: {
-                    position: 'bottom',              // Légende en bas
-                    labels: { 
-                        usePointStyle: true,        // Utilise des petits ronds (pas des carrés)
-                        boxWidth: 10                // Taille des petits ronds (10px)
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 10
                     }
                 }
             },
-            
-            // ========================================================
-            // Axes (X et Y)
-            // ========================================================
             scales: {
-                // ---- Axe Y (vertical) ----
                 y: {
-                    beginAtZero: true,              // Commence à 0 (pas de négatif)
-                    grid: { color: '#e2e8f0' },    // Lignes de la grille (gris clair)
+                    beginAtZero: false,
+                    grid: { color: '#e2e8f0' },
                     ticks: {
                         callback: function(value) {
-                            // Formate les valeurs sur l'axe Y (ex: 200000 → "200 000 FCFA")
                             return value.toLocaleString() + ' FCFA';
                         }
                     }
                 },
-                // ---- Axe X (horizontal) ----
                 x: {
-                    grid: { display: false }        // Pas de lignes verticales (plus propre)
+                    grid: { display: false }
                 }
             }
         }
     });
 });
-   </script>
+</script>
 
 </body>

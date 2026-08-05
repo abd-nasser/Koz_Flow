@@ -89,10 +89,10 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             demandes_jour = demande_financement.objects.filter(date_creation__date=datetime.now().date()).count()
             demandes_semaine = demande_financement.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=7)).count()
             demandes_mois = demande_financement.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
-            demandes_accorder_fidelis = demande_financement.objects.filter(etape='accordee_fidelis', financement_type="externe").count()
-            demandes_accorder_alios = demande_financement.objects.filter(etape='accordee_alios', financement_type="externe").count()
-            demandes_accorder_maison = demande_financement.objects.filter(etape='accordee_maison', financement_type="maison").count()
-            demandes_refuser = demande_financement.objects.filter(etape='refusee').count()
+            demandes_accorder_fidelis = demande_financement.objects.filter(etape='demande_accordee_fidelis', financement_type="externe").count()
+            demandes_accorder_alios = demande_financement.objects.filter(etape='demande_accordee_alios', financement_type="externe").count()
+            demandes_accorder_maison = demande_financement.objects.filter(etape='demande_accordee_maison', financement_type="maison").count()
+            demandes_refuser = demande_financement.objects.filter(etape='demande_refusee').count()
             demandes_en_cours = demande_financement.objects.filter(etape='en_cours').count()
             demandes_en_attente = demande_financement.objects.filter(etape='en_attente').count()
             taux_accord_fidelis = ((demandes_accorder_fidelis) / total_demandes * 100) if total_demandes > 0 else 0
@@ -157,7 +157,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             offres_mois = Offre.objects.filter(date_creation__date__gte=datetime.now().date() - timedelta(days=30)).count()
             offres_brouillon = Offre.objects.filter(statut='brouillon').count()
             offres_envoyee = Offre.objects.filter(statut='envoyee').count()
-            offres_acceptee = Offre.objects.filter(statut='acceptee').count()
+            offres_acceptee = Offre.objects.filter(statut__in = ["offre_financement_fidelis",'offre_financement_alios','offre_financement_maison','acceptee']).count()
             offres_refusee = Offre.objects.filter(statut='refusee').count()
             offres_expiree = Offre.objects.filter(statut='expiree').count()
             taux_offre_acceptee = ((offres_acceptee) / total_offres * 100) if total_offres > 0 else 0
@@ -365,10 +365,11 @@ class DashboardView(LoginRequiredMixin,TemplateView):
             statut__in=[
                 "conclue",
                 "conclue_par_acceptation_offre_simple",
-                "conclue_par_acceptation_offre_financement"
+                "conclue_par_acceptation_offre_financement",
+                "conclue_sur_acceptation_demande_financement",
             ],
             date_vente__gte=start_date
-        ).select_related('demande_financement', 'offre_financement')
+        ).select_related('demande_financement', 'offre')
 
         # ============================================================
         # 4. Regroupement des données
@@ -385,26 +386,36 @@ class DashboardView(LoginRequiredMixin,TemplateView):
                         'fidelis': 0,
                         'alios': 0,
                         'maison': 0,
-                        'cash': 0
+                        'cash': 0,
+                        'total': 0,  # ✅ AJOUT
+                        
                     }
                 
                 # ✅ Utiliser la propriété type_vente
                 type_vente = vente.type_vente
+                
+                # ✅ ✅ ✅ UTILISER montant_total_paye (CA réel)
+                montant_a_ajouter = int(vente.montant_total_paye) if vente.montant_total_paye else int(vente.montant)
                 if type_vente == 'externe_fidelis':
-                    ventes_par_mois[mois]['fidelis'] += int(vente.montant)
+                    ventes_par_mois[mois]['fidelis'] += montant_a_ajouter
                 elif type_vente == 'externe_alios':
-                    ventes_par_mois[mois]['alios'] += int(vente.montant)
+                    ventes_par_mois[mois]['alios'] += montant_a_ajouter
+                    
                 elif type_vente == 'maison':
-                    ventes_par_mois[mois]['maison'] += int(vente.montant)
+                    ventes_par_mois[mois]['maison'] += montant_a_ajouter
+                    
                 elif type_vente == 'cash':
-                    ventes_par_mois[mois]['cash'] += int(vente.montant)
-            
+                    ventes_par_mois[mois]['cash'] += montant_a_ajouter
+                    
+                # ✅ AJOUTER AU TOTAL
+                ventes_par_mois[mois]['total'] += montant_a_ajouter
             labels = list(ventes_par_mois.keys())
             context['chart_labels'] = json.dumps(labels)
             context['chart_fidelis'] = json.dumps([ventes_par_mois[m]['fidelis'] for m in labels])
             context['chart_alios'] = json.dumps([ventes_par_mois[m]['alios'] for m in labels])
             context['chart_maison'] = json.dumps([ventes_par_mois[m]['maison'] for m in labels])
             context['chart_cash'] = json.dumps([ventes_par_mois[m]['cash'] for m in labels])
+            context['chart_total'] = json.dumps([ventes_par_mois[m]['total'] for m in labels])  # ✅ AJOUT
             context['selected_period'] = selected_period
 
         else:
@@ -419,33 +430,39 @@ class DashboardView(LoginRequiredMixin,TemplateView):
                         'fidelis': 0,
                         'alios': 0,
                         'maison': 0,
-                        'cash': 0
+                        'cash': 0,
+                        'total': 0, 
                     }
                 
                 # ✅ Utiliser la propriété type_vente
                 type_vente = vente.type_vente
+                 # ✅ ✅ ✅ UTILISER montant_total_paye (CA réel)
+                montant_a_ajouter = int(vente.montant_total_paye) if vente.montant_total_paye else int(vente.montant)
                 if type_vente == 'externe_fidelis':
-                    ventes_par_jour[jour]['fidelis'] += int(vente.montant)
+                    ventes_par_jour[jour]['fidelis'] += montant_a_ajouter
                 elif type_vente == 'externe_alios':
-                    ventes_par_jour[jour]['alios'] += int(vente.montant)
+                    ventes_par_jour[jour]['alios'] += montant_a_ajouter
                 elif type_vente == 'maison':
-                    ventes_par_jour[jour]['maison'] += int(vente.montant)
+                    ventes_par_jour[jour]['maison'] += montant_a_ajouter
                 elif type_vente == 'cash':
-                    ventes_par_jour[jour]['cash'] += int(vente.montant)
-            
+                    ventes_par_jour[jour]['cash'] += montant_a_ajouter
+                    
+                ventes_par_jour[jour]['total'] += montant_a_ajouter
             labels = list(ventes_par_jour.keys())
             context['chart_labels'] = json.dumps(labels)
             context['chart_fidelis'] = json.dumps([ventes_par_jour[j]['fidelis'] for j in labels])
             context['chart_alios'] = json.dumps([ventes_par_jour[j]['alios'] for j in labels])
             context['chart_maison'] = json.dumps([ventes_par_jour[j]['maison'] for j in labels])
             context['chart_cash'] = json.dumps([ventes_par_jour[j]['cash'] for j in labels])
+            context['chart_total'] = json.dumps([ventes_par_jour[j]['total'] for j in labels])  # ✅ AJOUT
             context['selected_period'] = selected_period
+            print(context['chart_labels'])
 
         # ============================================================
         # 5. Statistiques globales
         # ============================================================
         stats = Vente.objects.filter(
-            statut__in=["conclue", "conclue_par_acceptation_offre_simple", "conclue_par_acceptation_offre_financement"],
+            statut__in=["conclue", "conclue_par_acceptation_offre_simple", "conclue_par_acceptation_offre_financement","conclue_sur_acceptation_demande_financement"],
             date_vente__gte=start_date
         ).aggregate(
             total=Sum("montant"),
