@@ -1,5 +1,6 @@
 import django
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect,render
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
@@ -342,6 +343,8 @@ def contact_form(request):
 
 
 def prise_rdv(request):
+    import time
+    time.sleep(1.5)
     if request.method == 'POST':
         nom = request.POST.get('nom')
         prenom = request.POST.get('prenom')
@@ -362,7 +365,23 @@ def prise_rdv(request):
             statut='en_attente'
         )
         
-        messages.success(request, f"✅ Rendez-vous pris pour le {date} à {heure}. Un commercial vous contactera.")
-        return redirect('home_app:home-page')
-
+        if rendez_vous:
+            return HttpResponse(
+                f"""
+                <div id="success-modal" class="modal modal-open">
+                    <div class="modal-box">
+                        <h3 class="font-bold text-lg">✅ Rendez-vous confirmé</h3>
+                        <p class="py-4">
+                            Votre rendez-vous du <strong>{date}</strong> à <strong>{heure}</strong> a été enregistré.
+                            <br>Un commercial vous contactera sous 24h.
+                        </p>
+                        <div class="modal-action">
+                            <button onclick="document.getElementById('success-modal').remove()" class="btn btn-primary">
+                                Fermer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                """
+            )
 

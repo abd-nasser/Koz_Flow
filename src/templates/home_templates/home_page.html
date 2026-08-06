@@ -38,7 +38,7 @@
                 <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ <span class="text-blue-600">Services</span></span>
             </a>
         </div>
-
+    
         <!-- ===== LIENS CENTRAUX ===== -->
         <div class="hidden md:flex items-center gap-1 lg:gap-2">
             <a href="{% url 'home_app:home-page' %}" 
@@ -243,12 +243,12 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             
             <!-- ===== COLONNE GAUCHE : HERO (50%) ===== -->
-            <div class="relative rounded-2xl overflow-hidden bg-gray-900 aspect-[4/3] lg:aspect-auto group">
+            <div class="relative act-hero overflow-hidden bg-gray-900 aspect-[6/9] lg:aspect-auto group">
                 
                 <!-- VIDÉO OU IMAGE -->
                 {% if actu.video_file or actu.video_url %}
                     <!-- Vidéo -->
-                    <div class="w-full h-full">
+                    <div class=" relative w-full h-full">
                         {% if actu.video_file %}
                             <video class="w-full h-full object-cover" controls playsinline preload="metadata">
                                 <source src="{{ actu.video_file.url }}" type="video/mp4">
@@ -263,24 +263,23 @@
                          alt="{{ actu.titre }}"
                          class="w-full h-full object-cover transition duration-700 group-hover:scale-105">
                     <!-- Overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                    
                 {% endif %}
                 
                 <!-- Badges superposés -->
                 <div class="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
-                    <span class="text-xs font-bold text-white px-3 py-1 rounded-full shadow-lg"
-                          style="background: {{ actu.type_couleur_hex }};">
+                    <span class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-gray-400 px-3 py-1"
+                         >
                         <i class="fas {{ actu.type_icone }} mr-1"></i>
-                        {{ actu.get_type_display }}
+                        <em>{{ actu.get_type_display }}</em>
                     </span>
                     {% if actu.est_vedette %}
-                    <span class="text-xs font-bold bg-yellow-500 text-white px-3 py-1 rounded-full shadow-lg">
-                        <i class="fas fa-star mr-1"></i> Vedette
+                    <span class="text-xl font-bold  text-yellow-600 px-3 py-1 ">
+                        <i class="fas fa-star mr-1"></i><em>Vedette</em> 
                     </span>
                     {% endif %}
                 </div>
-                
-                <!-- Contenu superposé en bas -->
+
                 <div class="absolute bottom-0 left-0 right-0 p-6 z-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
                     <span class="text-xs text-white/60 flex items-center gap-2">
                         <i class="fas fa-calendar-alt"></i>
@@ -294,6 +293,9 @@
                         <i class="fas fa-arrow-right text-xs group-hover/link:translate-x-1 transition-transform"></i>
                     </a>
                 </div>
+                
+                
+                
             </div>
 
             <!-- ===== COLONNE DROITE (50%) ===== -->
@@ -1097,7 +1099,7 @@
         </div>
 
         <!-- ===== BANDEAU CTA ===== -->
-        <div class="mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-center shadow-xl">
+        <div class="mt-12 p-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-800 text-center shadow-xl">
             <p class="text-white text-base md:text-lg font-medium leading-relaxed max-w-3xl mx-auto">
                 <i class="fas fa-quote-left text-blue-200/50 mr-2"></i>
                 Passez Nous rendre visite et trouvez la voiture de vos rêves, avec un service qui vous accompagne à chaque étape.
@@ -1116,19 +1118,19 @@
     
     <!-- Effet de fond "aura" -->
     <div class="absolute inset-0 opacity-30">
-        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-800 rounded-full blur-3xl"></div>
     </div>
 
     <div class="container mx-auto px-4 relative z-10">
         
         <!-- Titre -->
         <div class="text-center mb-16">
-            <span class="inline-block text-xs font-semibold text-blue-300 uppercase tracking-widest bg-blue-500/20 px-4 py-1.5 rounded-full mb-3 border border-blue-400/30">
+            <span class="inline-block text-xs font-semibold text-blue-500 uppercase tracking-widest bg-blue-500/20 px-4 py-1.5 rounded-full mb-3 border border-blue-400/30">
                 ⚡ KOZ EN CHIFFRES
             </span>
-            <h2 class="text-4xl md:text-5xl font-bold text-white">
-                La <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">légende</span> en construction
+            <h2 class="text-4xl md:text-5xl font-bold text-black">
+                La <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800">légende</span> en construction
             </h2>
             <p class="text-gray-400 mt-3 max-w-2xl mx-auto">
                 Des chiffres qui parlent d'eux-mêmes. Notre mission : vous accompagner à chaque étape.
@@ -1139,11 +1141,11 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             
             <!-- Stat 1 : Clients -->
-            <div class="stat-card group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
-                <div class="text-4xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-300">
+            <div class="stat-card stat-card_1 group bg-blue-400/8 backdrop-blur-sm  p-6 border border-indigo-800/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="text-4xl mb-3 text-black group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-users"></i>
                 </div>
-                <div class="stat-number text-4xl md:text-5xl font-black text-white" data-target="15">
+                <div class="stat-number text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800" data-target="15">
                     0
                 </div>
                 <p class="text-sm text-gray-400 mt-2 font-medium">Clients satisfaits</p>
@@ -1151,11 +1153,11 @@
             </div>
 
             <!-- Stat 2 : Véhicules -->
-            <div class="stat-card group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
-                <div class="text-4xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-300">
+            <div class="stat-card stat-card_2 group bg-blue-400/8 backdrop-blur-sm  p-6 border border-indigo-800/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="text-4xl mb-3 text-black group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-car"></i>
                 </div>
-                <div class="stat-number text-4xl md:text-5xl font-black text-white" data-target="320">
+                <div class="stat-number text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800" data-target="320">
                     0
                 </div>
                 <p class="text-sm text-gray-400 mt-2 font-medium">Véhicules en stock</p>
@@ -1163,11 +1165,11 @@
             </div>
 
             <!-- Stat 3 : Financements -->
-            <div class="stat-card group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
-                <div class="text-4xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-300">
+            <div class="stat-card stat-card_3 group bg-blue-400/8 backdrop-blur-sm  p-6 border border-indigo-800/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="text-4xl mb-3 text-black group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-hand-holding-usd"></i>
                 </div>
-                <div class="stat-number text-4xl md:text-5xl font-black text-white" data-target="850">
+                <div class="stat-number text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800" data-target="850">
                     0
                 </div>
                 <p class="text-sm text-gray-400 mt-2 font-medium">Financements accordés</p>
@@ -1175,11 +1177,11 @@
             </div>
 
             <!-- Stat 4 : Services -->
-            <div class="stat-card group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
-                <div class="text-4xl mb-3 text-blue-400 group-hover:scale-110 transition-transform duration-300">
+            <div class="stat-card stat-card_4 group bg-blue-400/8 backdrop-blur-sm  p-6 border border-indigo-800/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+                <div class="text-4xl mb-3 text-black group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-wrench"></i>
                 </div>
-                <div class="stat-number text-4xl md:text-5xl font-black text-white" data-target="1200">
+                <div class="stat-number text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-800" data-target="1200">
                     0
                 </div>
                 <p class="text-sm text-gray-400 mt-2 font-medium">Services réalisés</p>
@@ -1227,7 +1229,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             
             <!-- Financement KOZ -->
-            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+            <div class="group bg-white/5 backdrop-blur-sm  p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 mb-4">
                     <i class="fas fa-building text-2xl text-white"></i>
                 </div>
@@ -1246,7 +1248,7 @@
             </div>
 
             <!-- Fidelis -->
-            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+            <div class="group bg-white/5 backdrop-blur-sm  p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/25 mb-4">
                     <i class="fas fa-handshake text-2xl text-white"></i>
                 </div>
@@ -1265,7 +1267,7 @@
             </div>
 
             <!-- Alios -->
-            <div class="group bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
+            <div class="group bg-white/5 backdrop-blur-sm  p-6 border border-white/10 hover:border-blue-400/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10">
                 <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/25 mb-4">
                     <i class="fas fa-star text-2xl text-white"></i>
                 </div>
@@ -1463,7 +1465,7 @@
 
         <!-- ===== BOUTON LAISSER UN TÉMOIGNAGE ===== -->
         <div class="text-center mt-12">
-            <button onclick="document.getElementById('temoignage_textuel_modal').showModal()" class="btn bg-blue-300 btn-lg text-white hover:bg-blue-400 shadow-lg">
+            <button onclick="document.getElementById('temoignage_textuel_modal').showModal()" class="btn bg-gradient-to-r from-blue-600 to-indigo-800 btn-lg text-white hover:shadow-blue-300 shadow-lg">
                 <i class="fas fa-comment-dots"></i> Laisser un témoignage
             </button>
         </div>  
@@ -1675,15 +1677,22 @@
                     </div>
                 </div>
 
+                <!-- Zone où le message va s'afficher -->
+                <div id="message-zone" class="mt-4"></div>
+              
+                        
                 <!-- Prise de rendez-vous -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <i class="fas fa-calendar-check text-blue-600"></i> Prendre rendez-vous
                     </h3>
-                    <form method="post" action="{% url 'home_app:prise-rdv' %}" class="space-y-4">
+                    <form hx-post="{% url 'home_app:prise-rdv' %}"
+                          hx-indicator="#indicator"
+                          hx-target="#message-zone"
+                          class="space-y-4"> 
                         {% csrf_token %}
                         <div class="space-y-3">
-                            
+                        
                         {% if not user.is_authenticated %}
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Nom*</label>
@@ -1698,6 +1707,9 @@
                                 <input type="text" name="telephone" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                             </div>
                         {% endif %}
+                            <div class="relative">
+                                <img id="indicator" class="htmx-indicator" src="{% static 'images/Message_Sent_Successfully_Plane.gif' %}">
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                                 <input type="date" name="date" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -1706,6 +1718,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Heure *</label>
                                 <input type="time" name="heure" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                             </div>
+                            
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Motif *</label>
                                 <select name="motif" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -1716,9 +1729,10 @@
                                     <option value="service">Service après-vente</option>
                                 </select>
                             </div>
-                            <button type="submit" class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <button type="submit"  class="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2">
                                 <i class="fas fa-calendar-plus"></i> Prendre rendez-vous
                             </button>
+                                
                         </div>
                     </form>
                 </div>
@@ -1733,7 +1747,7 @@
 <!-- ============================================================ -->
 <!-- CTA : PRÊT À ROULER AVEC KOZ ?                              -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative overflow-hidden bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800">
+<section class="py-16 sm:py-20 relative overflow-hidden bg-white ">
     
     <!-- Effet de fond animé -->
     <div class="absolute inset-0 opacity-20">
@@ -1744,77 +1758,77 @@
 
     <!-- Particules (petites étoiles) -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-10 left-10 w-1 h-1 bg-white/30 rounded-full animate-ping"></div>
-        <div class="absolute top-20 right-20 w-1.5 h-1.5 bg-white/20 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
-        <div class="absolute bottom-10 left-1/3 w-1 h-1 bg-white/25 rounded-full animate-ping" style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-20 right-1/4 w-2 h-2 bg-white/15 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
+        <div class="absolute top-10 left-10 w-1 h-1 bg-indigo-800/30 rounded-full animate-ping"></div>
+        <div class="absolute top-20 right-20 w-1.5 h-1.5 bg-indigo-800/20 rounded-full animate-ping" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-10 left-1/3 w-1 h-1 bg-indigo-800/25 rounded-full animate-ping" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-20 right-1/4 w-2 h-2 bg-indigo-800/15 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
     </div>
 
     <div class="container mx-auto px-4 max-w-6xl relative z-10">
         
         <div class="text-center">
             <!-- Badge -->
-            <span class="inline-block text-xs font-semibold text-white uppercase tracking-[0.2em] bg-white/20 backdrop-blur-sm px-5 py-2 rounded-full mb-6 border border-white/20 animate-pulse">
+            <span class="inline-block text-xs font-semibold text-gray-700 uppercase tracking-[0.2em] bg-blue-600/20 backdrop-blur-sm px-5 py-2 rounded-full mb-6 border border-white/20 animate-pulse">
                 <i class="fas fa-rocket mr-2"></i> Rejoignez l'aventure
             </span>
             
             <!-- Titre -->
-            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
-                Prêt à rouler avec <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">KOZ</span> ?
+            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-black leading-tight mb-4">
+                Prêt à rouler avec <span class="text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-indigo-800">KOZ</span> ?
             </h2>
             
             <!-- Sous-titre -->
-            <p class="text-blue-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8">
+            <p class="text-gray-600 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8">
                 Créez votre compte en quelques clics et accédez à tous nos services
             </p>
 
             <!-- ===== AVANTAGES ===== -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
                 
-                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                <div class="group bg-white/10 backdrop-blur-sm  p-4 border border-blue-600/10 hover:border-blue/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
                             <i class="fas fa-car text-white text-sm"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-white font-semibold text-sm">Catalogue premium</h4>
-                            <p class="text-white/60 text-xs">Accès à tous nos véhicules</p>
+                            <h4 class="text-gray-600 font-semibold text-sm">Catalogue premium</h4>
+                            <p class="text-gray-600/60 text-xs">Accès à tous nos véhicules</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                <div class="group bg-white/10 backdrop-blur-sm  p-4 border border-blue-600/10 hover:border-blue/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-hand-holding-usd text-white text-sm"></i>
+                            <i class="fas fa-hand-holding-usd text-gray-600 text-sm"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-white font-semibold text-sm">Financement flexible</h4>
-                            <p class="text-white/60 text-xs">Jusqu'à 60 mois sans stress</p>
+                            <h4 class="text-gray-600 font-semibold text-sm">Financement flexible</h4>
+                            <p class="text-gray-600/60 text-xs">Jusqu'à 60 mois sans stress</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                <div class="group bg-white/10 backdrop-blur-sm  p-4 border border-blue-600/10 hover:border-blue/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-headset text-white text-sm"></i>
+                            <i class="fas fa-headset text-gray-600 text-sm"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-white font-semibold text-sm">Support 24/7</h4>
-                            <p class="text-white/60 text-xs">Une équipe à votre écoute</p>
+                            <h4 class="text-gray-600 font-semibold text-sm">Support 24/7</h4>
+                            <p class="text-gray-600/60 text-xs">Une équipe à votre écoute</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="group bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:border-white/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
+                <div class="group bg-white/10 backdrop-blur-sm  p-4 border border-blue-600/10 hover:border-blue/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                            <i class="fas fa-gift text-white text-sm"></i>
+                            <i class="fas fa-gift text-gray-600 text-sm"></i>
                         </div>
                         <div class="text-left">
-                            <h4 class="text-white font-semibold text-sm">Offres exclusives</h4>
-                            <p class="text-white/60 text-xs">Des avantages réservés aux membres</p>
+                            <h4 class="text-gray-600 font-semibold text-sm">Offres exclusives</h4>
+                            <p class="text-gray-600/60 text-xs">Des avantages réservés aux membres</p>
                         </div>
                     </div>
                 </div>
@@ -1833,7 +1847,7 @@
                 </button>
                 
                 <button onclick="document.getElementById('login_modal').showModal()" 
-                        class="px-8 py-4 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold text-base transition-all duration-300 hover:bg-white/30 hover:scale-105 shadow-lg flex items-center gap-2">
+                        class="px-8 py-4 bg-white/20 backdrop-blur-sm text-gray-600 border border-white/30 rounded-xl font-semibold text-base transition-all duration-300 hover:bg-white/30 hover:scale-105 shadow-lg flex items-center gap-2">
                     <i class="fas fa-sign-in-alt"></i> J'ai déjà un compte
                 </button>
             </div>
@@ -1943,6 +1957,7 @@
     </script>
 
     <script>
+        
 
          gsap.registerPlugin(ScrollTrigger);
 

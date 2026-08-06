@@ -5,33 +5,26 @@
     
     {% for vehicule in vehicules_page %}
     <div class="group flex justify-center vedette_gallery_display  relative w-full overflow-hidden bg-white">
+        <h3 class="text-1xl font-bold text-blue-600 md:text-1xl">{{ vehicule.marque.nom }} {{ vehicule.modele }}</h3>
+        <p class="mt-2 text-sm text-gray-500 md:text-base">{{ vehicule.prix|intcomma }} FCFA</p>
         
         <!-- ✅ Image responsive -->
         <img src="{{ vehicule.display_image.url }}"
              alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}"
              class="w-230 h-165 aspect-[16/9] object-contain transition duration-700 ease-out group-hover:scale-105">
-
+             
+        <a href="{% url 'vehicul_app:site-vehicul-detail' vehicule.pk %}"
+        class=" inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50">
+        <span>Voir le véhicule</span>
+        <i class="fas fa-arrow-right text-xs"></i>
+        </a>
         <!-- Icône (superposée) -->
-        <div class="relative top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+        <div class="relative v_v_icone top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
             <i class="fas fa-car text-blue-600 text-lg"></i>
         </div>
         
-        <!-- Contenu superposé -->
-        <div class="relative inset-x-0 bottom-0 z-20 p-8 md:p-10">
-            <div class="max-w-xl rounded-2xl border border-blue-400 bg-white/10 p-5 backdrop-blur-md"
-                 style="min-width:10rem; min-height:10rem;">
-                <div class="mb-3 inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-300/90">
-                    Véhicule vedette
-                </div>
-                <h3 class="text-1xl font-bold text-blue-600 md:text-1xl">{{ vehicule.marque.nom }} {{ vehicule.modele }}</h3>
-                <p class="mt-2 text-sm text-gray-500 md:text-base">{{ vehicule.prix|intcomma }} FCFA</p>
-                <a href="{% url 'vehicul_app:site-vehicul-detail' vehicule.pk %}"
-                   class="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-50">
-                    <span>Voir le véhicule</span>
-                    <i class="fas fa-arrow-right text-xs"></i>
-                </a>
-            </div>
-        </div>
+        
+         
     </div>
     {% empty %}
     <div class="w-full border border-dashed border-gray-200 bg-white py-10 text-center text-gray-500">

@@ -3,6 +3,7 @@ body {
     overflow-x: hidden;
 }
 
+
 .frame-container {
     position: fixed;
     top: 0;
@@ -21,7 +22,7 @@ body {
 .hero-section {
     position: relative;
     z-index: 1;
-    min-height: 200vh; /* ← Permet le scroll sur la hero */
+    height: 200vh; /* ← Permet le scroll sur la hero */
     background: rgba(0, 0, 0, 0.2); /* Overlay pour lisibilité */
     display: flex;
     align-items: center;
@@ -409,7 +410,7 @@ body {
     width: 100%;
     margin-bottom: 1.5rem;
 }
-
+ 
 
 .paginator-arrow{
     position: relative;
@@ -491,105 +492,16 @@ body {
         transform: translateX(0px);
     }  
 }
-.vedette_gallery_display, .vedette_gallery_display img{
+.vedette_gallery_display img, .v_v_descript, .v_v_icone{
     animation: slideIn 1s ease-in-out;
+     
 }
-
-
-
-/* -------- Responsive : on empile -------- */
-@media (max-width: 1024px) {
-    .trois_box {
-        bottom: 4%;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        padding: 0 1rem;
-    }
-    .box {
-        width: 90%;
-        transform: translateY(40px);
-        padding: 1rem 1.5rem;
-    }
-    .box-left,
-    .box-right, .box-bottom {
-        transform: translateY(40px);
-    }
-
-    .box-bottom{
-        margin-bottom: 2%;
-    }
-     .vedette_gallery_display{
-        display: flex;
-        flex-wrap: wrap;
-    }
-    .type-contain .suv,
-    .type-contain .berline,
-    .type-contain .truck {
-        left: 0;
-        top: 0;
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transform: rotate(0deg);
-        
-    }
-    .type-contain .suv{
-        transform: rotate(-7deg);
-    }
-     .type-contain .truck {
-        transform: rotate(7deg);
-     }
-    .fleche{
-        display: none;
-    }
+.vedette_gallery_display img{
+height: 40vh;
+width: 50%
 }
-@media (max-width: 768px) {
+;
 
-    .trois_box {
-        bottom: 4%;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        padding: 0 1rem;
-    }
-    .box {
-        width: 90%;
-        transform: translateY(40px);
-        padding: 1rem 1.5rem;
-    }
-    .box-left,
-    .box-right, .box-bottom {
-        transform: translateY(40px);
-    }
-    .box-bottom{
-       margin-bottom: 5%;
-       top: 15%;
-    }
-    .vedette_gallery_display{
-        display: flex;
-        flex-direction: column;
-    }
-}
-
-/* RESPONSIVE : ajustement pour mobile */
-@media (max-width: 768px) {
-    .type-contain .suv,
-    .type-contain .berline,
-    .type-contain .truck {
-        left: 0;
-        top: 0;
-        margin: auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        transform: rotate(0deg);
-    }
-    .fleche{
-        display: none;
-    }
-}
 
 /* Vérifie que la vidéo n'est pas cachée */
 video {
@@ -689,4 +601,230 @@ input[type="password"]::placeholder {
     letter-spacing: normal;
 }
 
+.act-hero{
+    height: 35rem;
+}
 
+/* -------- Responsive : on empile -------- */
+@media (max-width: 1024px) {
+
+    .hero-section{
+        min-height: 250vh;
+    }
+    
+    .trois_box {
+        bottom: 4%;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    .box {
+        width: 50%;
+        transform: translateY(40px);
+        padding: 1rem 1.5rem;
+    }
+    .box-left,
+    .box-right {
+        transform: translateY(40px);
+    }
+    .box-left{
+        top: 10rem;
+    }
+    .box-right{
+        top: 8rem;
+    }
+
+    .services-text-content {
+    max-width: 650px;
+    padding: 0 20px;
+    margin-bottom: 9rem;}
+    
+     .vedette_gallery_display{
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .vedette_gallery img{
+        height: 40vh;
+        width: 50%;
+    }
+    .type-contain .suv,
+    .type-contain .berline,
+    .type-contain .truck {
+        left: 0;
+        top: 0;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform: rotate(0deg);
+        width: 30%;
+        height: 45vh;
+        
+    }
+    .type-contain .suv{
+        transform: rotate(-7deg);
+        margin-right: 2rem;
+    }
+     .type-contain .truck {
+        transform: rotate(7deg);
+        margin-left: 2rem;
+     }
+    .fleche{
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    /* HERO SECTION */
+    .hero-section{
+        min-height: 225vh;
+    }
+    .trois_box {
+        top: 40rem;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+    .box {
+
+        transform: translateY(40px);
+        padding: 1rem 1.5rem;
+    }
+    .box-left,
+    .box-right {
+        transform: translateY(40px);
+    }
+
+    /* VEHICUL TYPES SECTION */
+    .type-contain .suv,
+    .type-contain .berline,
+    .type-contain .truck {
+        left: 0;
+        top: 0;
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform: rotate(0deg);
+    }
+    .fleche{
+        display: none;
+    }
+
+
+    /* VEHICUL VEDETTE SECTION */
+    .vedette_gallery_display{
+        display: flex;
+        flex-direction: column;
+    }
+
+    .vedette_gallery_display img {
+    height: 40vh;
+    width: 100%;
+    }
+    .services-title {
+    font-size: 2.7rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+}
+}
+@media (max-width: 480px) {
+    /* HERO SECTION */
+    .hero-section{
+        min-height: 215vh;
+    }
+
+    .trois_box{
+        top: 55rem;
+    }
+
+    .box{
+        min-width: 19rem;
+    }
+
+    .services-title {
+    font-size: 2.7rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+}
+}
+
+@media (max-width: 390px) {
+    /* HERO SECTION */
+    .hero-section{
+        min-height: 205vh;
+    }
+    .trois_box{
+        top: 48rem;
+    }
+    .box{
+        min-width: 18rem;
+    }
+   .vedette_gallery_display img {
+    height: 40vh;
+    width: 100%;}
+
+    .services-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+    }
+    
+}
+
+
+@media (max-width: 375px) , (max-height:667){
+    /* HERO SECTION */
+    .hero-section{
+        min-height: 255vh;
+    }
+    .trois_box{
+        top: 50rem;
+    }
+    .box{
+        min-width: 18rem;
+    }
+
+    .services-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+}
+        
+}
+
+@media (max-width: 360px){
+    .hero-section{
+        min-height: 274vh;
+    }
+    .trois_box{
+        top: 55rem;
+    }
+    .box{
+        min-width: 16rem;
+    }
+    .vedette_gallery_display img {
+    height: 40vh;
+    width: 100%;
+    }
+
+    .services-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1.1;
+
+    
+}}
+
+@media (width >= 1rem) {
+    .lg\:aspect-auto {
+        aspect-ratio: auto;
+    }}
