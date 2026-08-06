@@ -752,6 +752,7 @@ input[type="password"]::placeholder {
     color: white;
     line-height: 1.1;
 }
+   
 }
 
 @media (max-width: 390px) {
@@ -828,3 +829,8 @@ input[type="password"]::placeholder {
     .lg\:aspect-auto {
         aspect-ratio: auto;
     }}
+
+
+.actualite_sec{
+    height: 150vh;
+}

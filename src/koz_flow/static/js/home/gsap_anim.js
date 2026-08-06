@@ -32,10 +32,21 @@ gsap.registerPlugin(ScrollTrigger);
         });
 
 
+    document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".hero_fade", {
+                opacity: 0,
+                y: 200,
+                duration: 1.5,
+            
+            });
+
+    });
+
+
         // ============================================
         // BOXES LATÉRALES : apparition au scroll
         // ============================================
-        gsap.registerPlugin(ScrollTrigger);
+        
 
         // Box 1 : vient de gauche
         gsap.from(".box-left", {
@@ -94,28 +105,134 @@ gsap.registerPlugin(ScrollTrigger);
 
 
         
-        // --- ÉTAPE 2 : ANIMATION INDÉPENDANTE DE LA SECTION ACTUALITÉ ---
-        // La section actualité ne pinne plus le scroll et n'interfère pas avec les sections suivantes.
-
 // ============================================================
-// SPLITTING ANIMATION
+// ACTUALITE ANIMATION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    Splitting();
+    gsap.from(".actualite_fade", {
+                scrollTrigger: {
+                    trigger: ".actualite_sec",
+                    start: "top 60%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                y: 100,
+                duration: 1,
+            
+            });
 
-    // Animation au scroll
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animated');
-            }
-        });
-    }, { threshold: 0.3 });
+    // ACTUALITE ANIMATION COLONE GAUCHE
+    // =============================================
 
-    document.querySelectorAll('.description-splitting').forEach(el => {
-        observer.observe(el);
+    gsap.from(".actu_video_img",{
+                scrollTrigger:{
+                    trigger:".actu_video_img",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                x: -200,
+                duration: 1,
+            });
+
+    gsap.from(".actu_type", {
+                scrollTrigger: {
+                    trigger: ".actu_type",
+                    start: "top 60%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                x: 100,
+                duration: 1,
+            
+            });
+
+    gsap.from(".actu_vedette",{
+                scrollTrigger:{
+                    trigger:".actu_vedette",
+                    start: "top 65%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            });
+    gsap.from(".actu_titre",{
+                scrollTrigger:{
+                    trigger:".actu_titre",
+                    start: "top 90%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                   
+                },
+                opacity: 0,
+                x: -200,
+                duration: 1.5,
+            });
+
+    gsap.from(".actu_mini_descript",{
+                scrollTrigger:{
+                    trigger:".actu_titre",
+                    start: "top 90%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 2,
+            });
+
+
+     // ACTUALITE ANIMATION COLONE DROITE
+    // =============================================
+    gsap.from(".actu_descript",{
+                scrollTrigger:{
+                    trigger:".actu_descript",
+                    start: "top 71%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                x: 200,
+                duration: 1,
+            });
+
+let mm = gsap.matchMedia();
+
+// Desktop / tablette (481px et +)
+mm.add("(min-width: 768px)", () => {
+    ScrollTrigger.create({
+        trigger: ".actualite_sec",
+        start: "21% 8%",
+        end: "+=100%",
+        pin: true,
     });
 });
+
+// Mobile (480px et moins)
+mm.add("(max-width: 767px)", () => {
+    ScrollTrigger.create({
+        trigger: ".actualite_sec",
+        start: "50% 20%",
+        end: "+=900",
+        markers: true,
+        pin: true,
+    });
+});
+
+});
+
+
     
 // ============================================================
 // SERVICES – PINNED SCROLL ANIMATION
