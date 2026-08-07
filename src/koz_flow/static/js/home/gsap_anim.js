@@ -207,30 +207,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 duration: 1,
             });
 
-let mm = gsap.matchMedia();
-
-// Desktop / tablette (481px et +)
-mm.add("(min-width: 768px)", () => {
-    ScrollTrigger.create({
-        trigger: ".actualite_sec",
-        start: "21% 8%",
-        end: "+=100%",
-        pin: true,
-    });
-});
-
-// Mobile (480px et moins)
-mm.add("(max-width: 767px)", () => {
-    ScrollTrigger.create({
-        trigger: ".actualite_sec",
-        start: "50% 20%",
-        end: "+=900",
-        markers: true,
-        pin: true,
-    });
-});
 
 });
+
+
+
+
 
 
     

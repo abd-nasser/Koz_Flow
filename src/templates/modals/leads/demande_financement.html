@@ -1,4 +1,7 @@
+{% load static %}
 {% load humanize %}
+
+
 <dialog id="dmd_fin_modal" class="modal">
     <div class="modal-box w-full max-w-2xl p-0 max-h-[85vh] overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
         
@@ -14,10 +17,23 @@
             <p class="text-blue-100 text-sm mt-1">Remplissez ce formulaire pour obtenir votre offre personnalisée</p>
         </div>
 
-        <form method="post" action="{% url 'leads_app:demande-financement' vehicul.id %}" class="p-6">
+        <!-- Indicateur en dehors du formulaire -->
+
+        <div id="dmd-message-zone" class="mt-4"></div>
+            <div id="dmd-indicator" class="htmx-indicator fixed inset-0 bg-white flex items-center justify-center z-50">
+                <div class="bg-white p-6 rounded-xl text-center shadow-xl">
+                    <img src="{% static 'images/loading.gif' %}" class="object-cover w-30 h-30 mb-3">
+                    <p class="text-white font-medium">Chargement en cours...</p>
+                </div>
+            </div>
+        <form   hx-post="{% url 'leads_app:demande-financement' vehicul.id %}" 
+                hx-target="#dmd-message-zone"
+                hx-indicator="#dmd-indicator"
+                hx-on::after-request="if (event.target === this) document.getElementById('dmd_fin_modal').close()"
+                class="p-6 scrollable-form">
             {% csrf_token %}
             
-            <div class="scrollable-form">
+            <div>
                 <!-- Affichage du véhicule sélectionné -->
                 <div class="bg-blue-50 rounded-xl p-4 mb-6 flex items-center gap-4 border border-blue-200">
                 <i class="fas fa-car text-3xl text-blue-600"></i>
@@ -27,6 +43,7 @@
                     <p class="text-sm text-blue-700">{{ vehicul.prix|intcomma }} FCFA</p>
                 </div>
             </div>
+            
             
             {{ dmd_fin_form.non_field_errors }}
 
@@ -100,7 +117,7 @@
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('dmd_fin_modal').close()">
                     Annuler
                 </button>
-                <button type="submit" class="btn-glow px-8 py-2 rounded-xl">
+                <button   type="submit" class="btn-glow px-8 py-2 rounded-xl" >
                     <i class="fas fa-paper-plane mr-2"></i>Envoyer ma demande
                 </button>
             </div>
@@ -109,6 +126,20 @@
     </div>
 </dialog>
 
+       
+<style>
+    
+#dmd-indicator {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#dmd-indicator.htmx-request {
+    opacity: 1;
+    pointer-events: auto;
+}
+</style>
 <!-- Scripts -->
 <script>
     function closeModal() {
@@ -122,6 +153,16 @@
         }
     });
 
+    document.addEventListener('htmx:beforeRequest', function(evt) {
+    console.log('🔵 Requête HTMX envoyée par :', evt.detail.elt);
+    console.log('📦 Indicateur cible :', evt.detail.elt.getAttribute('hx-indicator'));
+});
+
+document.addEventListener('htmx:afterRequest', function(evt) {
+    console.log('🟢 Requête HTMX terminée');
+});
+
+
     // Réouverture après erreur
     {% if open_dmd_fin_modal %}
     document.addEventListener('DOMContentLoaded', function() {
@@ -129,4 +170,3 @@
     });
     {% endif %}
 </script>
-

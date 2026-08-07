@@ -337,9 +337,27 @@ def contact_form(request):
                 html_message=html_message,
                 fail_silently=False,
             )
+            
+        return HttpResponse(
+                        f"""
+                        <div id="success-modal" class="modal modal-open">
+                            <div class="modal-box">
+                                <h3 class="font-bold text-lg">✅ Envoyé </h3>
+                                <p class="py-4">
+                                    Votre message a été envoyé.
+                                    <br>Un commercial vous contactera sous 24h.
+                                </p>
+                                <div class="modal-action">
+                                    <button onclick="document.getElementById('success-modal').remove()" class="btn btn-primary">
+                                        Fermer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        """
+                    )
         
-        messages.success(request, "✅ Votre message a été envoyé. Nous vous répondrons rapidement.")
-        return redirect('home_app:home-page')
+       
 
 
 def prise_rdv(request):

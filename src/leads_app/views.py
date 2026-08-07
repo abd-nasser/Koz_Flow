@@ -2,7 +2,7 @@ from datetime import timedelta, timezone, datetime
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 
@@ -178,79 +178,88 @@ def envoyer_contact_email(request):
 ##################################################___Demande et Gestion de Financement_______###########################################
 @login_required
 def demande_financement_view(request, vehicul_id):
-    
+    import time
+    time.sleep(2)
     vehicul = get_object_or_404(Vehicul, id=vehicul_id)
-    
+
     if request.user.role != "client":
         messages.error(request, "Seuls les clients peuvent faire une demande.")
         return redirect("vehicul_app:detail-vehicul", vehicul_id=vehicul.pk)
-    
-    # Vérifier si une demande existe déjà
+
     demande_existante = demande_financement.objects.filter(
         client=request.user,
-        etape__in=["nouvelle", "en_attente", "en_cours","demande_accordee_fidelis","demande_accordee_alios","demande_accordee_maison", 'demande_refusee']
+        Vehicul_interested=vehicul,
+        etape__in=[
+            "nouvelle", "en_attente", "en_cours",
+            "demande_accordee_fidelis", "demande_accordee_alios",
+            "demande_accordee_maison", "demande_refusee",
+        ],
     ).first()
-    
+
     if demande_existante:
-        messages.warning(request, f"Cette demande est déjà envoyée.")
-        return redirect("client_app:client-view")
-    
-    if request.method == "POST":
-        form = DemandeFinancementForm(request.POST)
-        if form.is_valid():
-            demande = form.save(commit=False)
-            demande.client = request.user
-            demande.Vehicul_interested = vehicul
-            demande.etape = "nouvelle"
-            demande.save()
-            
-            # ✉️ ENVOI DE L'EMAIL AU COMMERCIAL
-            client = request.user  # ← Définir client ici
-            
-            # Vérifier que le client a bien un commercial assigné
-            if client.assigned_commercial and client.assigned_commercial.email:
-                try:
-                    # Préparer le contexte (avant de l'utiliser)
-                    context_email = {
-                        'client': client,
-                        'vehicule': f"{vehicul.marque.nom} {vehicul.modele} ({vehicul.annee})",
-                        'apport': form.cleaned_data.get('apport', 0),
-                        'duree': form.cleaned_data.get('duree_mois', 36),
-                        'revenus': form.cleaned_data.get('revenus_mensuel', 0),
-                        'lien_dashboard': request.build_absolute_uri(reverse('commercial_app:commercial-view'))
-                    }
-                    
-                    html_message = render_to_string('emails/demande_financement/demande_financement_envoyee.html', context_email)
-                    plain_message = strip_tags(html_message)
-                    
-                    send_mail(
-                        subject="🆕 Nouvelle demande de financement - KOZ Services",
-                        message=plain_message,
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[client.assigned_commercial.email],
-                        html_message=html_message,
-                        fail_silently=False,
-                    )
-                    messages.info(request, "Votre commercial a été notifié de votre demande.")
-                except Exception as e:
-                    print(f"Erreur envoi email au commercial: {e}")
-            else:
-                print(f"Client {client.email} n'a pas de commercial assigné")
-                # Pas de notification, mais la demande est quand même créée
-            
-            return redirect("vehicul_app:detail-vehicul", vehicul.pk)
-        
-        else:
-            # Formulaire invalide : rouvrir le modal
-            context = {
-                'vehicul': vehicul,
-                'dmd_fin_form': form,
-                'open_dmd_fin_modal': True,
-            }
-            return render(request, 'vehicul_templates/vehicul_detail.html', context)
-    
-    # Si GET (pas POST)
-    return redirect("vehicul_app:detail-vehicul", vehicul.pk)
+        return render(request, "partials/leads/_dmd_fin_result.html", {
+            "success": False,
+            "title": "❌ Erreur lors de l'envoi",
+            "message": "Cette demande a déjà été envoyée.",
+        })
+
+    if request.method != "POST":
+        return redirect("vehicul_app:detail-vehicul", vehicul.pk)
+
+    form = DemandeFinancementForm(request.POST)
+
+    if not form.is_valid():
+        return render(request, "partials/leads/_dmd_fin_form_errors.html", {
+            "dmd_fin_form": form,
+        })
+
+    demande = form.save(commit=False)
+    demande.client = request.user
+    demande.Vehicul_interested = vehicul
+    demande.etape = "nouvelle"
+    demande.save()
+
+    try:
+        context_email = {
+            "client": request.user,
+            "vehicule": f"{vehicul.marque.nom} {vehicul.modele} ({vehicul.annee})",
+            "apport": form.cleaned_data.get("apport", 0),
+            "duree": form.cleaned_data.get("duree_mois", 36),
+            "revenus": form.cleaned_data.get("revenus_mensuel", 0),
+            "lien_dashboard": request.build_absolute_uri(
+                reverse("commercial_app:commercial-view")
+            ),
+        }
+        html_message = render_to_string(
+            "emails/demande_financement/demande_financement_envoyee.html",
+            context_email,
+        )
+        plain_message = strip_tags(html_message)
+
+        for commercial in kozUser.objects.filter(role="commercial"):
+            if commercial.email:
+                send_mail(
+                    subject="🆕 Nouvelle demande de financement - KOZ Services",
+                    message=plain_message,
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[commercial.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+
+        return render(request, "partials/leads/_dmd_fin_result.html", {
+            "success": True,
+            "title": "✅ Demande envoyée",
+            "message": "Votre demande a été envoyée. Un commercial vous contactera sous 24h.",
+        })
+
+    except Exception as e:
+        logger.error(f"Erreur lors de l'envoi de la demande de financement : {e}")
+        return render(request, "partials/leads/_dmd_fin_result.html", {
+            "success": False,
+            "title": "❌ Erreur lors de l'envoi",
+            "message": "L'envoi de la demande a échoué.",
+        })
 
 @login_required
 def attente_document(request, demande_id):

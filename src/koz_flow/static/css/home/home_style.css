@@ -605,6 +605,8 @@ input[type="password"]::placeholder {
     height: 35rem;
 }
 
+
+
 /* -------- Responsive : on empile -------- */
 @media (max-width: 1024px) {
 
@@ -674,7 +676,9 @@ input[type="password"]::placeholder {
     .fleche{
         display: none;
     }
+    
 }
+
 
 @media (max-width: 768px) {
     /* HERO SECTION */
@@ -730,8 +734,9 @@ input[type="password"]::placeholder {
     font-weight: 800;
     color: white;
     line-height: 1.1;
+    
 }
-}
+ }
 @media (max-width: 480px) {
     /* HERO SECTION */
     .hero-section{
@@ -776,6 +781,9 @@ input[type="password"]::placeholder {
         color: white;
         line-height: 1.1;
     }
+
+  
+
     
 }
 
@@ -820,10 +828,12 @@ input[type="password"]::placeholder {
     font-size: 2.4rem;
     font-weight: 800;
     color: white;
-    line-height: 1.1;
+    line-height: 1.1;}
+
+   
 
     
-}}
+}
 
 @media (width >= 1rem) {
     .lg\:aspect-auto {
@@ -831,6 +841,6 @@ input[type="password"]::placeholder {
     }}
 
 
-.actualite_sec{
-    height: 150vh;
-}
+
+
+ 
