@@ -1,3 +1,4 @@
+{% load static %}
 <dialog id="gestion_doc_modal" class="modal">
     <div class="modal-box w-full max-w-md p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
         
@@ -117,11 +118,11 @@
 
 <!-- Script pour réouvrir le modal en cas d'erreur -->
 <script>
-    {% if open_gestion_doc_modal %}
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('gestion_doc_modal').showModal();
+   
+    document.addEventListener('closeGestionDocModal', function() {
+        document.getElementById('gestion_doc_modal').close();
     });
-    {% endif %}
+
 </script>
 
 <style>
@@ -138,15 +139,5 @@
         transform: translateY(-2px);
         box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
     }
-    #indicator {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#indicator .htmx-request {
-    opacity: 1;
-    pointer-events: auto;
-}
-
+   
 </style>

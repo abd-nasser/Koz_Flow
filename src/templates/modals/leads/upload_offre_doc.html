@@ -155,8 +155,8 @@
 <!-- Script pour rouvrir le modal si formulaire invalide -->
 {% if open_upload_doc_modal %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('upload_doc_modal').showModal();
+    document.addEventListener('closeDocModal', function() {
+        document.getElementById('upload_doc_modal').close();
     });
 </script>
 {% endif %}
@@ -205,5 +205,15 @@
         border: 1px solid #e2e8f0;
         border-radius: 0.5rem;
         background-color: #f9fafb;
+    }
+    #dmd-indicator {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    }
+
+    #dmd-indicator .htmx-request {
+        opacity: 1;
+        pointer-events: auto;
     }
 </style>

@@ -4,16 +4,18 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 
 from django.http import HttpResponse
-
+from datetime import timedelta
+from django.utils import timezone
 from auth_app.models import kozUser
 from .models import Message
-
-
 @login_required
 def chat_view(request, client_id=None):
     if request.user.role == "client":
         messages = Message.objects.filter(client=request.user).order_by('date_envoi')
-        destinataire = request.user.assigned_commercial
+        # Calculer le seuil de dernière activité (5 minutes)
+        threshold = timezone.now() - timedelta(minutes=5)
+        # Récupérer le premier commercial en ligne, trié par dernière activité
+        destinataire = kozUser.objects.filter(role="commercial", last_activity__gt=threshold, is_active=True).order_by('-last_activity').first()
         
         # ✅ Marquer les messages comme lus (pour le client
         messages.filter(est_client=False, lu=False).update(lu=True)
@@ -21,6 +23,7 @@ def chat_view(request, client_id=None):
             'messages': messages,
             'destinataire': destinataire,
             'client_id': request.user.id,
+            'client': request.user,
         }
     else:
         # ✅ Commercial : voir tous les messages de tous les clients

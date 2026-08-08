@@ -1,3 +1,4 @@
+{% load static %}
 <!-- modals/leads/update_doc.html -->
 <dialog id="update_doc_modal" class="modal">
     <div class="modal-box w-full max-w-4xl p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
@@ -95,9 +96,9 @@
                     </div>
                 </div>
                 <div id="dmd-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
-                    <div class="bg-white p-6 items-center justify-center text-center shadow-2xl">
+                    <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
                         <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                        <p class="text-white font-medium">Envoi en cours...</p>
+                        <p class="text-gray-700 font-medium">En cours de traitement...</p>
                     </div>
                 </div>
 
@@ -210,14 +211,4 @@
         background-color: #f9fafb;
     }
 
-    #dmd-indicator {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    }
-
-    #dmd-indicator .htmx-request {
-        opacity: 1;
-        pointer-events: auto;
-    }
 </style>

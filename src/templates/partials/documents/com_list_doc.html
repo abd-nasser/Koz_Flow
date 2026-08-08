@@ -76,7 +76,7 @@
                                 <span><strong>Statut demande :</strong></span>
                                 <span class="badge px-3 py-1 rounded-full text-xs font-semibold
                                     {% if doc.demande_financement.etape == 'demande_accordee_fidelis' or doc.demande_financement.etape == 'demande_accordee_alios' or doc.demande_financement.etape == 'demande_accordee_maison' %}bg-green-100 text-green-700
-                                    {% elif doc.demande_financement.etape == 'demand_refusee' %}bg-red-100 text-red-700
+                                    {% elif doc.demande_financement.etape == 'demande_refusee' %}bg-red-100 text-red-700
                                     {% else %}bg-yellow-100 text-yellow-700{% endif %}">
                                     {{ doc.demande_financement.get_etape_display }}
                                 </span>

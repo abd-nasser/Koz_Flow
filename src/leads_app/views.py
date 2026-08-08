@@ -676,6 +676,7 @@ def upload_multiple_documents(request, demande_id):
 
 @login_required
 def upload_offre_documents(request, offre_id):
+    time.sleep(3)
     """
     Vue pour uploader les documents d'une offre de financement.
     Le client upload ses documents, le dossier est vérifié.
@@ -1060,10 +1061,6 @@ def modifier_dossier(request, dossier_id):
         vehicule = "Non renseigné"
         lien_demande_offre = None
     
-    messages.success(
-        request, 
-        f"✅ Une demande de modification a été envoyée à {dossier.client.nom_complet} pour son {contexte_nom}."
-    )
     
     # ✉️ EMAIL AU CLIENT
     try:
@@ -1603,11 +1600,14 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
         return context
     
 class DocumentUpdateView(LoginRequiredMixin, UpdateView):
+    
     model = Documents
     form_class = DocumentsUploadForm
-    template_name = "clients_templates/client_detail_doc.html"       
+    template_name = "clients_templates/client_detail_doc.html"     
+      
     
     def form_valid(self, form):
+        time.sleep(3)
         self.object = form.save()
         dossier = self.object
 

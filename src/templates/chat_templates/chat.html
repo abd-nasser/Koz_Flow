@@ -30,13 +30,13 @@
                 <div class="text-right">
                     <p class="text-sm font-semibold text-gray-800">
                         {% if user.role == "client" %}
-                            {{ destinataire.nom_complet|default:"Commercial" }}
-                        {% else %}
-                            {{ client.nom_complet }}
-                        {% endif %}
+                                {% if destinataire %}{{ destinataire.nom_complet }}{% else %}Commercial{% endif %}
+                            {% else %}
+                                {{ client.nom_complet }}
+                            {% endif %}
                     </p>
                     
-                    {% if client.est_en_ligne %}
+                    {% if client and client.est_en_ligne or destinataire and destinataire.est_en_ligne %}
                          <p class="text-xs text-gray-400 flex items-center justify-end gap-1">
                         <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
                         En ligne
@@ -47,7 +47,12 @@
                             Hors ligne
                         </p>
                     {% endif %}
+
+                 
+                   
                         
+                    
+                   
                 </div>
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-md">
                     <i class="fas fa-user text-sm"></i>
