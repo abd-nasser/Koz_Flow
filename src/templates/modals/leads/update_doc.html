@@ -15,7 +15,13 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form method="post" enctype="multipart/form-data" action="{% url 'leads_app:document-update' document.pk %}" class="p-6">
+        <div id="dmd-message-zone" class="mb-4"></div>
+        <form 
+            hx-post="{% url 'leads_app:document-update' document.pk %}"
+            hx-target="#dmd-message-zone"
+            hx-indicator="#dmd-indicator"
+            enctype="multipart/form-data"  
+            class="p-6">
             {% csrf_token %}
             
             <div class="scrollable-form space-y-6 max-h-[70vh] overflow-y-auto pr-2">
@@ -88,6 +94,12 @@
                         <div>{{ update_doc_form.bulletin_3.label_tag }} {{ update_doc_form.bulletin_3 }}</div>
                     </div>
                 </div>
+                <div id="dmd-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
+                    <div class="bg-white p-6 items-center justify-center text-center shadow-2xl">
+                        <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                        <p class="text-white font-medium">Envoi en cours...</p>
+                    </div>
+                </div>
 
                 <!-- BANQUE -->
                 <div class="bg-gray-50 rounded-xl p-4">
@@ -142,13 +154,13 @@
 </dialog>
 
 <!-- Script pour rouvrir le modal si formulaire invalide -->
-{% if open_update_doc_modal %}
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('update_doc_modal').showModal();
-    });
+   document.body.addEventListener('closeDocModal', function() {
+    document.getElementById('update_doc_modal').close();
+});
 </script>
-{% endif %}
+
 
 <style>
     .btn-glow {
@@ -196,5 +208,16 @@
     input[type="file"] {
         padding: 8px;
         background-color: #f9fafb;
+    }
+
+    #dmd-indicator {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    }
+
+    #dmd-indicator .htmx-request {
+        opacity: 1;
+        pointer-events: auto;
     }
 </style>

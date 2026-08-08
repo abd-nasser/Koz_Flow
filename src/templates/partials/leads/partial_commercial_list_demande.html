@@ -13,7 +13,7 @@
                             </h3>
                             <span class="badge px-3 py-1 rounded-full text-xs font-semibold
                                 {% if demande.etape == 'demande_accordee_fidelis' or demande.etape == 'demande_accordee_alios' or demande.etape == 'demande_accordee_maison'%}bg-green-100 text-green-700
-                                {% elif demande.etape == 'demand_refusee' %}bg-red-100 text-red-700
+                                {% elif demande.etape == 'demande_refusee' %}bg-red-100 text-red-700
                                 {% else %}bg-yellow-100 text-yellow-700{% endif %}">
                                 {{ demande.get_etape_display }}
                             </span>

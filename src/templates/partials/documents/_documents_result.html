@@ -1,7 +1,7 @@
 {% load static %}
 <div id="result-toast-container" class="result-toast-container" hx-swap-oob="innerHTML">
     <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full text-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full ">
             <h3 class="font-bold text-lg {% if success %}text-green-600{% else %}text-red-600{% endif %}">
                 {{ title }}
                 {% if success %}
@@ -11,9 +11,6 @@
                 {% endif %}
             </h3>
             <p class="py-4 text-gray-600">{{ message }}</p>
-            <button onclick="closeResultToast({{ reload_on_close|yesno:'true,false' }})" class="btn btn-primary">
-                Fermer
-            </button>
         </div>
     </div>
 </div>
@@ -45,6 +42,7 @@ function closeResultToast(shouldReload) {
     }
 }
 </script>
+
 <script>
     gsap.registerPlugin(ScrollTrigger);
     gsap.from("#result-toast-container .bg-white", {
@@ -55,4 +53,3 @@ function closeResultToast(shouldReload) {
         ease: "elastic.out(1, 0.4)"
     });
 </script>
-

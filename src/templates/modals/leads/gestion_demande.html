@@ -1,3 +1,4 @@
+{% load static %}
 <dialog id="gestion_dmd_modal" class="modal">
     <div class="modal-box w-full max-w-md p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
         
@@ -14,10 +15,13 @@
         </div>
 
         <!-- Corps du modal -->
+        <div id="dmd-message-zone"></div>
         <div class="p-6 space-y-4">
             
             <!-- Action : Demande de documents -->
-            <a href="{% url 'leads_app:attente-document' demande.pk %}" 
+            <a hx-get="{% url 'leads_app:attente-document' demande.pk %}"
+               hx-target="#dmd-message-zone"
+               hx-indicator="#indicator"
                class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
                     <i class="fas fa-file-alt text-blue-700 text-xl"></i>
@@ -31,8 +35,17 @@
 
             <!-- Action : Accorder la demande -->
 
+            <div id="indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
+                <div class="bg-white p-6 items-center rounded-xl justify-center  text-center shadow-2xl">
+                    <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-30 h-30 ml-7 mb-3">
+                    <p class="text-gray-700 font-medium">En cours de traitement...</p>
+                </div>
+            </div>
+
             <!-- Action : Refuser la demande -->
-            <a href="{% url 'leads_app:refuser-demande' demande.pk %}" 
+            <a hx-get="{% url 'leads_app:refuser-demande' demande.pk %}" 
+                hx-target="#dmd-message-zone"
+                hx-indicator="#indicator"
                class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
                     <i class="fas fa-times-circle text-red-700 text-xl"></i>
@@ -58,11 +71,9 @@
 
 <!-- Script pour réouvrir le modal en cas d'erreur -->
 <script>
-    {% if open_gestion_dmd_modal %}
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('gestion_dmd_modal').showModal();
-    });
-    {% endif %}
+    document.body.addEventListener('closeDmdGestionModal', function() {
+    document.getElementById('gestion_dmd_modal').close();
+});
 </script>
 
 <style>
@@ -79,4 +90,17 @@
         transform: translateY(-2px);
         box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
     }
+
+    
+#indicator {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#indicator .htmx-request {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 </style>

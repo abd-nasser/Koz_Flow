@@ -35,6 +35,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import DemandeFinancementSerializers
 
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -247,11 +248,14 @@ def demande_financement_view(request, vehicul_id):
                     fail_silently=False,
                 )
 
-        return render(request, "partials/leads/_dmd_fin_result.html", {
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
             "success": True,
             "title": "✅ Demande envoyée",
             "message": "Votre demande a été envoyée. Un commercial vous contactera sous 24h.",
+            "reload_on_close": True,
         })
+        response["HX-Trigger"] = "closeFinModal"
+        return response
 
     except Exception as e:
         logger.error(f"Erreur lors de l'envoi de la demande de financement : {e}")
@@ -263,30 +267,61 @@ def demande_financement_view(request, vehicul_id):
 
 @login_required
 def attente_document(request, demande_id):
+    time.sleep(1.5)
     demande = get_object_or_404(demande_financement, id=demande_id)
     
     # === 1. VÉRIFICATION DU FINANCEMENT ===
     if not demande.financement_type:
-        messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
-        return redirect("leads_app:detail-demande", pk=demande.pk)
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
+                    "success": False,
+                    "title": "❗ Info ",
+                    "message": "Veuillez d'abord configurer le type de financement.",
+                })
+        response['HX-Trigger'] = 'closeDmdGestionModal'
+        return response
     
     if demande.financement_type == "externe" and not demande.financement_par:
-        messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
-        return redirect("leads_app:detail-demande", pk=demande.pk)
+            response = render(request, "partials/leads/_dmd_fin_result.html", {
+                            "success": False,
+                            "title": "❗ Info ",
+                            "message": "Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).",
+                        })
+            response['HX-Trigger'] = 'closeDmdGestionModal'
+            return response
     
     # === 2. VÉRIFICATION DE L'ETAPE ===
     if demande.etape == "en_attente":
-        messages.info(request, "cette demande de financement est déjà en attente de document")
+            response = render(request, "partials/leads/_dmd_fin_result.html", {
+                                    "success": False,
+                                    "title": "⚠️ Attention",
+                                    "message": "cette demande de financement est déjà en attente de document",
+                                })
+            response['HX-Trigger'] = 'closeDmdGestionModal'
+            return response
+        
     elif demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison":
-        messages.info(request, f"Cette demande de financement est déja accordée par {demande.financement_par if demande.financement_type=="externe" else demande.financement_type}")
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
+                                            "success": False,
+                                            "title": " ⚠️ Attention ",
+                                            "message": f"Cette demande de financement est déja accordée par {demande.financement_par if demande.financement_type == 'externe' else demande.financement_type}",
+                                        })
+        response['HX-Trigger'] = 'closeDmdGestionModal'
+        return response
+    
     elif demande.etape == "demande_refusee":
-        messages.info(request, "cette demande de financement a été réfusée")
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
+                                                    "success": False,
+                                                    "title": "⚠️ Attention ",
+                                                    "message": "cette demande de financement a été réfusée",
+                                                })
+        response['HX-Trigger'] = 'closeDmdGestionModal'
+        return response
+    
     else:
         demande.etape = "en_attente"
         demande.save()
-        
-        messages.info(request, "cette demande financement est désormais en attente de document")
-                # ✉️ Email au client
+       
+        # ✉️ Email au client
         try:
             context_email = {
                 'client': demande.client,
@@ -304,23 +339,45 @@ def attente_document(request, demande_id):
                 html_message=html_message,
                 fail_silently=False,
             )
+            response = render(request, "partials/leads/_dmd_fin_result.html",{
+                                                                    "success": True,
+                                                                    "title": "En attente de documents",
+                                                                    "message": "cette demande financement est désormais en attente de document",
+                                                                    "reload_on_close": True,
+                                                                    })
+            response['HX-Trigger'] = 'closeDmdGestionModal'
+            return response
+        
         except Exception as e:
-            print(f"Erreur envoi email: {e}")
+            logger.error(f"Erreur envoi email: {e}")
         
     return redirect("leads_app:detail-demande", demande.pk)
 
 @login_required
 def refuser_demande(request, demande_id):
+    time.sleep(1.5)
     demande = get_object_or_404(demande_financement, id=demande_id)
-    
     if demande.etape == "demande_refusee":
-        messages.info(request, "Cette demande est déjà refusée.")
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
+                            "success": False,
+                            "title": "❗ Info ",
+                            "message": "Cette demande est déjà refusée.",
+                        })
+        response['HX-Trigger'] = 'closeDmdGestionModal'
+        return response
+        
     elif demande.etape == "demande_accordee_fidelis" or demande.etape == "demande_accordee_alios" or demande.etape == "demande_accordee_maison":
-        messages.warning(request, "Cette demande a déjà été accordée, vous ne pouvez pas la refuser.")
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
+                                    "success": False,
+                                    "title": "❌ Attention ",
+                                    "message": "Cette demande a déjà été accordée, vous ne pouvez pas la refuser.",
+                                })
+        response['HX-Trigger'] = 'closeDmdGestionModal'
+        return response
+    
     else:
         demande.etape = "demande_refusee"
         demande.save()
-        messages.success(request, f"La demande de {demande.client.nom_complet} a été refusée. Un email a été envoyé au client.")
         
         # ✉️ Email au client
         try:
@@ -341,12 +398,18 @@ def refuser_demande(request, demande_id):
                 html_message=html_message,
                 fail_silently=False,
             )
+            response = render(request, "partials/leads/_dmd_fin_result.html", {
+                                                "success": True,
+                                                "title": "✅  Demande de financement refusée",
+                                                "message": f"La demande de {demande.client.nom_complet} a été refusée. Un email a été envoyé au client.",
+                                                "reload_on_close": True,
+                                            })
+            response['HX-Trigger'] = 'closeDmdGestionModal'
+            return response
+        
         except Exception as e:
-            print(f"Erreur envoi email: {e}")
-        
-        
-        
-    
+            logger.info(f"Erreur envoi email: {e}")
+
     return redirect("leads_app:detail-demande", demande.pk)    
 
 
@@ -543,6 +606,7 @@ class GestionTypeFinancementView(LoginRequiredMixin, UserPassesTestMixin, Update
 ################################################### DOCUMENTS VIEWS #####################################################################
 @login_required
 def upload_multiple_documents(request, demande_id):
+    time.sleep(3)
     demande = get_object_or_404(demande_financement, id=demande_id, client=request.user)
     dossier, created = Documents.objects.get_or_create(client=request.user, demande_financement=demande)
     
@@ -557,7 +621,6 @@ def upload_multiple_documents(request, demande_id):
                 demande.etape = "en_cours"
                 demande.save()
                 
-                messages.success(request, "Dossier complet ! Il sera étudié prochainement.")
                 
                 # ✉️ Email à tous les commerciaux
                 try:
@@ -583,34 +646,29 @@ def upload_multiple_documents(request, demande_id):
                                         html_message=html_message,
                                         fail_silently=False,
                                            )
+                    
                 except Exception as e:
-                                   logger.error(f"Erreur envoi email aux commerciaux: {e}")
+                    logger.error(f"Erreur envoi email aux commerciaux: {e}")
                 
-                return redirect('leads_app:detail-demande', demande.pk)
+                response = render(request, "partials/documents/_documents_result.html", {
+                            "success": True,
+                            "title": "✅ Dossier envoyée",
+                            "message": "Votre dossier complet a été envoyée.",
+                            "reload_on_close": True,
+                        })
+                response["HX-Trigger"] = "closeDocModal"
+                return response               
             else:
                 # ❌ Dossier incomplet (documents manquants)
                 dossier.statut_dossier = "incomplet"
                 dossier.save()
-                messages.warning(request, "Veuillez uploader tous les documents obligatoires.")
-                
-                # Réouvrir le modal avec le formulaire (conserve les fichiers déjà uploadés)
-                context = {
-                    'demande': demande,
-                    'upload_doc_form': form,
-                    'open_upload_doc_modal': True,
-                }
-                return render(request, 'clients_templates/client_demande_detail.html', context)
+                return render(request, 'partials/documents/_documents_toast_oob.html', {
+                    "success": False,
+                    "title": "❌ Dossier incomplet",
+                    "message": "Votre dossier est incomplet, il manque des documents requis.",
+                })
         else:
-            # ❌ Formulaire invalide (erreur de validation)
-            messages.error(request, "Erreur dans l'upload des fichiers. Vérifiez les champs.")
-            
-            # Réouvrir le modal avec le formulaire invalide
-            context = {
-                'demande': demande,
-                'upload_doc_form': form,
-                'open_upload_doc_modal': True,
-            }
-            return render(request, 'clients_templates/client_demande_detail.html', context)
+            return render(request, 'partials/documents/_documents_form_errors.html', {'upload_doc_form': form})
     
     # Si GET (pas POST), rediriger vers la page de détail
     return redirect('leads_app:detail-demande', demande.pk)
@@ -646,7 +704,6 @@ def upload_offre_documents(request, offre_id):
                 offre.statut = "verification_document"
                 offre.save()
                 
-                messages.success(request, "✅ Dossier complet ! Il sera étudié prochainement.")
                 
                 # ✉️ Email à tous les commerciaux
                 try:
@@ -657,9 +714,7 @@ def upload_offre_documents(request, offre_id):
                                 'client': offre.client,
                                 'offre_id': offre.id,
                                 'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
-                                'lien_offre': request.build_absolute_uri(
-                                    reverse('commercial_app:offre-detail', kwargs={'pk': offre.id})  # ← CORRIGÉ
-                                )
+                                'lien_offre': request.build_absolute_uri(reverse('commercial_app:offre-detail', kwargs={'pk': offre.id}) )
                             }
                             html_message = render_to_string('emails/documents/dossier_offre_complet.html', context_email)
                             plain_message = strip_tags(html_message)
@@ -672,35 +727,30 @@ def upload_offre_documents(request, offre_id):
                                 html_message=html_message,
                                 fail_silently=False,
                             )
+                         
                 except Exception as e:
                     logger.error(f"Erreur envoi email aux commerciaux: {e}")
-                
-                return redirect('commercial_app:offre-detail', pk=offre.pk)
+                response = render(request, "partials/documents/_documents_result.html", {
+                                                                "success": True,
+                                                                "title": "✅ Dossier envoyée",
+                                                                "message": "Votre dossier complet a été envoyée.",
+                                                                "reload_on_close": True,
+                                                            })
+                response["HX-Trigger"] = "closeDocModal"
             
             else:
                 # ❌ Dossier incomplet (documents manquants)
                 dossier.statut_dossier = "incomplet"
                 dossier.save()
-                messages.warning(request, "⚠️ Veuillez uploader tous les documents obligatoires.")
-                
-                # ✅ Réouvrir le modal avec le formulaire
-                context = {
-                    'offre': offre,
-                    'upload_doc_form': form,
-                    'open_upload_doc_modal': True,
-                }
-                return render(request, 'clients_templates/offre_detail.html', context)  # ← CORRIGÉ
-        
+                return render(request, 'partials/documents/_documents_toast_oob.html', {
+                                    "success": False,
+                                    "title": "❌ Dossier incomplet",
+                                    "message": "Votre dossier est incomplet, il manque des documents requis.",
+                                })
+               
         else:
             # ❌ Formulaire invalide
-            messages.error(request, "❌ Erreur dans l'upload des fichiers. Vérifiez les champs.")
-            
-            context = {
-                'offre': offre,  # ← CORRIGÉ (demande → offre)
-                'upload_doc_form': form,
-                'open_upload_doc_modal': True,
-            }
-            return render(request, 'clients_templates/offre_detail.html', context)  # ← CORRIGÉ
+           return render(request, 'partials/documents/_documents_form_errors.html', {'upload_doc_form': form})
     
     # ✅ GET → rediriger vers le détail de l'offre
     return redirect('commercial_app:offre-detail', pk=offre.pk)
@@ -712,16 +762,32 @@ def valide_dossier(request, dossier_id):
     
     # === 1. VÉRIFICATIONS PRÉALABLES ===
     if dossier.statut_dossier == "incomplet":
-        messages.error(request, "❌ Dossier incomplet : documents obligatoires manquants.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+                                    "success": False,
+                                    "title": "❌ Dossier incomplet",
+                                    "message": "documents obligatoires manquants.",
+                                })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "rejete":
-        messages.warning(request, "⚠️ Dossier rejeté : ne peut pas être validé.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+                                            "success": False,
+                                            "title": "⚠️ Dossier rejeté",
+                                            "message": "Dossier rejeté ne peut pas être validé.",
+                                        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "valide":
-        messages.info(request, "ℹ️ Ce dossier est déjà validé.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+                                                    "success": False,
+                                                    "title": "ℹ️ déjà validé.",
+                                                    "message": " Ce dossier est déjà validé.",
+                                                })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
+        
     
     demande = dossier.demande_financement
     offre = dossier.offre_financement
@@ -732,17 +798,32 @@ def valide_dossier(request, dossier_id):
     if demande:
         # Vérification du financement
         if not demande.financement_type:
-            messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement.")
-            return redirect("leads_app:detail-demande", demande.pk)
+            response = render(request, "partials/leads/_documents_result.html", {
+                                "success": False,
+                                "title": "⚠️Info ",
+                                "message": "Veuillez d'abord configurer le type de financement.",
+                            })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         if demande.financement_type == "externe" and not demande.financement_par:
-            messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
-            return redirect("leads_app:detail-demande", demande.pk)
+            response = render(request, "partials/leads/_documents_result.html", {
+                                            "success": False,
+                                            "title": "⚠️Info ",
+                                            "message": "Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).",
+                                        })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         # Vérification : vente existante
         if hasattr(demande, 'vente') and demande.vente:
-            messages.warning(request, "⚠️ Une vente est déjà enregistrée pour ce dossier.")
-            return redirect("leads_app:document-detail", dossier.pk)
+            response = render(request, "partials/leads/_documents_result.html", {
+                                                        "success": False,
+                                                        "title": "⚠️Info ",
+                                                        "message": "Une vente est déjà enregistrée pour ce dossier.",
+                                                    })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         # ✅ Déterminer le partenaire et le statut
         if demande.financement_type == "externe":
@@ -753,8 +834,14 @@ def valide_dossier(request, dossier_id):
                 nouvelle_etape = "demande_accordee_alios"
                 partenaire = "Alios"
             else:
-                messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
-                return redirect("leads_app:document-detail", dossier.pk)
+                
+                response = render(request, "partials/leads/_documents_result.html", {
+                                                                        "success": False,
+                                                                        "title": "⚠️Info ",
+                                                                        "message": "Partenaire de financement externe non reconnu.",
+                                                                    })
+                response["HX-Trigger"] = "closeGestionDocModal"
+                return response
         else:
             nouvelle_etape = "demande_accordee_maison"
             partenaire = "KOZ Services (financement interne)"
@@ -796,17 +883,32 @@ def valide_dossier(request, dossier_id):
     elif offre:
         # Vérification du financement
         if not offre.financement_type:
-            messages.error(request, "⚠️ Veuillez d'abord configurer le type de financement de l'offre.")
-            return redirect("commercial_app:offre-detail", offre.pk)
+            response = render(request, "partials/documents/_documents_result.html", {
+                                "success": False,
+                                "title": "⚠️ Info ",
+                                "message": "Veuillez d'abord configurer le type de financement de l'offre.",
+                            })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         if offre.financement_type == "externe" and not offre.financement_par:
-            messages.error(request, "⚠️ Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).")
-            return redirect("commercial_app:offre-detail", offre.pk)
+            response = render(request, "partials/documents/_documents_result.html", {
+                                "success": False,
+                                "title": "⚠️ Info ",
+                                "message": "Veuillez d'abord sélectionner le partenaire de financement (Fidelis/Alios).",
+                            })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         # Vérification : vente existante
         if hasattr(offre, 'vente') and offre.vente:
-            messages.warning(request, "⚠️ Une vente est déjà enregistrée pour cette offre.")
-            return redirect("leads_app:document-detail", dossier.pk)
+            response = render(request, "partials/documents/_documents_result.html", {
+                                "success": False,
+                                "title": "⚠️ Info ",
+                                "message": "Une vente est déjà enregistrée pour cette offre.",
+                            })
+            response["HX-Trigger"] = "closeGestionDocModal"
+            return response
         
         # ✅ Déterminer le partenaire et le statut
         if offre.financement_type == "externe":
@@ -817,8 +919,13 @@ def valide_dossier(request, dossier_id):
                 nouveau_statut = "offre_financement_alios"
                 partenaire = "Alios"
             else:
-                messages.error(request, "⚠️ Partenaire de financement externe non reconnu.")
-                return redirect("leads_app:document-detail", dossier.pk)
+                response = render(request, "partials/documents/_documents_result.html", {
+                                    "success": False,
+                                    "title": "⚠️ Info ",
+                                    "message": "Partenaire de financement externe non reconnu.",
+                                })
+                response["HX-Trigger"] = "closeGestionDocModal"
+                return response
         else:
             nouveau_statut = "offre_financement_maison"
             partenaire = "KOZ Services (financement interne)"
@@ -854,8 +961,13 @@ def valide_dossier(request, dossier_id):
         }
     
     else:
-        messages.error(request, "❌ Aucune demande ni offre associée à ce dossier.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Erreur",
+            "message": "Aucune demande ni offre associée à ce dossier.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # ============================================================
     # ✅ VALIDATION DU DOSSIER (APRÈS TOUTES LES CRÉATIONS)
@@ -881,8 +993,14 @@ def valide_dossier(request, dossier_id):
     except Exception as e:
         print(f"Erreur envoi email au client: {e}")
     
-    messages.success(request, "✅ Dossier validé. Demande et vente enregistrées. Un email a été envoyé au client.")
-    return redirect("leads_app:document-detail", pk=dossier.pk)
+    response = render(request, "partials/documents/_documents_result.html", {
+        "success": True,
+        "title": "✅ Dossier validé",
+        "message": "Dossier validé. Demande et vente enregistrées. Un email a été envoyé au client.",
+        "reload_on_close": True,
+    })
+    response["HX-Trigger"] = "closeGestionDocModal"
+    return response
 
 @login_required
 def modifier_dossier(request, dossier_id):
@@ -890,17 +1008,32 @@ def modifier_dossier(request, dossier_id):
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "❌ Vous n'avez pas l'autorisation de modifier ce dossier.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Vous n'avez pas l'autorisation de modifier ce dossier.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Vérifier si le dossier peut être modifié
     if dossier.statut_dossier == "valide":
-        messages.warning(request, "⚠️ Ce dossier a déjà été validé, vous ne pouvez pas demander de modifications.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier a déjà été validé, vous ne pouvez pas demander de modifications.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "rejete":
-        messages.warning(request, "⚠️ Ce dossier a été rejeté. Une nouvelle demande de financement est nécessaire.")
-        return redirect("leads_app:document-detail", pk=dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier a été rejeté. Une nouvelle demande ou offre de financement est nécessaire.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # ✅ Mise à jour du statut
     dossier.statut_dossier = "modification"
@@ -988,7 +1121,14 @@ def modifier_dossier(request, dossier_id):
     except Exception as e:
         print(f"Erreur création message chat: {e}")
     
-    return redirect("leads_app:document-detail", dossier.pk)
+    response = render(request, "partials/documents/_documents_result.html", {
+        "success": True,
+        "title": "✅ Demande envoyée",
+        "message": f"Une demande de modification a été envoyée à {dossier.client.nom_complet}.",
+        "reload_on_close": True,
+    })
+    response["HX-Trigger"] = "closeGestionDocModal"
+    return response
 
 @login_required
 def rejete_dossier(request, dossier_id):
@@ -996,17 +1136,32 @@ def rejete_dossier(request, dossier_id):
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "❌ Vous n'avez pas l'autorisation de rejeter ce dossier.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Vous n'avez pas l'autorisation de rejeter ce dossier.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Vérifier si le dossier peut être rejeté
     if dossier.statut_dossier == "rejete":
-        messages.info(request, "ℹ️ Ce dossier est déjà rejeté.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "ℹ️ Info",
+            "message": "Ce dossier est déjà rejeté.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "valide":
-        messages.warning(request, "⚠️ Ce dossier a été validé, vous ne pouvez pas le rejeter.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier a été validé, vous ne pouvez pas le rejeter.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Récupérer le motif de rejet (depuis le formulaire)
     motif_rejet = request.POST.get('motif_rejet', 'Non conforme aux critères de financement')
@@ -1075,8 +1230,13 @@ def rejete_dossier(request, dossier_id):
         messages.success(request, "✅ Dossier rejeté. Offre marquée comme refusée. Un email a été envoyé au client.")
     
     else:
-        messages.error(request, "❌ Aucune demande ni offre associée à ce dossier.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Erreur",
+            "message": "Aucune demande ni offre associée à ce dossier.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # ============================================================
     # ENVOI DE L'EMAIL
@@ -1118,7 +1278,14 @@ def rejete_dossier(request, dossier_id):
     except Exception as e:
         print(f"Erreur création message chat: {e}")
     
-    return redirect("leads_app:document-detail", pk=dossier.pk)
+    response = render(request, "partials/documents/_documents_result.html", {
+        "success": True,
+        "title": "✅ Dossier rejeté",
+        "message": "Le dossier a été rejeté et le client informé.",
+        "reload_on_close": True,
+    })
+    response["HX-Trigger"] = "closeGestionDocModal"
+    return response
 
 @login_required
 def verifier_dossier(request, dossier_id):
@@ -1126,27 +1293,46 @@ def verifier_dossier(request, dossier_id):
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "❌ Vous n'avez pas l'autorisation de mettre ce dossier en vérification.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Vous n'avez pas l'autorisation de mettre ce dossier en vérification.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Vérifier si le dossier peut être mis en vérification
     if dossier.statut_dossier == "verification":
-        messages.info(request, "ℹ️ Ce dossier est déjà en cours de vérification.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "ℹ️ Info",
+            "message": "Ce dossier est déjà en cours de vérification.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "valide":
-        messages.warning(request, "⚠️ Ce dossier a été validé, vous ne pouvez pas le mettre en vérification.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier a été validé, vous ne pouvez pas le mettre en vérification.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     if dossier.statut_dossier == "rejete":
-        messages.warning(request, "⚠️ Ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier a été rejeté, vous ne pouvez pas le mettre en vérification.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # ✅ Mise à jour du statut
     dossier.statut_dossier = "verification"
     dossier.save()
     messages.success(request, "✅ Ce dossier est désormais en cours de vérification.")
-    
     # ✅ Déterminer le contexte (demande ou offre)
     demande = dossier.demande_financement
     offre = dossier.offre_financement
@@ -1190,7 +1376,14 @@ def verifier_dossier(request, dossier_id):
     except Exception as e:
         print(f"Erreur envoi email au client: {e}")
     
-    return redirect("leads_app:document-detail", pk=dossier.pk)
+    response = render(request, "partials/documents/_documents_result.html", {
+        "success": True,
+        "title": "🔄 Dossier en vérification",
+        "message": "Ce dossier est désormais en cours de vérification.",
+        "reload_on_close": True,
+    })
+    response["HX-Trigger"] = "closeGestionDocModal"
+    return response
        
 @login_required
 def reverifier_document(request, dossier_id):
@@ -1202,21 +1395,36 @@ def reverifier_document(request, dossier_id):
     
     # Vérifier que l'utilisateur est commercial ou directeur
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "❌ Action non autorisée.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Action non autorisée.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Vérifier que le dossier a un contexte (demande ou offre)
     demande = dossier.demande_financement
     offre = dossier.offre_financement
     
     if not demande and not offre:
-        messages.error(request, "❌ Cette action n'est disponible que pour les dossiers liés à une demande ou une offre de financement.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "❌ Action non disponible",
+            "message": "Cette action n'est disponible que pour les dossiers liés à une demande ou une offre de financement.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # Vérifier que le dossier est dans un état valide pour être revérifié
     if dossier.statut_dossier not in ['rejete', 'modification']:
-        messages.warning(request, "⚠️ Ce dossier ne peut pas être remis en vérification.")
-        return redirect("leads_app:document-detail", dossier.pk)
+        response = render(request, "partials/documents/_documents_result.html", {
+            "success": False,
+            "title": "⚠️ Attention",
+            "message": "Ce dossier ne peut pas être remis en vérification.",
+        })
+        response["HX-Trigger"] = "closeGestionDocModal"
+        return response
     
     # ✅ Remettre en vérification
     dossier.statut_dossier = "verification"
@@ -1242,11 +1450,12 @@ def reverifier_document(request, dossier_id):
     
     # ✅ Déterminer le message de succès
     if demande:
-        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour sa demande n°{demande.id}.")
+        success_message = f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour sa demande n°{demande.id}."
     elif offre:
-        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour son offre n°{offre.id}.")
+        success_message = f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification pour son offre n°{offre.id}."
     else:
-        messages.success(request, f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification.")
+        success_message = f"✅ Le dossier de {dossier.client.nom_complet} est à nouveau en vérification."
+    messages.success(request, success_message)
     
     # ✉️ EMAIL AU CLIENT
     try:
@@ -1285,7 +1494,14 @@ def reverifier_document(request, dossier_id):
     except Exception as e:
         print(f"Erreur création message chat: {e}")
     
-    return redirect("leads_app:document-detail", dossier.pk)
+    response = render(request, "partials/documents/_documents_result.html", {
+        "success": True,
+        "title": "🔄 Dossier remis en vérification",
+        "message": success_message,
+        "reload_on_close": True,
+    })
+    response["HX-Trigger"] = "closeGestionDocModal"
+    return response
 
 class DocumentListView(LoginRequiredMixin, ListView):
     model = Documents
@@ -1389,33 +1605,39 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
 class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     model = Documents
     form_class = DocumentsUploadForm
-    template_name = "clients_templates/client_detail_doc.html"
-    
-    def get_success_url(self):
-        return reverse_lazy("leads_app:document-detail", kwargs={"pk": self.object.pk})
+    template_name = "clients_templates/client_detail_doc.html"       
     
     def form_valid(self, form):
-        response = super().form_valid(form)
+        self.object = form.save()
         dossier = self.object
-        
+
         if dossier.verifier_completude():
             dossier.statut_dossier = "complet"
             dossier.save()
             if dossier.demande_financement:
                 dossier.demande_financement.etape = "en_cours"
                 dossier.demande_financement.save()
+            response = render(self.request, "partials/documents/_documents_result.html", {
+                "success": True,
+                "title": "✅ Dossier mis à jour",
+                "message": "Votre dossier complet a été mis à jour.",
+                "reload_on_close": True,
+            })
+            response["HX-Trigger"] = "closeDocModal"
+            return response
+        else:
+            dossier.statut_dossier = "incomplet"
+            dossier.save()
+            response = render(self.request, "partials/documents/_documents_result.html", {
+                "success": False,
+                "title": "⚠️ Dossier incomplet",
+                "message": "Il manque encore des documents requis.",
+            })
+            return response  # pas de reload_on_close, pas de HX-Trigger — état pas encore "complet"
         
-        messages.success(self.request, "Vos documents ont été mis à jour")
-        return response
-    
     def form_invalid(self, form):
-        doc_detail_view = DocumentDetailView()
-        doc_detail_view.request = self.request
-        doc_detail_view.kwargs = self.kwargs
-        context = doc_detail_view.get_context_data()
-        context["open_update_doc_modal"] = True
-        context["update_doc_form"] = form
-        return self.render_to_response(context)
+        return render(self.request, 'partials/documents/_documents_form_errors.html', {'update_doc_form': form})
+        
     
 class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
     def test_func(self):

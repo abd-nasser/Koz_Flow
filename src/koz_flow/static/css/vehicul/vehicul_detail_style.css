@@ -82,15 +82,41 @@ nav{
 
 }
 
+.btn-glow {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+    
+}
+
+.btn-glow:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+}
+
+.thumbnail {
+    transition: all 0.2s ease;
+}
+
+.thumbnail:hover {
+    transform: scale(1.05);
+    border-color: #3b82f6;
+}
+
+
+
 .modal-box{
-    background: rgba(255, 255, 255, 0);
+    background: rgba(138, 187, 228, 0.363);
     -webkit-backdrop-filter:blur(8rem);
     backdrop-filter: blur(8rem);
 
 }
 
 .modal-box .input, select{
-    background: rgba(7, 95, 226, 0.003);
+    background: rgba(138, 187, 228, 0.363);
     -webkit-backdrop-filter:blur(8rem);
     backdrop-filter: blur(8rem);
     color: #ffffff;
@@ -101,6 +127,8 @@ nav{
     -webkit-backdrop-filter:blur(8rem);
     backdrop-filter: blur(8rem);
     color: #ebebeb;
+    border: 1px;
+    border-radius: 15px;
 }
 
 .modal-box label{
@@ -183,7 +211,6 @@ input[type="file"], textarea {
     -webkit-backdrop-filter:blur(8rem);
     backdrop-filter: blur(8rem);
 }
-
 
 
 

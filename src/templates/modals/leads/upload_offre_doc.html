@@ -13,9 +13,13 @@
             </div>
             <p class="text-blue-100 text-sm mt-1">Veuillez fournir tous les documents obligatoires</p>
         </div>
-
+        <div id="dmd-message-zone" class="mb-4"></div>
         <!-- Corps du modal avec formulaire -->
-        <form method="post" enctype="multipart/form-data" action="{% url 'leads_app:upload-offre-document' offre.pk %}" class="p-6">
+        <form   hx-post="{% url 'leads_app:upload-offre-document' offre.pk %}"
+                hx-target="#dmd-message-zone"
+                hx-indicator="#dmd-indicator"
+                enctype="multipart/form-data"  
+                class="p-6">
             {% csrf_token %}
             
             <div class="scrollable-form space-y-6 max-h-[70vh] overflow-y-auto pr-2">
@@ -86,6 +90,13 @@
                         <div>{{ upload_doc_form.bulletin_1.label_tag }} {{ upload_doc_form.bulletin_1 }}</div>
                         <div>{{ upload_doc_form.bulletin_2.label_tag }} {{ upload_doc_form.bulletin_2 }}</div>
                         <div>{{ upload_doc_form.bulletin_3.label_tag }} {{ upload_doc_form.bulletin_3 }}</div>
+                    </div>
+                </div>
+
+                <div id="dmd-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
+                    <div class="bg-white p-6 items-center justify-center text-center shadow-2xl">
+                        <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                        <p class="text-white font-medium">Envoi en cours...</p>
                     </div>
                 </div>
 

@@ -96,7 +96,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 font-inter">
+<body id="bd" class="bg-gray-50 font-inter">
 
     <!-- ===== NAVBAR ===== -->
     <nav class="glass-nav sticky top-0 z-40 shadow-sm">
@@ -157,12 +157,10 @@
             </div>
         </div>
         {% else %}
-
         <!-- ============================================================ -->
         <!-- PANIER NON VIDE (avec conteneur HTMX)                       -->
         <!-- ============================================================ -->
-        {% include 'partials/order/panier_container.html' %}
-
+            {% include 'partials/order/panier_container.html' %}
         {% endif %}
 
     </main>
