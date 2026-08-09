@@ -31,6 +31,10 @@
         .filter-card input, .filter-card select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; margin-bottom: 0.6rem; font-family: 'Inter', sans-serif; font-size: 0.875rem; background: #f9fafb; transition: all 0.2s ease; }
         .filter-card input:focus, .filter-card select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); background: white; }
         .filter-card input::placeholder { color: #9ca3af; }
+
+         main {
+            min-height: 81vh;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -161,6 +165,12 @@
             </div>
         </div>
     </div>
-    <footer class="bg-gray-900 text-gray-400 py-6 mt-12"><div class="max-w-7xl mx-auto px-4 text-center text-sm"><p>&copy; 2024 KOZ Services - Concessionnaire automobile</p></div></footer>
+   <footer class="bg-gray-800 top-100 text-gray-400 py-8 mt-12"style="
+    position: relative;
+    top: 20rem;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>&copy; {% now "Y" %} KOZ Services — Tous droits réservés</p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -479,7 +479,7 @@
 <!-- ============================================================ -->
 <!-- SECTION : TYPES DE VÉHICULES VEDETTE                         -->
 <!-- ============================================================ -->
-<section class="py-16 relative type-vehicul_et_vedette  bg-white overflow-hidden">
+<section class="py-16 relative section_type_vehicul type-vehicul_et_vedette bg-white overflow-hidden">
         <div class="fade-section relative z-10">
             
             <!-- ===== EN-TÊTE ===== -->
@@ -523,7 +523,7 @@
                         {% else %}
                             <p class="text-sm text-gray-400 mt-1">Découvrez notre gamme</p>
                         {% endif %}
-                        <a href="?type={{ types_vehicule.0.id }}" 
+                        <a href="{% url 'vehicul_app:site-vehicul-type-list' types_vehicule.0.pk %}" 
                            class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm font-medium group/btn">
                             <span>Parcourir</span>
                             <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover/btn:translate-x-1"></i>
@@ -557,7 +557,7 @@
                         {% else %}
                             <p class="text-sm text-gray-400 mt-1">Découvrez notre gamme</p>
                         {% endif %}
-                        <a href="?type={{ types_vehicule.1.id }}" 
+                        <a href="{% url 'vehicul_app:site-vehicul-type-list' types_vehicule.1.pk %}"
                            class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm font-medium group/btn">
                             <span>Parcourir</span>
                             <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover/btn:translate-x-1"></i>
@@ -591,7 +591,7 @@
                         {% else %}
                             <p class="text-sm text-gray-400 mt-1">Découvrez notre gamme</p>
                         {% endif %}
-                        <a href="?type={{ types_vehicule.2.id }}" 
+                        <a href="{% url 'vehicul_app:site-vehicul-type-list' types_vehicule.2.pk %}"
                            class="inline-flex items-center gap-2 mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-lg text-sm font-medium group/btn">
                             <span>Parcourir</span>
                             <i class="fas fa-arrow-right text-xs transition-transform duration-300 group-hover/btn:translate-x-1"></i>
@@ -1126,7 +1126,7 @@
 <!-- ============================================================ -->
 <!-- SECTION STATS – STYLE ANIME                                  -->
 <!-- ============================================================ -->
-<section class="py-20 relative bg-white overflow-hidden">
+<section class="py-20 relative bg-white section-stats overflow-hidden section_stati">
     
     <!-- Effet de fond "aura" -->
     <div class="absolute inset-0 opacity-30">
@@ -1134,7 +1134,7 @@
         <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-800 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container mx-auto px-4 relative z-10">
+    <div class="container stats_fade mx-auto px-4 relative z-10">
         
         <!-- Titre -->
         <div class="text-center mb-16">
@@ -1222,7 +1222,7 @@
         <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-200 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container mx-auto px-4 max-w-7xl relative z-10">
+    <div class="container financement_fade mx-auto px-4 max-w-7xl relative z-10">
         
         <!-- En-tête -->
         <div class="text-center mb-12">
@@ -1310,7 +1310,7 @@
 <!-- ============================================================ -->
 <!-- SECTION : TÉMOIGNAGES & RÉSEAUX SOCIAUX                     -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+<section class="py-16 sm:py-20 relative bg-gradient-to-br from-gray-50 to-white overflow-hidden temoignage_section">
     
     <!-- Dégradé de fond -->
     <div class="absolute inset-0 pointer-events-none">
@@ -1318,7 +1318,7 @@
         <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-50/30 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container relative z-10 mx-auto px-4 max-w-7xl">
+    <div class="container relative z-10 mx-auto px-4 max-w-7xl temoignage_fade">
         
         <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12">
@@ -1373,7 +1373,7 @@
         </div>
 
         <!-- ===== RÉSEAUX SOCIAUX (grille d'avis) ===== -->
-        <div class="mb-12">
+        <div class="mb-12 socials_fade">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-share-alt text-blue-500"></i> Sur les réseaux sociaux
@@ -1421,7 +1421,7 @@
         </div>
 
        <!-- ===== VIDÉOS ===== -->
-        <div>
+        <div class="videos_fade">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-video text-red-500"></i> Vidéos
@@ -1491,9 +1491,9 @@
 <!-- ============================================================ -->
 <!-- SECTION 3 : À PROPOS DE KOZ SERVICES                          -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative bg-gradient-to-br from-gray-50 to-white overflow-hidden">
+<section class="py-16 sm:py-20 relative section_propos bg-gradient-to-br from-gray-50 to-white overflow-hidden">
     
-    <div class="container mx-auto px-4 max-w-7xl">
+    <div class="container propos_fade mx-auto px-4 max-w-7xl">
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             
@@ -1580,9 +1580,9 @@
 <!-- ============================================================ -->
 <!-- SECTION 2 : NOUS CONTACTER + PRISE DE RENDEZ-VOUS             -->
 <!-- ============================================================ -->
-<section id="contact" class="py-16 sm:py-20 relative bg-white overflow-hidden">
+<section id="contact" class="py-16 sm:py-20 section-contact relative bg-white overflow-hidden">
     
-    <div class="container mx-auto px-4 max-w-7xl">
+    <div class="container contact_fade mx-auto px-4 max-w-7xl">
         
         <!-- En-tête -->
         <div class="text-center mb-12">
@@ -1758,7 +1758,7 @@
 <!-- ============================================================ -->
 <!-- CTA : PRÊT À ROULER AVEC KOZ ?                              -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative overflow-hidden bg-white ">
+<section class="py-16 sm:py-20 relative section-cta overflow-hidden bg-white ">
     
     <!-- Effet de fond animé -->
     <div class="absolute inset-0 opacity-20">
@@ -1775,7 +1775,7 @@
         <div class="absolute bottom-20 right-1/4 w-2 h-2 bg-indigo-800/15 rounded-full animate-ping" style="animation-delay: 1.5s;"></div>
     </div>
 
-    <div class="container mx-auto px-4 max-w-6xl relative z-10">
+    <div class="container mx-auto cta_fade px-4 max-w-6xl relative z-10">
         
         <div class="text-center">
             <!-- Badge -->
@@ -1794,7 +1794,7 @@
             </p>
 
             <!-- ===== AVANTAGES ===== -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div class="grid grid-cols-1 avantages sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
                 
                 <div class="group bg-white/10 backdrop-blur-sm  p-4 border border-blue-600/10 hover:border-blue/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/10">
                     <div class="flex items-center gap-3">

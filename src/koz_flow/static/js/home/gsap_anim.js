@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     start: "5% 70%",
                     end: "top 30%",
                     toggleActions: "play none none reverse", 
-                    markers:true
+                    
                 },
                 opacity: 0,
                 y: 200,
@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
 })
 
 // ============================================================
-// ANIMATION : POURQUOI CHOISIR KOZ SERVICES  
+// ANIMATION : POURQUOI CHOISIR KOZ SERVICES  + un melange de section
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     gsap.from(".choisir_fade", {
@@ -624,19 +624,175 @@ document.addEventListener('DOMContentLoaded', function() {
                     start: "5% 70%",
                     end: "top 30%",
                     toggleActions: "play none none reverse", 
-                    markers:true
+                   
                 },
                 opacity: 0,
                 y: 200,
                 duration: 1,
             
             });
+
+    gsap.from(".financement_fade", {
+                scrollTrigger: {
+                    trigger: ".financement_fade",
+                    start: "top 75%",
+                    end: "top 40%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 180,
+                duration: 1,
+            });
+
+    gsap.from(".temoignage_fade", {
+                scrollTrigger: {
+                    trigger: ".temoignage_fade",
+                    start: "top 75%",
+                    end: "top 40%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 180,
+                duration: 1,
+            });
+
+    gsap.from(".socials_fade", {
+                scrollTrigger: {
+                    trigger: ".socials_fade",
+                    start: "top 80%",
+                    end: "top 40%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 120,
+                duration: 1,
+                stagger: 0.08,
+            });
+
+    gsap.from(".videos_fade", {
+                scrollTrigger: {
+                    trigger: ".videos_fade",
+                    start: "top 80%",
+                    end: "top 40%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 120,
+                duration: 1,
+                stagger: 0.08,
+            });
+
+    gsap.from(".section_type_vehicul .fade-section", {
+                scrollTrigger: {
+                    trigger: ".section_type_vehicul",
+                    start: "top 70%",
+                    end: "top 35%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            });
+
+    gsap.from(".section_type_vehicul .type-contain > div", {
+                scrollTrigger: {
+                    trigger: ".section_type_vehicul",
+                    start: "top 75%",
+                    end: "top 35%",
+                    toggleActions: "play none none reverse",
+                },
+                opacity: 0,
+                y: 120,
+                duration: 1,
+                stagger: 0.14,
+            });
+
+    gsap.from(".section_propos .container > .grid > div:first-child", {
+                scrollTrigger: {
+                    trigger: ".section_propos",
+                    start: "top 75%",
+                    end: "top 35%",
+                    toggleActions: "play none none reverse",
+                },
+                autoAlpha: 0,
+                x: -200,
+                duration: 1.2,
+                ease: "power3.out",
+            });
+
+    gsap.from(".section_propos .container > .grid > div:last-child", {
+                scrollTrigger: {
+                    trigger: ".section_propos",
+                    start: "top 75%",
+                    end: "top 35%",
+                    toggleActions: "play none none reverse",
+                },
+                autoAlpha: 0,
+                x: 200,
+                duration: 1.2,
+                ease: "power3.out",
+            });
+
+    gsap.from(".section_choisir_koz .grid > div", {
+                scrollTrigger: {
+                    trigger: ".section_choisir_koz",
+                    start: "top 40%",
+                    end: "top 55%",
+                    toggleActions: "play none none reverse",
+                    
+                    
+                },
+                autoAlpha: 0,
+                y: 300,
+                duration: 1,
+                stagger: 0.50,
+                immediateRender: false,
+                ease: "power3.out",
+            });
+
+    gsap.from(".section_stati .stat-card, .stat-card", {
+                scrollTrigger: {
+                    trigger: ".section_stati",
+                    start: "top 40%",
+                    end: "top 60%",
+                    toggleActions: "play none none reverse",
+                    
+                    
+                },
+                autoAlpha: 0,
+                y: 300,
+                duration: 1,
+                stagger: 0.50,
+                immediateRender: false,
+                ease: "power3.out",
+            });
+
+    
 })
 
 // ============================================================
-// STAT ANIME – COUNTER ANIMATION
+// ANIME STAT SECTION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+
+    
+    gsap.from(".stats_fade", {
+                scrollTrigger: {
+                    trigger: ".section-stats",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                    markers:true, 
+                     
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+                ease: "power3.out",
+            
+            });
+
+        
     
     const stats = document.querySelectorAll('.stat-number');
     
@@ -678,7 +834,78 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { threshold: 0.5 });
     
     stats.forEach(stat => observer.observe(stat));
+
+
 });
 
+// ============================================================
+// ANIME NOUS CONTACTER + PRISE DE RENDEZ-VOUS  
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".contact_fade", {
+                scrollTrigger: {
+                    trigger: ".section-contact",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                    markers:true, 
+                     
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+                ease: "power3.out",
+            
+            });
+
+        })
 
 
+//============================================================
+// CTA ANIME – 
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".cta_fade", {
+                scrollTrigger: {
+                    trigger: ".section-cta",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                   
+                   
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+                ease: "power3.out",
+            });
+
+        gsap.fromTo(
+        ".avantages .group",
+        {
+            y: 0,
+            backgroundColor: "rgba(255,255,255,0.12)",
+            borderColor: "rgba(147,197,253,0.2)",
+            boxShadow: "0 0 0 rgba(59,130,246,0)",
+        },
+        {
+            scrollTrigger: {
+                trigger: ".avantages",
+                start: "top 85%",
+                end: "top 60%",
+                toggleActions: "play none none reverse",
+                
+            },
+            y: 50,
+            backgroundColor: "rgba(255,255,255,0.24)",
+            borderColor: "rgba(96,165,250,0.35)",
+            boxShadow: "0 24px 62px rgba(59,130,246,0.14)",
+            duration: 1,
+            ease: "sine.inOut",
+            repeat: -1,
+            yoyo: true,
+            stagger: 0.5,
+        }
+    );
+
+        })
