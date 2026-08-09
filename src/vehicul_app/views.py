@@ -537,6 +537,56 @@ class SITE_VehiculListView(ListView):
         
         return context
 
+class SITE_VehiculByTypeListView(ListView):
+    """
+    Vue publique pour afficher la liste des véhicules d'un type spécifique.
+    """
+    model = Vehicul
+    template_name = "vehicul_templates/SITE/SITE_vehicul_type_list.html"
+    context_object_name = "vehicules"
+    paginate_by = 12
+
+    def get_queryset(self):
+        self.selected_type = get_object_or_404(TypeVehicule, pk=self.kwargs['type_pk'])
+        queryset = Vehicul.objects.filter(
+            disponible=True,
+            type_vehicule=self.selected_type
+        ).select_related('marque', 'type_vehicule').prefetch_related('images').order_by('-date_ajout')
+
+        search_query = self.request.GET.get('q')
+        marque = self.request.GET.get('marque')
+        carburant = self.request.GET.get('carburant')
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(modele__icontains=search_query) |
+                Q(marque__nom__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+
+        if marque:
+            queryset = queryset.filter(marque__pk=marque)
+
+        if carburant:
+            queryset = queryset.filter(carburant=carburant)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['selected_type'] = self.selected_type
+        context['marques'] = Marque.objects.all()
+        context['carburants'] = Vehicul.TYPES_CARBURANT_CHOICES
+        context['search_query'] = self.request.GET.get('q', '')
+        context['selected_marque'] = self.request.GET.get('marque', '')
+        context['selected_carburant'] = self.request.GET.get('carburant', '')
+
+        for vehicule in context['vehicules']:
+            image_principale = vehicule.images.filter(est_principale=True).first()
+            vehicule.image_display = image_principale.image if image_principale else vehicule.image_principale
+
+        return context
+
 class SITE_VehiculDetailView(DetailView):
     """
     Vue publique pour afficher les détails d'un véhicule

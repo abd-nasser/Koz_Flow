@@ -63,7 +63,8 @@
         <div class="flex items-center gap-2 sm:gap-3">
             {% if user.is_authenticated %}
                 
-                <!-- Dashboard -->
+                
+                {% if user.role == "client" %}
                 <a href="{% url 'client_app:client-view' %}" 
                    class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
                     <i class="fas fa-chart-simple text-blue-500"></i>
@@ -80,6 +81,21 @@
                     </span>
                     {% endif %}
                 </a>
+                {% elif user.role == "commercial" %}
+                 <a href="{% url 'commercial_app:commercial-view' %}" 
+                   class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                    <i class="fas fa-chart-simple text-blue-500"></i>
+                    <span class="hidden lg:inline">Tableau de bord</span>
+                </a>
+                {% else %}
+                <a href="{% url 'directeur_app:directeur-view' %}" 
+                   class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200">
+                    <i class="fas fa-chart-simple text-blue-500"></i>
+                    <span class="hidden lg:inline">Tableau de bord</span>
+                </a>
+                {% endif %}
+                    
+                
 
                 <!-- Utilisateur -->
                 <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50/50 border border-gray-100">
@@ -151,7 +167,7 @@
 <div class="frame-container">
     <img id="frame" src="{% static 'frames/ECO_SYS_PROJECTKoz_Flowsrckoz_flowstaticframesframe-0001.jpg' %}" alt="">
 </div>
-
+<div id="result-toast-container" class="result-toast-container"></div>
 <section class="hero-section  relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
     
     <!-- ===== CONTENU PRINCIPAL ===== -->
@@ -309,9 +325,9 @@
                     </span>
                     
                     <!-- Description avec Splitting -->
-                    <div data-splitting class="description-splitting mt-2">
-                        <p class="text-base sm:text-lg text-gray-700 leading-relaxed">
-                            {{ actu.description|truncatechars:500 }}
+                    <div data-splitting class="description-splitting text-leading mt-2">
+                        <p class="text-base sm:text-lg text-gray-700">
+                            {{ actu.description|truncatechars:250 }}
                         </p>
                     </div>
                     
@@ -324,7 +340,7 @@
 
                 <!-- ===== BAS (40%) : GALERIE D'IMAGES ===== -->
                 {% if actu.images_list|length > 1 %}
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div class="grid actu-img-galerie grid-cols-2 sm:grid-cols-3 gap-3">
                     {% for image in actu.images_list %}
                         {% if forloop.counter0 > 0 and forloop.counter0 < 4 %}
                         <div class="relative aspect-square rounded-xl overflow-hidden bg-gray-200 group/img cursor-pointer hover:shadow-lg transition"
@@ -635,7 +651,7 @@
         <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-40"></div>
     </div>
 
-    <div class="container relative z-10 mx-auto px-4 max-w-7xl">
+    <div class="container mission_valeur_fade relative z-10 mx-auto px-4 max-w-7xl">
         
         <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12">
@@ -652,7 +668,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
             
             <!-- ===== COLONNE GAUCHE : MISSION ===== -->
-            <div class="relative group">
+            <div class="relative group mission">
                 <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500  opacity-0 group-hover:opacity-20 blur-xl transition duration-500"></div>
                 <div class="relative bg-white  p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition duration-500 h-full">
                     <div class="flex items-center gap-4 mb-4">
@@ -711,7 +727,7 @@
             </div>
 
             <!-- ===== COLONNE DROITE : VALEURS ===== -->
-            <div class="bg-white  p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition duration-500">
+            <div class="bg-white valeur p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition duration-500">
                 <div class="flex items-center gap-4 mb-4">
                     <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
                         <i class="fas fa-heart text-xl text-white"></i>
@@ -726,7 +742,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     
                     <!-- Valeur 1 -->
-                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                    <div class="flex items-start gap-3 p-3 v_1 bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
                             <i class="fas fa-handshake text-blue-600 text-sm"></i>
                         </div>
@@ -737,7 +753,7 @@
                     </div>
                     
                     <!-- Valeur 2 -->
-                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                    <div class="flex items-start gap-3 p-3 v_2 bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
                             <i class="fas fa-bolt text-blue-600 text-sm"></i>
                         </div>
@@ -748,7 +764,7 @@
                     </div>
                     
                     <!-- Valeur 3 -->
-                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                    <div class="flex items-start gap-3 p-3 v_3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
                             <i class="fas fa-users text-blue-600 text-sm"></i>
                         </div>
@@ -759,7 +775,7 @@
                     </div>
                     
                     <!-- Valeur 4 -->
-                    <div class="flex items-start gap-3 p-3  bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
+                    <div class="flex items-start gap-3 p-3 v_4 bg-gray-50/50 hover:bg-blue-50/50 transition group border border-transparent hover:border-blue-100">
                         <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition">
                             <i class="fas fa-shield-alt text-blue-600 text-sm"></i>
                         </div>
@@ -775,7 +791,7 @@
         </div>
 
         <!-- ===== BANDEAU CITATION ===== -->
-        <div class="mt-10 p-6  bg-gradient-to-r from-blue-600 to-indigo-600 text-center shadow-xl">
+        <div class="mt-10 p-6 citation bg-gradient-to-r from-blue-600 to-indigo-600 text-center shadow-xl">
             <p class="text-white text-base md:text-lg font-medium leading-relaxed max-w-3xl mx-auto">
                 <i class="fas fa-quote-left text-blue-200/50 mr-2"></i>
                 KOZ Services, n'achetez pas une auto, changez votre vie
@@ -789,7 +805,7 @@
 <!-- ============================================================ -->
 <!-- SECTION PRODUITS VEDETTE (PREMIUM)                           -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative bg-white overflow-hidden">
+<section class="py-16 section_product sm:py-20 relative bg-white overflow-hidden">
     
     <!-- Dégradé de fond subtil -->
     <div class="absolute inset-0 pointer-events-none">
@@ -797,7 +813,7 @@
         <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-100/30 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container relative z-10 mx-auto px-4">
+    <div class="container product_fade relative z-10 mx-auto px-4">
         
         <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12">
@@ -951,7 +967,7 @@
 <!-- ============================================================ -->
 <!-- SECTION : POURQUOI CHOISIR KOZ SERVICES                      -->
 <!-- ============================================================ -->
-<section class="py-16 sm:py-20 relative bg-white overflow-hidden">
+<section class="py-16 section_choisir_koz sm:py-20 relative bg-white overflow-hidden">
     
     <!-- Dégradé de fond subtil -->
     <div class="absolute inset-0 pointer-events-none">
@@ -959,7 +975,7 @@
         <div class="absolute bottom-0 left-0 w-96 h-96 bg-indigo-50/50 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="container relative z-10 mx-auto px-4 max-w-6xl">
+    <div class="container choisir_fade relative z-10 mx-auto px-4 max-w-6xl">
         
         <!-- ===== EN-TÊTE ===== -->
         <div class="text-center mb-12 animate-fade-in-up">
@@ -1608,9 +1624,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                             <input type="tel" name="telephone" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="70 00 00 00">
                         </div>
-                         <div class="relative">
-                                <img id="contact-indicator" class="htmx-indicator" src="{% static 'images/Message_Sent_Successfully_Plane.gif' %}">
-                            </div>
+                        
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Sujet *</label>
                             <select name="sujet" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -1679,10 +1693,7 @@
                     </div>
                 </div>
 
-                <!-- Zone où le message va s'afficher -->
-                <div id="contact-message-zone" class="mt-4"></div>
-                <div id="message-zone" class="mt-4"></div>
-              
+                
                 <!-- Prise de rendez-vous -->
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                     <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -1709,9 +1720,7 @@
                                 <input type="text" name="telephone" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                             </div>
                         {% endif %}
-                            <div class="relative">
-                                <img id="indicator" class="htmx-indicator" src="{% static 'images/Message_Sent_Successfully_Plane.gif' %}">
-                            </div>
+                            
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
                                 <input type="date" name="date" required class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -1948,7 +1957,6 @@
     {% include 'modals/home/register.html' %}
     {% include 'modals/auth/login_simple_modal.html' %}
     {% include 'modals/home/temoignage_textuel_form.html' %}
-    <script src="{% static 'js/home/register.js' %}"></script>
     <script src="{% static 'js/home/gsap_anim.js' %}"></script>
 
     <script>

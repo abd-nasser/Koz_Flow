@@ -14,7 +14,7 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form method="post" action="{% url 'auth_app:user-register' %}" class="p-6 scrollable-form">
+        <form method="post" action="{% url 'auth_app:register' %}" class="p-6 scrollable-form">
             {% csrf_token %}
             
             <div class="space-y-5">

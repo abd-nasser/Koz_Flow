@@ -31,6 +31,8 @@ from client_app.forms import MaintenanceForm
 from .forms import OffreFinancementForm, OffreSimpleForm
 
 import logging
+import time
+
 logger = logging.getLogger(__name__)
 
 
@@ -109,11 +111,20 @@ def creer_offre(request, demande_id=None):
 
 @login_required
 def accepter_offre(request, offre_id):
+    time.sleep(1.5)
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
-        messages.warning(request, "Cette offre ne peut pas être acceptée.")
-        return redirect('commercial_app:offre-detail', offre.pk)
+        
+        response = render(request, 'partials/offre/_offres_result.html', {
+                'success': False,
+                'title': '❌ Action impossible',
+                'message': "Cette offre ne peut pas être acceptée.",
+                'reload_on_close': False,
+            })
+        response['HX-Trigger'] = 'closeOffreGestionModal'
+        return response
+        
     
     # 1️⃣ Changer le statut de l'offre
     offre.statut = 'acceptee'
@@ -157,18 +168,33 @@ def accepter_offre(request, offre_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"Erreur envoi email: {e}")
+            logger.error(f"Erreur envoi email: {e}")
+   
+    response = render(request, 'partials/offre/_offres_result.html', {
+            'success': True,
+            'title': '✅ Offre acceptée',
+            'message': "L'offre a été acceptée et le commercial a été notifié.",
+            'reload_on_close': True,
+        })
+    response['HX-Trigger'] = 'closeOffreGestionModal'
+    return response
     
-    messages.success(request, "Offre acceptée. Une vente a été créée. Le commercial a été notifié.")
-    return redirect('commercial_app:offre-detail', offre.id)
 
 @login_required
 def refuser_offre(request, offre_id):
+    time.sleep(1.5)
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
-        messages.warning(request, "Cette offre ne peut pas être refusée.")
-        return redirect('commercial_app:offre-detail', offre.pk)
+        response = render(request, 'partials/offre/_offres_result.html', {
+                'success': False,
+                'title': '❌ Action impossible',
+                'message': "Cette offre ne peut pas être refusée.",
+                'reload_on_close': False,
+        })
+        response['HX-Trigger'] = 'closeOffreGestionModal'
+        return response
+        
     
     offre.statut = 'refusee'
     offre.save()
@@ -199,18 +225,34 @@ def refuser_offre(request, offre_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"Erreur envoi email au commercial: {e}")
+            logger.error(f"Erreur envoi email au commercial: {e}")
     
-    messages.info(request, "Offre refusée. Le commercial a été notifié.")
-    return redirect('commercial_app:offre-detail', offre.pk)
+   
+    response = render(request, 'partials/offre/_offres_result.html', {
+            'success': True,
+            'title': '❌ Offre refusée',
+            'message': "L'offre a été refusée et le commercial a été notifié.",
+            'reload_on_close': True,
+        })
+    response['HX-Trigger'] = 'closeOffreGestionModal'
+    return response
+   
 
 @login_required
 def negocier_offre(request, offre_id):
+    time.sleep(1.5)
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
-        messages.warning(request, "Seules les offres envoyées peuvent être renégociées.")
-        return redirect('commercial_app:offre-detail', offre.pk)
+        response = render(request, 'partials/offre/_offres_result.html', {
+                'success': False,
+                'title': '❌ Action impossible',
+                'message': "Seules les offres envoyées peuvent être renégociées.",
+                'reload_on_close': False,
+            })
+        response['HX-Trigger'] = 'closeOffreGestionModal'
+        return response
+        
     
     # 1️⃣ Changer le statut de l'offre
     offre.statut = 'brouillon'
@@ -244,16 +286,21 @@ def negocier_offre(request, offre_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"Erreur envoi email au commercial: {e}")
+            logger.error(f"Erreur envoi email au commercial: {e}")
     
-    # 3️⃣ Message pour le client
-    messages.info(request, "Votre demande de renégociation a été envoyée. Votre commercial va étudier votre proposition.")
     
-    # 4️⃣ Redirection selon le rôle
-    if request.user.role == 'client':
-        return redirect('commercial_app:offre-detail', offre.pk)
-    else:
-        return redirect('commercial_app:offre-detail', offre.pk)
+    
+    
+    response = render(request, 'partials/offre/_offres_result.html', {
+            'success': True,
+            'title': '🔄 Renégociation demandée',
+            'message': "Votre demande de renégociation a été envoyée au commercial.",
+            'reload_on_close': True,
+        })
+    response['HX-Trigger'] = 'closeOffreGestionModal'
+    return response
+
+   
     
 
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -326,6 +373,7 @@ class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         return context
     
     def form_valid(self, form):
+        time.sleep(3)
         client_id = self.kwargs.get("pk")
         client = get_object_or_404(kozUser, id=client_id)
         
@@ -357,22 +405,20 @@ class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
                 fail_silently=False,
             )
         except Exception as e:
-            print(f"Erreur envoi email au client: {e}")
+            logger.error(f"Erreur envoi email au client: {e}")
         
-        messages.success(self.request, f"✅ Offre simple créée pour {client.nom_complet}. Un email a été envoyé.")
-        
-        return redirect(reverse('client_app:client-detail', kwargs={'pk': client_id}))
+        response = render(self.request, "partials/offre/_offres_result.html",{
+                                            "success": True,
+                                            "title": "✅ Offre envoyé ",
+                                            "message": f"Offre simple créée pour {client.nom_complet}. Un email a été envoyé.",
+                                            "reload_on_close":True
+                                        })
+        response['HX-Trigger'] = "closeOffreSimpleModal"
+        return response
     
     def form_invalid(self, form):
-        detail_view = ClientDetailView()
-        detail_view.request = self.request
-        detail_view.kwargs = self.kwargs
-        context = detail_view.get_context_data()
-        
-        context["offre_simple_form"] = form
-        context["open_offre_simple_modal"] = True
-        
-        return self.render_to_response(context)
+        time.sleep(3)
+        return render(self.request, "partials/offre/_offre_simple_form_error.html", {"offre_simple_form":form})
     
 
 class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -391,6 +437,7 @@ class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView
         return context
     
     def form_valid(self, form):
+        time.sleep(3)
         client_id = self.kwargs.get('pk')
         client = get_object_or_404(kozUser, id=client_id)
         
@@ -448,27 +495,23 @@ class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView
                 fail_silently=False,
             )
         except Exception as e:
-            print(f"Erreur envoi email au client: {e}")
+            logger.error(f"Erreur envoi email au client: {e}")
         
-        messages.success(self.request, f"✅ Offre de financement créée pour {client.nom_complet}. Un email a été envoyé.")
+        response = render(self.request, "partials/offre/_offres_result.html",{
+                                    "success": True,
+                                    "title": "✅ Offre envoyé ",
+                                    "message": f"Offre de financement créée pour {client.nom_complet}. Un email a été envoyé.",
+                                    "reload_on_close":True
+                                })
+        response['HX-Trigger'] = "closeOffreModal"
+        return response
         
-        return redirect(reverse('client_app:client-detail', kwargs={'pk': client_id}))
+       
     
     def form_invalid(self, form):
-        detail_view = ClientDetailView()
-        detail_view.request = self.request
-        detail_view.kwargs = self.kwargs
-        context = detail_view.get_context_data()
+        time.sleep(3)
+        return render(self.request, 'partials/offre/_offre_financement_form_errors.html', {'offre_financement_form': form})
         
-        context["offre_financement_form"] = form
-        context["open_offre_financement_modal"] = True
-        
-        return self.render_to_response(context)
-
-        
-        
-    
-    
 class OffreView(LoginRequiredMixin, ListView):
     model = Offre
     context_object_name = "offres"
@@ -615,25 +658,20 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 )
                 messages.success(self.request, "Offre mise à jour et envoyée au client.")
             except Exception as e:
-                print(f"Erreur envoi email: {e}")
-                messages.warning(self.request, "Offre mise à jour mais l'email n'a pas pu être envoyé.")
-        else:
-            messages.success(self.request, "Offre mise à jour avec succès.")
-        
-        return super().form_valid(form)
-    
+                logger.error(f"Offre mise à jour mais l'email n'a pas pu être envoyé.: {e}")
+        response = render(self.request, "partials/offre/_offres_result.html",{
+                                                        "success": True,
+                                                        "title": "✅ Offre mis à jour ",
+                                                        "message": f"Offre a été modifié pour {offre.client.nom_complet}. Un email a été envoyé.",
+                                                        "reload_on_close":True
+                                                    })
+        response['HX-Trigger'] = "closeUpdateOffreModal"
+        return response
+       
     def form_invalid(self, form):
-        # Récupérer le contexte de OffreDetailView
-        detail_view = OffreDetailView()
-        detail_view.request = self.request
-        detail_view.kwargs = self.kwargs
-        context = detail_view.get_context_data()
+       time.sleep(3)
+       return render(self.request, "partials/offre/_offre_simple_form_error.html", {"update_offre_form":form})
         
-        # Ajouter le formulaire invalide et le flag pour rouvrir le modal
-        context["update_offre_form"] = form
-        context["open_update_offre_modal"] = True  # ← nom cohérent avec le modal
-        
-        return self.render_to_response(context)
     
 class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Offre

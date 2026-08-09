@@ -1,3 +1,4 @@
+{% load static %}
 <dialog id="gestion_offre_modal" class="modal">
     <div class="modal-box w-full max-w-md p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
         
@@ -18,9 +19,13 @@
             
             {% if offre.statut == 'envoyee' %}
             <!-- Actions pour offre envoyée -->
+            <div id="offre-message-zone" ></div>
             <div class="space-y-3">
-                <a href="{% url 'commercial_app:accepter-offre' offre.id %}" 
-                   class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
+                <a 
+                    hx-get="{% url 'commercial_app:accepter-offre' offre.id %}"
+                    hx-target="#offre-message-zone"
+                    hx-indicator="#indicator" 
+                    class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
                     <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition">
                         <i class="fas fa-check-circle text-green-700 text-xl"></i>
                     </div>
@@ -30,8 +35,16 @@
                     </div>
                     <i class="fas fa-chevron-right text-gray-400 group-hover:text-green-600 transition"></i>
                 </a>
-
-                <a href="{% url 'commercial_app:refuser-offre' offre.id %}" 
+                <div id="indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
+                <div class="bg-white p-6 items-center rounded-xl justify-center  text-center shadow-2xl">
+                    <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-30 h-30 ml-7 mb-3">
+                    <p class="text-gray-700 font-medium">En cours de traitement...</p>
+                </div>
+                </div>
+                <a 
+                    hx-get="{% url 'commercial_app:refuser-offre' offre.id %}" 
+                    hx-target="#offre-message-zone"
+                    hx-indicator="#indicator"
                    class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
                     <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
                         <i class="fas fa-times-circle text-red-700 text-xl"></i>
@@ -43,7 +56,10 @@
                     <i class="fas fa-chevron-right text-gray-400 group-hover:text-red-600 transition"></i>
                 </a>
 
-                <a href="{% url 'commercial_app:negocier-offre' offre.id %}" 
+                <a  
+                    hx-get="{% url 'commercial_app:negocier-offre' offre.id %}" 
+                    hx-target="#offre-message-zone"
+                    hx-indicator="#indicator"
                    class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group">
                     <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition">
                         <i class="fas fa-comment-dots text-yellow-700 text-xl"></i>
@@ -105,14 +121,12 @@
     </div>
 </dialog>
 
-<!-- Script pour réouvrir le modal si besoin -->
-{% if open_gestion_offre_modal %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('gestion_offre_modal').showModal();
+    document.addEventListener('closeOffreGestionModal', function() {
+        document.getElementById('gestion_offre_modal').close();
     });
 </script>
-{% endif %}
+
 
 <style>
     .btn-glow {
@@ -127,4 +141,6 @@
         transform: translateY(-2px);
         box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
     }
+
+
 </style>

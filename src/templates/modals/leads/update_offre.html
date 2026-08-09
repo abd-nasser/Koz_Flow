@@ -14,7 +14,13 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'commercial_app:update-offre' offre.pk %}" class="p-6">
+        <div id="offre-message-zone" class="mb-4"></div>
+        <form 
+        hx-post="{% url 'commercial_app:update-offre' offre.pk %}"
+        enctype="multipart/form-data"  
+        hx-target="#offre-message-zone"
+        hx-indicator="#offre-indicator"
+        class="p-6">
             {% csrf_token %}
             
             <!-- AFFICHAGE DES ERREURS GLOBALES -->
@@ -39,6 +45,14 @@
                         {% if field.help_text %}
                             <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
                         {% endif %}
+
+                        <div id="offre-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                                <p class="text-white font-medium">Envoi en cours...</p>
+                            </div>
+                        </div>
+                        
                         {% if field.errors %}
                             <div class="mt-1 text-red-500 text-xs">
                                 {% for error in field.errors %}

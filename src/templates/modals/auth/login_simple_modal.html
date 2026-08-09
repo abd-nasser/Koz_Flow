@@ -1,4 +1,4 @@
-
+{% load static %}
 <dialog id="login_simple_modal" class="modal">
     <div class="modal-box rounded-2xl shadow-2xl transform transition-all duration-300 scale-95">
         <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -6,8 +6,12 @@
             <button type="button" class="text-gray-400 hover:text-gray-600 text-2xl leading-none" 
                     onclick="document.getElementById('login_simple_modal').close()">&times;</button>
         </div>
-        
-        <form id="loginForm" method="post" action="{% url 'auth_app:login-simple' %}">
+        <div id="login_result" class="mb-4"></div>
+        <form 
+        hx-post="{% url 'auth_app:login-simple' %}"
+        hx-target="#login_result"
+        hx-indicator="#login-indicator"
+        >
             {% csrf_token %}
             <div class="space-y-4">
                 <div>
@@ -23,6 +27,12 @@
                            class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 transition" 
                            placeholder="••••••••" required>
                 </div>
+                <div id="login-indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover  w-35 h-35 mb-3">
+                                <p class="text-white font-medium">Connexion...</p>
+                            </div>
+                        </div>
                 
                 <div id="errorMessage" class="alert alert-error text-sm hidden"></div>
                 
@@ -44,3 +54,8 @@
         </div>
     </div>
 </dialog>
+<script>
+ document.addEventListener('closeLoginModal', function() {
+        document.getElementById('login_simple_modal').close();
+    });
+</script>

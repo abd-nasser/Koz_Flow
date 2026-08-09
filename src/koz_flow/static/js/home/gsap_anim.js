@@ -1,7 +1,5 @@
 gsap.registerPlugin(ScrollTrigger);
 
-        
-        
         // NAVBAR PREMIUM
         // ============================================
         const navbar = document.querySelector('.navbar');
@@ -118,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                 },
                 opacity: 0,
-                y: 100,
+                y: 200,
                 duration: 1,
             
             });
@@ -148,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                 },
                 opacity: 0,
-                x: 100,
+                x: 200,
                 duration: 1,
             
             });
@@ -197,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gsap.from(".actu_descript",{
                 scrollTrigger:{
                     trigger:".actu_descript",
-                    start: "top 71%",
+                    start: "center 71%",
                     end: "top 30%",
                     toggleActions: "play none none reverse", 
                     
@@ -206,12 +204,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 x: 200,
                 duration: 1,
             });
+    
+    gsap.from(".text-leading",{
+                scrollTrigger:{
+                    trigger:".actu_descript",
+                    start: "bottom 82%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1.5,
+            });
+
+    
+    // ACTUALITE ANIMATION GALERIE EN BAS
+    // =============================================
+    gsap.from(".actu-img-galerie",{
+                scrollTrigger:{
+                    trigger:".actu_titre",
+                    start: "top 90%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            });
+
 
 
 });
-
-
-
 
 
 
@@ -437,12 +464,174 @@ document.addEventListener('DOMContentLoaded', function() {
                     toggleActions: "play none none reverse", 
                 },
                 opacity: 0,
-                y: 100,
+                y: 200,
                 duration: 1,
             
             });
 
 });
+
+// ============================================================
+// ANIMATION : MISSION & VALEURS
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".mission_valeur_fade", {
+                scrollTrigger: {
+                    trigger: ".mission_valeur_fade",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+
+        gsap.from(".mission", {
+                scrollTrigger: {
+                    trigger: ".mission",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                   
+                    
+                },
+                opacity: 0,
+                x: -200,
+                duration: 1,
+            
+            });
+
+        gsap.from(".valeur", {
+                scrollTrigger: {
+                    trigger: ".valeur",
+                    start: "top 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                 
+                    
+                },
+                opacity: 0,
+                x: 200,
+                duration: 1,
+            
+            });
+
+        gsap.from(".valeur .v_1", {
+                scrollTrigger: {
+                    trigger: ".v_1",
+                    start: "top 40%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                   
+                    
+                },
+                opacity: 0,
+                y: -200,
+                duration: 1,
+            
+            });
+
+            gsap.from(".valeur .v_2", {
+                scrollTrigger: {
+                    trigger: ".v_1",
+                    start: "top 40%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                   
+                    
+                },
+                opacity: 0,
+                x: 200,
+                duration: 1,
+            
+            });
+
+            gsap.from(".valeur .v_3", {
+                scrollTrigger: {
+                    trigger: ".v_1",
+                    start: "top 40%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+
+             gsap.from(".valeur .v_4", {
+                scrollTrigger: {
+                    trigger: ".v_1",
+                    start: "top 40%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                    
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+
+            gsap.from(".citation", {
+                scrollTrigger: {
+                    trigger: ".citation",
+                    start: "top 90%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse",
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+
+        })
+    
+        
+// ============================================================
+// ANIMATION : PRODUITS VEDETTE (PREMIUM) 
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".product_fade", {
+                scrollTrigger: {
+                    trigger: ".section_product",
+                    start: "5% 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    markers:true
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+})
+
+// ============================================================
+// ANIMATION : POURQUOI CHOISIR KOZ SERVICES  
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    gsap.from(".choisir_fade", {
+                scrollTrigger: {
+                    trigger: ".section_choisir_koz",
+                    start: "5% 70%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    markers:true
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+            
+            });
+})
 
 // ============================================================
 // STAT ANIME – COUNTER ANIMATION

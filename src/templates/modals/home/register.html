@@ -1,3 +1,4 @@
+{% load static %}
 <!-- Modal DaisyUI - Inscription -->
 <dialog id="register_modal" class="modal">
     <div class="modal-box relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">  <!-- ← max-w-lg + max-h-[90vh] + overflow-y-auto -->
@@ -13,12 +14,15 @@
             <i class="fas fa-user-plus text-blue-600 mr-2"></i>Inscription
         </h3>
 
-        <!-- Message d'erreur général -->
-        <div id="registerError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-lg text-sm mb-4"></div>
 
+        <div id="register-result" class="mb-4"></div>
         <!-- Formulaire -->
-        <form id="registerForm" class="space-y-3">  <!-- ← space-y-3 pour resserrer -->
-
+        <form
+        hx-post="{% url 'auth_app:site-register' %}"
+        hx-target="#register-result"
+        hx-indicator="#register-indicator"
+        class="space-y-3">  <!-- ← space-y-3 pour resserrer -->
+        {% csrf_token %}
             <!-- 2 colonnes pour les champs (sur desktop) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <!-- Email -->
@@ -68,7 +72,12 @@
                            class="input input-bordered w-full focus:ring-2 focus:ring-blue-500 text-sm" 
                            placeholder="123 Rue de l'Exemple, Quartier">
                 </div>
-
+                <div id="register-indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover ml-7 w-35 h-35 mb-3">
+                                <p class="text-gray-700 font-medium">Inscription en cours...</p>
+                            </div>
+                     </div>
                 <!-- Genre -->
                 <div>
                     <label class="label label-text font-medium text-gray-700 text-sm">👤 Genre</label>
@@ -144,3 +153,9 @@
         <button type="submit">fermer</button>
     </form>
 </dialog>
+
+<script>
+    document.addEventListener('closeRegisterModal', function(){
+    document.getElementById('register_modal').close()
+    })
+</script>

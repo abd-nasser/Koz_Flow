@@ -1,3 +1,4 @@
+{% load static %}
 <!-- Modal pour créer une offre simple (sans demande) -->
 <dialog id="simpleoffreModal" class="modal">
     <div class="modal-box w-full max-w-2xl p-0 max-h-[85vh] overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
@@ -15,7 +16,13 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'commercial_app:creer-offre-simple' client.pk %}" class="p-6">
+        <div id="offre-message-zone" class="mb-4"></div>
+        <form
+         hx-post="{% url 'commercial_app:creer-offre-simple' client.pk %}"
+         hx-target="#offre-message-zone"
+         hx-indicator="#indicator"
+         enctype="multipart/form-data" 
+         class="p-6">
             {% csrf_token %}
             <div class="scrollable-form">
             
@@ -34,6 +41,12 @@
                         {% if field.help_text %}
                             <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
                         {% endif %}
+                        <div id="indicator" class="htmx-indicator fixed inset-0 bg-white flex items-center justify-center z-50">
+                        <div class="bg-white p-6 items-center justify-center rounded-xl text-center shadow-2xl">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                            <p class="text-white font-medium">Création en cours...</p>
+                        </div>
+                        </div>
                         {% if field.errors %}
                             <div class="mt-1 text-red-500 text-xs">
                                 {% for error in field.errors %}
@@ -60,13 +73,13 @@
 </dialog>
 
 <!-- Script pour rouvrir le modal si formulaire invalide -->
-{% if open_offre_simple_modal %}
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('simpleoffreModal').showModal();
+    document.addEventListener('closeOffreSimpleModal', function() {
+        document.getElementById('simpleoffreModal').close();
     });
 </script>
-{% endif %}
+
 
 <style>
     .btn-glow {
@@ -132,4 +145,16 @@
     input[type="number"]::-webkit-outer-spin-button {
         opacity: 0.5;
     }
+
+    #indicator {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    }
+
+    #indicator .htmx-request {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
 </style>

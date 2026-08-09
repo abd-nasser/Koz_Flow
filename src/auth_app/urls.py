@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 from chat_app import views
 from .views import (ApiRegisterView, LoginView, 
-                    MeView, LogoutView,
+                    MeView, LogoutView, site_user_register,
                     UserRegisterView, ChangePasswordView, login_page, login_simple, logout_simple)
 
 app_name = "auth_app"
@@ -15,7 +15,9 @@ urlpatterns = [
     
     # Inscription
     path('register/', ApiRegisterView.as_view(), name='register'),
+    path('site-register/', site_user_register, name='site-register'),
     # → http://127.0.0.1:8000/api/auth/register/
+    # → http://127.0.0.1:8000/api/auth/site-register/
     
     #Connexion
     path('login/', LoginView.as_view(), name='login'),

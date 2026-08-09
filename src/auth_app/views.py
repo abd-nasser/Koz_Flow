@@ -1,4 +1,5 @@
 from email import header
+import time
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import(
@@ -55,6 +56,83 @@ def login_page(request):
     C'est une vue Django classique, pas une API
     """
     return render(request, "auth_templates/login.html")   
+
+
+def site_user_register(request):
+    time.sleep(3)
+    """Crée un compte utilisateur depuis le site et affiche le résultat dans un partial."""
+    if request.method != 'POST':
+        return redirect('home_app:home-page')
+
+    email = request.POST.get('email', '').strip()
+    nom_complet = request.POST.get('nom_complet', '').strip()
+    telephone = request.POST.get('telephone', '').strip()
+    adresse = request.POST.get('adresse', '').strip()
+    pays = request.POST.get('pays', '').strip()
+    ville = request.POST.get('ville', '').strip()
+    genre = request.POST.get('genre', '').strip() or None
+    profession = request.POST.get('profession', '').strip()
+    password = request.POST.get('password', '')
+    password2 = request.POST.get('password2', '')
+
+    context = {
+        'success': False,
+        'title': 'Inscription échouée',
+        'message': 'Une erreur est survenue lors de l inscription.',
+        'reload_on_close': False,
+    }
+
+    if not email or not nom_complet or not telephone or not password or not password2 or not pays or not ville:
+        context['message'] = 'Tous les champs obligatoires doivent être remplis.'
+        response = render(request, 'partials/auth/register_result.html', context)
+        response['HX-Trigger'] = "closeRegisterModal"
+        return response
+
+    if password != password2:
+        context['message'] = 'Les mots de passe ne correspondent pas.'
+        response = render(request, 'partials/auth/register_result.html', context)
+        response['HX-Trigger'] = "closeRegisterModal"
+        return response
+
+    if len(password) < 6:
+        context['message'] = 'Le mot de passe doit contenir au moins 6 caractères.'
+        response = render(request, 'partials/auth/register_result.html', context)
+        response['HX-Trigger'] = "closeRegisterModal"
+        return response
+
+    if kozUser.objects.filter(email=email).exists():
+        context['message'] = 'Un compte existe déjà avec cette adresse e-mail.'
+        response = render(request, 'partials/auth/register_result.html', context)
+        response['HX-Trigger'] = "closeRegisterModal"
+        return response
+
+    try:
+        user = kozUser.objects.create_user(
+            email=email,
+            nom_complet=nom_complet,
+            telephone=telephone,
+            password=password,
+            adresse=adresse,
+            pays=pays,
+            ville=ville,
+            genre=genre,
+            profession=profession,
+            role='client',
+            is_active=True,
+        )
+
+        context['success'] = True
+        context['title'] = 'Inscription réussie'
+        context['message'] = 'Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.'
+        context['reload_on_close'] = True
+    except Exception as e:
+        logger.error(f"Erreur création compte site: {e}")
+        context['message'] = 'Impossible de créer votre compte pour le moment. Veuillez réessayer plus tard.'
+
+    response = render(request, 'partials/auth/register_result.html', context)
+    response["HX-Trigger"] = "closeRegisterModal"
+    return response
+
 
 #------------- VUE POUR L'INSCRIPTION ----------------------
 #APIView = une vue qui répond aux requetes GET, POST, PUT, DELETE
@@ -248,30 +326,58 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
 
 def login_simple(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        
+    if request.method != 'POST':
+        return redirect("home_app:home-page")
+
+    try:
+        email = (request.POST.get('email') or '').strip()
+        password = request.POST.get('password') or ''
+
+        if not email or not password:
+            response = render(request, "partials/auth/login_result.html", {
+                'success': False,
+                'title': 'Connexion impossible',
+                'message': 'Veuillez renseigner votre email et votre mot de passe.',
+                'reload_on_close': False,
+            })
+            response["HX-Trigger"] = "closeLoginModal"
+            return response
+
         user = authenticate(request, email=email, password=password)
-        
-        if user is not None:
-            django_login(request, user)
-            messages.success(request, f"✅ Bienvenue {user.nom_complet} !")
-            
-            # Redirection selon le rôle
-            if user.is_superuser or user.role == 'directeur':
-                return redirect('directeur_app:directeur-view')
-            elif user.role == 'commercial':
-                return redirect('commercial_app:commercial-view')
-            else:
-                return redirect('home_app:home-page')
-        else:
-            messages.error(request, '❌ Email ou mot de passe incorrect')
-            
-        return redirect('home_app:home-page')
+
+        if user is None:
+            response = render(request, "partials/auth/login_result.html", {
+                'success': False,
+                'title': 'Email ou mot de passe incorrect',
+                'message': 'Vérifiez vos identifiants et réessayez.',
+                'reload_on_close': False,
+            })
+            response["HX-Trigger"] = "closeLoginModal"
+            return response
+
+        # Tout est ok -> connexion
+        django_login(request, user)
+
+        response = render(request, "partials/auth/login_result.html", {
+            'success': True,
+            'title': f'Bienvenue, {user.nom_complet}',
+            'message': 'Connexion réussie',
+            'reload_on_close': True,
+        })
+        response["HX-Trigger"] = "closeLoginModal"
+        return response
+
+    except Exception as e:
+        logger.exception(f"Erreur lors de login_simple: {e}")
+        response = render(request, "partials/auth/login_result.html", {
+            'success': False,
+            'title': 'Erreur serveur',
+            'message': 'Une erreur est survenue lors de la tentative de connexion. Réessayez plus tard.',
+            'reload_on_close': False,
+        })
+        response["HX-Trigger"] = "closeLoginModal"
+        return response
     
-    # Si GET, rediriger vers la page d'accueil
-    return redirect('home_app:home-page')
 
 def logout_simple(request):
     django_logout(request)

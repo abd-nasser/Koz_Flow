@@ -37,6 +37,7 @@ urlpatterns = [
     # ✅ SITE PUBLIC : Vues publiques sans authentification
     path('site/vehicules/', views.SITE_VehiculListView.as_view(), name='site-vehicul-list'),
     path('site/vehicule/<int:pk>/', views.SITE_VehiculDetailView.as_view(), name='site-vehicul-detail'),
+    path('site/vehicules/type/<int:type_pk>/', views.SITE_VehiculByTypeListView.as_view(), name='site-vehicul-type-list'),
     path('site/marques/', views.SITE_MarqueListeView.as_view(), name='site-marque-list'),
     path('site/marque/<int:pk>/', views.SITE_MarqueDetailView.as_view(), name='site-marque-detail'),
     path('vehicul/images/<int:vehicul_id>/', views.vehicul_image_partials, name="vehicul-image-partial"),
