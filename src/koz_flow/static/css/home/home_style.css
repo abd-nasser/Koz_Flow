@@ -3,6 +3,21 @@ body {
     overflow-x: hidden;
 }
 
+.btn-glow {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+    
+}
+
+.btn-glow:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    transform: translateY(-2px);
+    box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
+}
+
 
 .frame-container {
     position: fixed;
@@ -555,52 +570,6 @@ video {
     }
 
 
-
-/* Style des champs de formulaire */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-select,
-textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    background-color: white;
-}
-
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Checkboxes et radios gardent leur taille naturelle */
-input[type="checkbox"],
-input[type="radio"] {
-    width: auto;
-    margin-right: 8px;
-    transform: scale(1.1);
-    cursor: pointer;
-}
-
-/* Style spécifique pour les champs fichiers */
-input[type="file"] {
-    padding: 8px;
-    background-color: #f9fafb;
-    width: 100%;
-}
-
-/* Style spécifique pour les champs password */
-input[type="password"] {
-    letter-spacing: 0.3em;
-    }
-    
-input[type="password"]::placeholder {
-    letter-spacing: normal;
-}
-
 .act-hero{
     height: 35rem;
 }
@@ -781,9 +750,6 @@ input[type="password"]::placeholder {
         color: white;
         line-height: 1.1;
     }
-
-  
-
     
 }
 

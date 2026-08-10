@@ -32,7 +32,7 @@ from .forms import OffreFinancementForm, OffreSimpleForm
 
 import logging
 import time
-
+from django.db import transaction
 logger = logging.getLogger(__name__)
 
 
@@ -111,40 +111,36 @@ def creer_offre(request, demande_id=None):
 
 @login_required
 def accepter_offre(request, offre_id):
-    time.sleep(1.5)
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
-    
+
     if offre.statut != 'envoyee':
-        
         response = render(request, 'partials/offre/_offres_result.html', {
-                'success': False,
-                'title': '❌ Action impossible',
-                'message': "Cette offre ne peut pas être acceptée.",
-                'reload_on_close': False,
-            })
+            'success': False,
+            'title': '❌ Action impossible',
+            'message': "Cette offre ne peut pas être acceptée.",
+            'reload_on_close': False,
+        })
         response['HX-Trigger'] = 'closeOffreGestionModal'
         return response
-        
-    
-    # 1️⃣ Changer le statut de l'offre
-    offre.statut = 'acceptee'
-    offre.save()
-    
-    # 2️⃣ Créer une vente avec statut "gestion_de_statut" (à gérer manuellement par le commercial)
-    if offre.type_offre == "simple":
-        vente = Vente.objects.create(
-            client=request.user,
-            statut="gestion_de_statut",  # ← statut temporaire, le commercial le modifiera
-            montant=offre.montant_propose,
-            offre=offre
-        )
-    
-    # ✉️ Email à tous les commerciaux
+
+    with transaction.atomic():
+        offre.statut = 'acceptee'
+        offre.save()
+
+
+        vente = None
+        if offre.type_offre == "simple":
+            vente = Vente.objects.create(
+                client=request.user,
+                statut="gestion_de_statut",
+                montant=offre.montant_propose,
+                offre=offre,
+            )
+
     commerciaux = kozUser.objects.filter(role='commercial')
     emails = [c.email for c in commerciaux if c.email]
     if emails:
         try:
-            # Préparer le contenu une seule fois puis l'envoyer par commercial (si besoin on personnalise)
             for commercial in commerciaux:
                 if not commercial.email:
                     continue
@@ -153,8 +149,10 @@ def accepter_offre(request, offre_id):
                     'offre_id': offre.id,
                     'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
                     'montant_finance': offre.montant_finance,
-                    'lien_vente': request.build_absolute_uri(f"/commercial/vente/{vente.id}/modifier/"),
-                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'lien_vente': request.build_absolute_uri(
+                        reverse('commercial_app:changer-statut-vente', args=[vente.id])
+                    ) if vente else None,
+                    'lien_client': request.build_absolute_uri(reverse("client_app:client-detail", offre.client.pk)),
                     'commercial': commercial,
                 }
                 html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
@@ -169,13 +167,13 @@ def accepter_offre(request, offre_id):
                 )
         except Exception as e:
             logger.error(f"Erreur envoi email: {e}")
-   
+
     response = render(request, 'partials/offre/_offres_result.html', {
-            'success': True,
-            'title': '✅ Offre acceptée',
-            'message': "L'offre a été acceptée et le commercial a été notifié.",
-            'reload_on_close': True,
-        })
+        'success': True,
+        'title': '✅ Offre acceptée',
+        'message': "L'offre a été acceptée et le commercial a été notifié.",
+        'reload_on_close': True,
+    })
     response['HX-Trigger'] = 'closeOffreGestionModal'
     return response
     
@@ -584,6 +582,7 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
     model = Offre
     context_object_name = "offre"
     
+    
     def get_template_names(self):
         if self.request.user.is_superuser or self.request.user.role == "directeur":
             return['directeur_templates/directeur_offre_detail.html']
@@ -601,7 +600,8 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
             if "update_offre_form" not in context:
                 context["update_offre_form"] = OffreFinancementForm(instance=self.object)
             return context
-        
+        offre = self.object
+        context["offre_dossier"] = offre.documents
         return context
 
 class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -697,73 +697,115 @@ class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # commercial_app/views.py
 from leads_app.utils import generer_echeances_offre, generer_echeances_demande
 def changer_statut_vente(request, vente_id):
+    time.sleep(1.5)
     vente = get_object_or_404(Vente, id=vente_id)
     
     if request.method == 'POST':
         nouveau_statut = request.POST.get('statut')
-        
-        if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
-            ancien_statut = vente.statut
-            vente.statut = nouveau_statut
-            vente.save()
-            
-            # ============================================================
-            # ✅ SI LA VENTE PASSE À "CONCLUE AVEC FINANCEMENT"
-            # ============================================================
-            statuts_avec_financement = [
-                'conclue_par_acceptation_offre_financement',
-                'conclue_sur_acceptation_demande_financement',
-            ]
-            
-            if nouveau_statut in statuts_avec_financement:
-                # ✅ Vérifier si les échéances existent déjà
-                if not vente.echeances:
-                    # ✅ Générer les échéances
-                    if vente.offre:
-                        echeances = generer_echeances_offre(vente.offre)
-                    elif vente.demande_financement:
-                        echeances = generer_echeances_demande(vente.demande_financement)
+        with transaction.atomic():
+            if nouveau_statut in dict(Vente.STATUT_VENTE).keys():
+                ancien_statut = vente.statut
+                vente.statut = nouveau_statut
+                vente.save()
+                
+                # ============================================================
+                # ✅ SI LA VENTE PASSE À "CONCLUE AVEC FINANCEMENT"
+                # ============================================================
+                statuts_avec_financement = [
+                    'conclue_par_acceptation_offre_financement',
+                    'conclue_sur_acceptation_demande_financement',
+                ]
+                
+                if nouveau_statut in statuts_avec_financement:
+                    # ✅ Vérifier si les échéances existent déjà
+                    if not vente.echeances:
+                        # ✅ Générer les échéances
+                        if vente.offre:
+                            echeances = generer_echeances_offre(vente.offre)
+                        elif vente.demande_financement:
+                            echeances = generer_echeances_demande(vente.demande_financement)
+                        else:
+                            echeances = []
+                        
+                        if echeances:
+                            vente.echeances = echeances
+                            vente.save()
+                            
+                            # ✅ Créer les PaiementFinancement
+                            for echeance in echeances:
+                                PaiementFinancement.objects.create(
+                                    vente=vente,
+                                    client=vente.client,
+                                    montant=echeance['montant'],
+                                    date_echeance=echeance['date'],
+                                    statut='en_attente',
+                                    reference=f"PAY-{vente.id}-{echeance['numero']}"
+                                )
+                        
+                            response = render(request, "partials/vente/_vente_result.html",{
+                                                                                            "success": True,
+                                                                                            "title": "✅ vente mis à jour",
+                                                                                            "message": f"✅ {len(echeances)} échéances créées pour le financement.",
+                                                                                            "reload_on_close":True
+                                                                                        })
+                            response['HX-Trigger'] = "closeStatuGestionModal"
+                            return response
+                        else:
+                            response = render(request, "partials/vente/_vente_result.html", {
+                                "success": False,
+                                "title": "❌ Erreur",
+                                "message": "Impossible de générer les échéances : aucune offre ni demande associée à cette vente.",
+                            })
+                            response['HX-Trigger'] = "closeStatuGestionModal"
+                            return response
                     else:
-                        echeances = []
+                        response = render(request, "partials/vente/_vente_result.html",{
+                                                                                        "success": True,
+                                                                                        "title": "✅ vente mis à jour",
+                                                                                        "message":"les échéances existent déjà",
+                                                                                        "reload_on_close":True
+                                                                                                            })
+                        response['HX-Trigger'] = "closeStatuGestionModal"
+                        return response
+                
+                # ============================================================
+                # ❌ SI LA VENTE PASSE À "PERDUE"
+                # ============================================================
+                elif nouveau_statut.startswith('perdue'):
+                    # ✅ Annuler les échéances non payées
+                    PaiementFinancement.objects.filter(
+                        vente=vente,
+                        statut='en_attente',
+                    ).update(statut='abandonne', date_paiement=timezone.now().date())
                     
-                    if echeances:
-                        vente.echeances = echeances
-                        vente.save()
-                        
-                        # ✅ Créer les PaiementFinancement
-                        for echeance in echeances:
-                            PaiementFinancement.objects.create(
-                                vente=vente,
-                                client=vente.client,
-                                montant=echeance['montant'],
-                                date_echeance=echeance['date'],
-                                est_paye=False,
-                                reference=f"PAY-{vente.id}-{echeance['numero']}"
-                            )
-                        
-                        messages.success(request, 
-                            f"✅ {len(echeances)} échéances créées pour le financement."
-                        )
+                    response = render(request, "partials/vente/_vente_result.html",{
+                                                                                "success": True,
+                                                                                "title": "✅ vente mis à jour",
+                                                                                "message": f" statut de vente mis à jour! Nouveau statut: {nouveau_statut}. Les échéances impayées sont abandonnées.",
+                                                                                "reload_on_close":True
+                                                                            })
+                    response['HX-Trigger'] = "closeStatuGestionModal"
+                    return response
+                
                 else:
-                    messages.info(request, "Les échéances existent déjà.")
-            
-            # ============================================================
-            # ❌ SI LA VENTE PASSE À "PERDUE"
-            # ============================================================
-            elif nouveau_statut.startswith('perdue'):
-                # ✅ Annuler les échéances non payées
-                PaiementFinancement.objects.filter(
-                    vente=vente,
-                    est_paye=False
-                ).update(est_paye=True, date_paiement=timezone.now().date())
-                
-                messages.info(request, "Les échéances impayées ont été annulées.")
-            
+                    response = render(request, "partials/vente/_vente_result.html",{
+                                                                "success": True,
+                                                                "title": "✅ vente mis à jour",
+                                                                "message": f" statut de vente mis à jour! Nouveau statut: {nouveau_statut}.",
+                                                                "reload_on_close":True
+                                                            })
+                    response['HX-Trigger'] = "closeStatuGestionModal"
+                    return response
+                    
             else:
-                messages.success(request, f"Statut mis à jour : {vente.get_statut_display()}")
-                
-        else:
-            messages.error(request, "Statut invalide")
+                response = render(request, "partials/vente/_vente_result.html",{
+                                                                        "success": False,
+                                                                        "title": "❌échec de mise à jour",
+                                                                        "message": "Statut invalide",
+                                                                        "reload_on_close":True
+                                                                    })
+            response['HX-Trigger'] = "closeStatuGestionModal"
+            return response
     
     return redirect('commercial_app:vente-detail', pk=vente.id)
 

@@ -243,7 +243,13 @@ class Vente(models.Model):
     
 class PaiementFinancement(models.Model):
     """Suivi des paiements mensuels d'un financement"""
-    
+
+    STATUT_CHOICES = [
+        ('en_attente', 'En attente'),
+        ('paye', 'Payé'),
+        ('abandonne', 'Abandonné'),
+    ]
+
     vente = models.ForeignKey(
         Vente,
         on_delete=models.CASCADE,
@@ -257,14 +263,14 @@ class PaiementFinancement(models.Model):
     montant = models.DecimalField(max_digits=12, decimal_places=0)
     date_echeance = models.DateField()
     date_paiement = models.DateField(null=True, blank=True)
-    est_paye = models.BooleanField(default=False)
+    statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
     reference = models.CharField(max_length=50, blank=True, null=True)
     date_creation = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['date_echeance']
         verbose_name = "Paiement de financement"
         verbose_name_plural = "Paiements de financement"
-    
+
     def __str__(self):
         return f"{self.client} - {self.montant} - {self.date_echeance}"

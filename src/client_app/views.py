@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic import TemplateView, DetailView, ListView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
 from auth_app.forms import  ChangePasswordForm
@@ -16,8 +16,9 @@ from auth_app.models import kozUser
 from leads_app.models import demande_financement
 
 
-class ClientDashboardView(LoginRequiredMixin, TemplateView):
-   
+class ClientDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+   def test_func(self):
+       return self.request.user.role == "client"
    template_name = "clients_templates/client.html"
    
    def get_context_data(self, **kwargs):

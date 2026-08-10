@@ -14,7 +14,11 @@
         </div>
 
         <!-- Corps du modal -->
-        <form method="post" action="{% url 'commercial_app:changer-statut-vente' vente.id %}" class="p-6">
+        <div id="result-statut-vente" ></div>
+        <form hx-post="{% url 'commercial_app:changer-statut-vente' vente.id %}" 
+              hx-target="#result-statut-vente"
+              hx-indicator="#statut-indic"
+              class="p-6">
             {% csrf_token %}
             
             <div class="space-y-4">
@@ -39,7 +43,12 @@
                     </select>
                 </div>
             </div>
-
+            <div id="statut-indic" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                                <p class="text-white font-medium">Envoi en cours...</p>
+                            </div>
+                        </div>
             <!-- Actions -->
             <div class="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-100">
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('gestion_statut_modal').close()">
@@ -53,6 +62,11 @@
     </div>
 </dialog>
 
+    <script>
+document.addEventListener('closeStatuGestionModal', function() {
+        document.getElementById('gestion_statut_modal').close();
+    });
+    </script>
 <style>
     .btn-glow {
         background: linear-gradient(135deg, #3b82f6, #2563eb);

@@ -143,43 +143,7 @@
     box-shadow: 0 20px 35px -8px rgba(59, 130, 246, 0.7);
 }
 
-.thumbnail {
-    transition: all 0.2s ease;
-}
 
-.thumbnail:hover {
-    transform: scale(1.05);
-    border-color: #3b82f6;
-}
-
-
-
-.modal-box{
-    background: rgba(138, 187, 228, 0.363);
-    -webkit-backdrop-filter:blur(8rem);
-    backdrop-filter: blur(8rem);
-
-}
-
-.modal-box .input, select{
-    background: rgba(138, 187, 228, 0.363);
-    -webkit-backdrop-filter:blur(8rem);
-    backdrop-filter: blur(8rem);
-    color: #ffffff;
-}
-
-.modal-box div{
-     background: rgba(7, 95, 226, 0.003);
-    -webkit-backdrop-filter:blur(8rem);
-    backdrop-filter: blur(8rem);
-    color: #ebebeb;
-    border: 1px;
-    border-radius: 15px;
-}
-
-.modal-box label{
-    color: white;
-}
 
 footer {
     bottom: 0;
@@ -215,45 +179,3 @@ footer {
     background: rgba(37, 99, 235, 0.7);
 }
 
-
-/* Style des champs de formulaire */
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-select,
-textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    
-}
-
-input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    
-}
-
-/* Checkboxes et radios gardent leur taille naturelle */
-input[type="checkbox"],
-input[type="radio"] {
-    width: auto;
-    margin-right: 8px;
-    transform: scale(1.1);
-    cursor: pointer;
-     background: rgba(7, 95, 226, 0.003);
-    -webkit-backdrop-filter:blur(8rem);
-    backdrop-filter: blur(8rem);
-}
-
-/* Style spécifique pour les champs fichiers */
-input[type="file"], textarea {
-    padding: 8px;
-    width: 100%;
-     background: rgba(7, 95, 226, 0.003);
-    -webkit-backdrop-filter:blur(8rem);
-    backdrop-filter: blur(8rem);
-}

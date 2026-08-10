@@ -308,8 +308,10 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from .models import RendezVous
+import time
 
 def contact_form(request):
+    time.sleep(1.5)
     if request.method == 'POST':
         nom = request.POST.get('nom')
         email = request.POST.get('email')
@@ -338,30 +340,18 @@ def contact_form(request):
                 fail_silently=False,
             )
             
-        return HttpResponse(
-                        f"""
-                        <div id="success-modal" class="modal modal-open">
-                            <div class="modal-box">
-                                <h3 class="font-bold text-lg">✅ Envoyé </h3>
-                                <p class="py-4">
-                                    Votre message a été envoyé.
-                                    <br>Un commercial vous contactera sous 24h.
-                                </p>
-                                <div class="modal-action">
-                                    <button onclick="document.getElementById('success-modal').remove()" class="btn btn-primary">
-                                        Fermer
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        """
-                    )
+        return render(request, "partials/contact/contact_result.html",{
+            'success': True,
+            'title': '✅ Envoyé',
+            'message': "Votre message à été envoyé,Un commercial vous contactera sous 24h.",
+            
+        })
         
        
 
 
 def prise_rdv(request):
-    import time
+    
     time.sleep(1.5)
     if request.method == 'POST':
         nom = request.POST.get('nom')
@@ -384,22 +374,11 @@ def prise_rdv(request):
         )
         
         if rendez_vous:
-            return HttpResponse(
-                f"""
-                <div id="success-modal" class="modal modal-open">
-                    <div class="modal-box">
-                        <h3 class="font-bold text-lg">✅ Rendez-vous confirmé</h3>
-                        <p class="py-4">
-                            Votre rendez-vous du <strong>{date}</strong> à <strong>{heure}</strong> a été enregistré.
-                            <br>Un commercial vous contactera sous 24h.
-                        </p>
-                        <div class="modal-action">
-                            <button onclick="document.getElementById('success-modal').remove()" class="btn btn-primary">
-                                Fermer
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                """
-            )
+            return render(request, "partials/contact/contact_result.html",{
+            'success': True,
+            'title': '✅ Enregisté',
+            'message': f"""Votre rendez-vous du {date} à {heure} a été enregistré.
+                            Un commercial vous contactera sous 24h."""
+        })
+    return redirect(request, 'home_app:home-page')
 

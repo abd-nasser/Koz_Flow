@@ -1,6 +1,6 @@
 {% load static %}
 <dialog id="login_simple_modal" class="modal">
-    <div class="modal-box rounded-2xl shadow-2xl transform transition-all duration-300 scale-95">
+    <div class="modal-box rounded-2xl shadow-2xl transform transition-all duration-300 scrollable-form scale-95">
         <div class="flex justify-between items-center border-b pb-3 mb-4">
             <h3 class="text-xl font-bold text-gray-800">🔐 Connexion</h3>
             <button type="button" class="text-gray-400 hover:text-gray-600 text-2xl leading-none" 
@@ -30,7 +30,7 @@
                 <div id="login-indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
                             <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
                                 <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover  w-35 h-35 mb-3">
-                                <p class="text-white font-medium">Connexion...</p>
+                                <p class="text-gray-700 font-medium">Connexion...</p>
                             </div>
                         </div>
                 
@@ -54,8 +54,25 @@
         </div>
     </div>
 </dialog>
+
+<style>
+    /* HTMX indicator visibility during requests */
+    #login-indicator {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    #login-indicator.htmx-request {
+        opacity: 1;
+        pointer-events: auto;
+    }
+</style>
+
 <script>
  document.addEventListener('closeLoginModal', function() {
         document.getElementById('login_simple_modal').close();
     });
 </script>
+
+

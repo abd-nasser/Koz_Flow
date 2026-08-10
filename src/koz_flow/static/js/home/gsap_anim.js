@@ -118,7 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
-            
+                ease: "power3.out",
+                
             });
 
     // ACTUALITE ANIMATION COLONE GAUCHE
@@ -135,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: -200,
                 duration: 1,
+                ease: "power3.out",
             });
 
     gsap.from(".actu_type", {
@@ -148,6 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -162,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             });
     gsap.from(".actu_titre",{
                 scrollTrigger:{
@@ -174,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: -200,
                 duration: 1.5,
+                ease: "power3.out",
             });
 
     gsap.from(".actu_mini_descript",{
@@ -187,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 2,
+                ease: "power3.out",
             });
 
 
@@ -195,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gsap.from(".actu_descript",{
                 scrollTrigger:{
                     trigger:".actu_descript",
-                    start: "center 71%",
+                    start: "top 70%",
                     end: "top 30%",
                     toggleActions: "play none none reverse", 
                     
@@ -203,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: 200,
                 duration: 1,
+                ease: "power3.out",
             });
     
     gsap.from(".text-leading",{
@@ -217,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1.5,
+                ease: "power3.out",
             });
 
     
@@ -224,16 +232,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // =============================================
     gsap.from(".actu-img-galerie",{
                 scrollTrigger:{
-                    trigger:".actu_titre",
-                    start: "top 90%",
+                    trigger:".actu-img-galerie",
+                    start: "-2% 100%",
                     end: "top 30%",
                     toggleActions: "play none none reverse", 
-                    
-                    
+       
                 },
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             });
 
 
@@ -247,6 +255,22 @@ document.addEventListener('DOMContentLoaded', function() {
 // SERVICES – PINNED SCROLL ANIMATION
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
+
+     gsap.from(".serv_fade", {
+                scrollTrigger: {
+                    trigger: ".services-section",
+                    start: "top 60%",
+                    end: "top 30%",
+                    toggleActions: "play none none reverse", 
+                    
+                    
+                },
+                opacity: 0,
+                y: 200,
+                duration: 1,
+                ease: "power3.out",
+                
+            });
     
     gsap.registerPlugin(ScrollTrigger);
 
@@ -308,7 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       
     );
-
 
     });
 
@@ -377,10 +400,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ease: "power3.out",
         scrollTrigger: {
             trigger: ".suv",
-            start: "top 85%",
+            start: "top 95%",
             end: "top 40%",
             toggleActions: "play none none reverse",
-              // ← Passe à false après test
+              
         }
     });
 
@@ -394,10 +417,11 @@ document.addEventListener('DOMContentLoaded', function() {
         delay: 0.15,       // Un peu après le SUV
         ease: "power3.out",
         scrollTrigger: {
-            trigger: ".berline",
-            start: "center 85%",
+            trigger: ".suv",
+            start: "10% 70%",
             end: "top 40%",
             toggleActions: "play none none reverse",
+            
             
         }
     });
@@ -412,8 +436,8 @@ document.addEventListener('DOMContentLoaded', function() {
         delay: 0.3,        // Dernier à apparaître
         ease: "power3.out",
         scrollTrigger: {
-            trigger: ".truck",
-            start: "bottom 85%",
+            trigger: ".suv",
+            start: "15% 75%",
             end: "top 40%",
             toggleActions: "play none none reverse",
             
@@ -426,8 +450,8 @@ document.addEventListener('DOMContentLoaded', function() {
             duration: 1.2,
             ease: "power3.out",
         scrollTrigger: {
-            trigger: ".truck",
-            start: "bottom 80%",
+            trigger: ".suv",
+            start: "75% 85%",
             end: "top 40%",
             toggleActions: "play none none reverse",
             
@@ -466,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -486,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -501,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: -200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -516,6 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -531,6 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: -200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -546,6 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 x: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -560,6 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -575,6 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -589,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 opacity: 0,
                 y: 200,
                 duration: 1,
+                ease: "power3.out",
             
             });
 
@@ -782,7 +815,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     start: "top 70%",
                     end: "top 30%",
                     toggleActions: "play none none reverse",
-                    markers:true, 
+                     
                      
                 },
                 opacity: 0,
@@ -848,7 +881,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     start: "top 70%",
                     end: "top 30%",
                     toggleActions: "play none none reverse",
-                    markers:true, 
+                    
                      
                 },
                 opacity: 0,

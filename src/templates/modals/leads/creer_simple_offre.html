@@ -41,10 +41,10 @@
                         {% if field.help_text %}
                             <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
                         {% endif %}
-                        <div id="indicator" class="htmx-indicator fixed inset-0 bg-white flex items-center justify-center z-50">
+                        <div id="indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
                         <div class="bg-white p-6 items-center justify-center rounded-xl text-center shadow-2xl">
                             <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                            <p class="text-white font-medium">Création en cours...</p>
+                            <p class="text-gray-700 font-medium">Création en cours...</p>
                         </div>
                         </div>
                         {% if field.errors %}

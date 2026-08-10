@@ -1,4 +1,5 @@
 <!-- modal/contact_modal.html -->
+{% load static %}
 <dialog id="contact_modal" class="modal">
     <div class="modal-box">
         
@@ -9,19 +10,24 @@
         <p class="text-sm text-gray-500 mb-4">
             Remplissez ce formulaire pour être recontacté par un commercial.
         </p>
-       
-        <form method="post" action="{% url 'leads_app:envoyer-contact-email' %}">
+        <div id="cont-msg-zone" class="mb-4"></div>
+        <form hx-post="{% url 'leads_app:envoyer-contact-email' %}"
+            hx-target="#cont-msg-zone"
+            hx-indicator="#cont-indicator">
             {% csrf_token %}
-            <input type="hidden" name="reference" value="{{ reference }}">
-            <input type="hidden" name="type" value="{{ type }}">
-            
+        
             <div class="space-y-3">
                 <input type="text" name="nom" placeholder="Votre nom" class="input input-bordered w-full" required>
                 <input type="email" name="email" placeholder="Votre email" class="input input-bordered w-full" required>
                 <input type="tel" name="telephone" placeholder="Votre téléphone" class="input input-bordered w-full">
                 <textarea name="message" rows="3" placeholder="Votre message..." class="textarea textarea-bordered w-full"></textarea>
             </div>
-            
+             <div id="cont-indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover  w-35 h-35 mb-3">
+                                <p class="text-gray-700 font-medium">Envoi en cours...</p>
+                            </div>
+                        </div>
             <div class="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700 flex items-start gap-2">
                 <i class="fas fa-info-circle mt-0.5"></i>
                 <div>
@@ -39,7 +45,13 @@
                 </div>
             </div>
             
-            <button type="submit" class="btn btn-primary w-full mt-4">Envoyer</button>
+            <button type="submit" class="btn btn-glow w-full mt-4">Envoyer</button>
         </form>
     </div>
 </dialog>
+
+<script>
+ document.addEventListener('closeContactModal', function() {
+        document.getElementById('contact_modal').close();
+    });
+</script>

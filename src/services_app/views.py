@@ -203,7 +203,6 @@ class SITE_ServiceDetailView(DetailView):
         return context
 
 
-
 class SITE_ServiceAvisCreateView(LoginRequiredMixin, CreateView):
     model = ServiceAvis
     form_class = ServiceAvisForm
@@ -229,7 +228,7 @@ class SITE_ServiceAvisCreateView(LoginRequiredMixin, CreateView):
         return response
     
     def get_success_url(self):
-        return reverse_lazy('services_app:service-detail', kwargs={'pk': self.service.pk})
+        return reverse_lazy('services_app:service-detail-public', kwargs={'pk': self.service.pk})
 
 
 @login_required
