@@ -11,9 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/commercial/commercial_style.css' %}">
-    <title>Tableau de bord - KOZ Services</title>
+    <title>Tableau de bord Commercial - KOZ Services</title>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 font-inter min-h-screen flex flex-col justify-between">
 
     <!-- Messages flash -->
     {% if messages %}
@@ -37,11 +37,9 @@
             </div>
             <div class="flex items-center gap-4">
                 <span class="text-gray-600 text-sm hidden md:inline">{{ user.email }}</span>
-                <div class="relative">
-                   <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm transition shadow-md flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i><span class="hidden sm:inline">Déconnexion</span>
                 </a>
-                </div>
             </div>
         </div>
     </nav>
@@ -54,15 +52,15 @@
                     <h1 class="text-2xl md:text-3xl font-bold">
                         Bonjour, <span class="text-yellow-300">{{ user.nom_complet }}</span>
                     </h1>
-                    <p class="text-blue-100 mt-1">Gérez vos clients et leurs demandes</p>
+                    <p class="text-blue-100 mt-1">Gérez vos clients, relances et envoi de devis en temps réel.</p>
                 </div>
                 <div class="flex flex-wrap gap-3">
                     <button onclick="document.getElementById('userregister_modal').showModal()" 
-                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2">
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2 text-sm font-medium">
                         <i class="fas fa-user-plus"></i> Ajouter un client
                     </button>
                     <button onclick="document.getElementById('change_pass_modal').showModal()" 
-                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2">
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition flex items-center gap-2 text-sm font-medium">
                         <i class="fas fa-key"></i> Changer mot de passe
                     </button>
                 </div>
@@ -70,164 +68,182 @@
         </div>
     </header>
 
-    <!-- Section KPI (stats rapides) -->
-    <div class="container mx-auto px-4 py-6" style="min-height: 70vh">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 flex-grow min-h-[70vh]">
+        
+        <!-- Section KPI (stats rapides) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">👥 Clients</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ clients|length }}</p>
+                        <p class="text-gray-500 text-xs font-medium">👥 Clients</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">{{ clients|length }}</p>
                     </div>
-                    <i class="fas fa-users text-3xl text-blue-500 opacity-50"></i>
+                    <i class="fas fa-users text-2xl text-blue-500 opacity-50"></i>
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">🗓 Demande de rendez vous</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ demande_rendez_vous }}</p>
+                        <p class="text-gray-500 text-xs font-medium">🗓 RDV Demandés</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">{{ demande_rendez_vous }}</p>
                     </div>
-                    <i class="fas fa-calendar-plus text-3xl text-blue-500 opacity-50"></i>
+                    <i class="fas fa-calendar-plus text-2xl text-blue-500 opacity-50"></i>
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">📋 Demandes en cours</p>
-                        <p class="text-2xl font-bold text-gray-800">{{demande_financement_en_cours }}</p>
+                        <p class="text-gray-500 text-xs font-medium">📋 En cours</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">{{ demande_financement_en_cours }}</p>
                     </div>
-                    <i class="fas fa-file-alt text-3xl text-green-500 opacity-50"></i>
+                    <i class="fas fa-file-alt text-2xl text-yellow-500 opacity-50"></i>
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">💰 Offres acceptées</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ offres_acceptees }}</p>
+                        <p class="text-gray-500 text-xs font-medium">💰 Acceptées</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">{{ offres_acceptees }}</p>
                     </div>
-                    <i class="fas fa-check-circle text-3xl text-green-500 opacity-50"></i>
+                    <i class="fas fa-check-circle text-2xl text-green-500 opacity-50"></i>
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">🔧 Maintenances à venir</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ maintenance_planifiee }}</p>
+                        <p class="text-gray-500 text-xs font-medium">🔧 Maintenances</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">{{ maintenance_planifiee }}</p>
                     </div>
-                    <i class="fas fa-tools text-3xl text-orange-500 opacity-50"></i>
+                    <i class="fas fa-tools text-2xl text-orange-500 opacity-50"></i>
                 </div>
             </div>
             <div class="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-gray-500 text-sm">💬 Messages non lus</p>
-                        <p class="text-2xl font-bold text-red-600">{{ total_non_lus }}</p>
+                        <p class="text-gray-500 text-xs font-medium">💬 Non lus</p>
+                        <p class="text-2xl font-bold text-red-600 mt-1">{{ total_non_lus }}</p>
                     </div>
-                    <i class="fas fa-comment-dots text-3xl text-red-500 opacity-50"></i>
+                    <i class="fas fa-comment-dots text-2xl text-red-500 opacity-50"></i>
                 </div>
             </div>
         </div>
 
         <!-- Navigation rapide -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
             <a href="{% url 'commercial_app:rendez-vous-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-calendar-plus text-xl text-blue-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Rendez-vous</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Rendez-vous</p>
             </a>
-
             <a href="{% url 'leads_app:list-demande-financement' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-file-alt text-xl text-blue-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Demandes</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Demandes</p>
             </a>
             <a href="{% url 'leads_app:documents-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-folder-open text-xl text-yellow-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Dossiers</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Dossiers</p>
             </a>
             <a href="{% url 'commercial_app:offre-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-tags text-xl text-purple-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Offres</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Offres</p>
             </a>
             <a href="{% url 'commercial_app:maintenance-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-tools text-xl text-orange-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Maintenances</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Maintenances</p>
             </a>
             <a href="{% url 'commercial_app:vente-list' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-chart-line text-xl text-green-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Ventes</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Ventes</p>
             </a>
             <a href="{% url 'dashboard_app:dashboard-view' %}" class="bg-white rounded-xl p-3 text-center shadow-sm hover:shadow-md transition border border-gray-100 group">
                 <i class="fas fa-chart-pie text-xl text-indigo-500 group-hover:scale-110 transition"></i>
-                <p class="text-sm font-medium text-gray-700 mt-1">Dashboard</p>
+                <p class="text-xs font-medium text-gray-700 mt-1">Dashboard</p>
             </a>
         </div>
 
-        <!-- Liste des clients -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <!-- Liste des clients avec Recherche HTMX -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
                 <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-users text-blue-600"></i> Mes clients
+                    <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">{{ clients|length }}</span>
                 </h2>
-                <span class="text-sm text-gray-500">{{ clients|length }} client(s)</span>
+                
+                <!-- Barre de Recherche Filtre Instantané -->
+                <div class="relative w-full md:w-72">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" 
+                           name="q" 
+                           placeholder="Rechercher un client..." 
+                           class="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition"
+                           hx-get="#" 
+                           hx-trigger="keyup changed delay:300ms" 
+                           hx-target="#client-list-body">
+                </div>
             </div>
+
             <div class="overflow-x-auto">
-                <table class="min-w-full">
+                <table class="min-w-full divide-y divide-gray-100">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Client</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dernier message</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Dernier message</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Activité</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody id="client-list-body" class="divide-y divide-gray-100">
                         {% for client in clients %}
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4">
+                        <tr class="hover:bg-gray-50/80 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-3">
-                                     <span class="w-2 h-2 rounded-full 
-                                                        {% if client.est_en_ligne %}
-                                                            bg-green-500
-                                                        {% elif client.est_hors_ligne %}
-                                                            bg-gray-400
-                                                        {% else %}
-                                                        bg-red-400
-                                                        {% endif %}">
-                                            </span>
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
-                                        {{ client.nom_complet|slice:":1" }}
+                                    <span class="w-2.5 h-2.5 rounded-full flex-shrink-0
+                                        {% if client.est_en_ligne %} bg-green-500
+                                        {% elif client.est_hors_ligne %} bg-gray-400
+                                        {% else %} bg-red-400 {% endif %}">
+                                    </span>
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                        {{ client.nom_complet|slice:":1"|upper }}
                                     </div>
                                     <div>
-                                        <p class="font-medium text-gray-800">{{ client.nom_complet }}</p>
+                                        <p class="font-medium text-gray-800 text-sm">{{ client.nom_complet }}</p>
                                         <p class="text-xs text-gray-500">{{ client.email }}</p>
                                     </div>
                                     {% if client.nb_message_non_lus > 0 %}
-                                    <span class="badge bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ client.nb_message_non_lus }}</span>
+                                    <span class="badge bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
+                                        {{ client.nb_message_non_lus }}
+                                    </span>
                                     {% endif %}
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                                 {{ client.dernier_message.contenu|default:"—"|truncatechars:40 }}
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-500">
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
                                 {{ client.dernier_message.date_envoi|timesince|default:"—" }}
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="flex gap-2">
-                                    <a href="{% url 'chat_app:chat-view' client.id %}" class="text-blue-600 hover:text-blue-800 transition" title="Discuter">
-                                        <i class="fas fa-comment-dots text-lg"></i>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                    <!-- Chat -->
+                                    <a href="{% url 'chat_app:chat-view' client.id %}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Ouvrir le Tchat">
+                                        <i class="fas fa-comment-dots text-base"></i>
                                     </a>
-                                    <a href="{% url 'client_app:client-detail' client.id %}" class="text-green-600 hover:text-green-800 transition" title="Profil">
-                                        <i class="fas fa-user-circle text-lg"></i>
+                                    <!-- Profil -->
+                                    <a href="{% url 'client_app:client-detail' client.id %}" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition" title="Fiche Client">
+                                        <i class="fas fa-user-circle text-base"></i>
+                                    </a>
+                                    <!-- Envoi express Offre / Devis -->
+                                    <a href="{% url 'commercial_app:offre-create' %}?client_id={{ client.id }}" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition" title="Créer & Envoyer un Devis">
+                                        <i class="fas fa-paper-plane text-base"></i>
                                     </a>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                                <i class="fas fa-users text-4xl mb-2 opacity-50"></i>
-                                <p>Aucun client assigné pour le moment.</p>
+                            <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-users text-4xl mb-3 opacity-30 text-gray-400"></i>
+                                <p class="text-base font-medium">Aucun client assigné pour le moment.</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -235,18 +251,17 @@
                 </table>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Modales -->
+    <!-- Modales incluses -->
     {% include 'modals/auth/userregister.html' %}
     {% include 'modals/auth/change_password.html' %}
 
     <footer class="bg-gray-800 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-400">
+        <div class="container mx-auto px-4 text-center text-xs text-gray-400">
             <p>&copy; {% now "Y" %} KOZ Services - Tous droits réservés</p>
         </div>
     </footer>
-
 
 </body>
 </html>
