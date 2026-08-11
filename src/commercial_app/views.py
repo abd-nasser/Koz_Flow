@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from datetime import datetime
 
 
 from django.urls import reverse_lazy,reverse
@@ -600,8 +601,6 @@ class OffreDetailView(LoginRequiredMixin, DetailView):
             if "update_offre_form" not in context:
                 context["update_offre_form"] = OffreFinancementForm(instance=self.object)
             return context
-        offre = self.object
-        context["offre_dossier"] = offre.documents
         return context
 
 class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -810,48 +809,93 @@ def changer_statut_vente(request, vente_id):
     return redirect('commercial_app:vente-detail', pk=vente.id)
 
 
-# commercial_app/views.py
-
 @login_required
 def marquer_paye(request, vente_id, numero_echeance):
     vente = get_object_or_404(Vente, id=vente_id)
-    
-    # ✅ Vérifier que l'utilisateur est commercial ou directeur
+    numero_echeance = int(numero_echeance)
+
+    # ✅ Vérification des droits
     if request.user.role not in ['commercial', 'directeur']:
-        messages.error(request, "Action non autorisée.")
+        response = render(request, "partials/vente/_vente_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Vous n'avez pas les droits pour effectuer cette action.",
+        })
+        response['HX-Trigger'] = "closePaiementModal"
+        return response
+
+    if request.method != 'POST':
         return redirect('commercial_app:vente-detail', vente.pk)
-    
-    if request.method == 'POST':
-        date_paiement = request.POST.get('date_paiement')
-        
-        # ✅ Mettre à jour l'échéance
-        for echeance in vente.echeances:
-            if echeance['numero'] == numero_echeance and not echeance['paye']:
-                echeance['paye'] = True
-                echeance['date_paiement'] = date_paiement
-                break
-        
+
+    # ✅ Validation de la date de paiement
+    date_paiement_str = request.POST.get('date_paiement')
+    try:
+        date_paiement = (
+            datetime.strptime(date_paiement_str, '%Y-%m-%d').date()
+            if date_paiement_str else timezone.now().date()
+        )
+    except ValueError:
+        response = render(request, "partials/vente/_vente_result.html", {
+            "success": False,
+            "title": "❌ Erreur",
+            "message": "Date de paiement invalide.",
+        })
+        response['HX-Trigger'] = "closePaiementModal"
+        return response
+
+    with transaction.atomic():
+        # ✅ Vérifier l'état actuel de l'échéance AVANT modification
+        echeance_actuelle = next(
+            (e for e in vente.echeances if e['numero'] == numero_echeance), None
+        )
+
+        if echeance_actuelle is None:
+            response = render(request, "partials/vente/_vente_result.html", {
+                "success": False,
+                "title": "❌ Erreur",
+                "message": f"Échéance #{numero_echeance} introuvable.",
+            })
+            response['HX-Trigger'] = "closePaiementModal"
+            return response
+
+        if echeance_actuelle['paye']:
+            response = render(request, "partials/vente/_vente_result.html", {
+                "success": False,
+                "title": "ℹ️ Déjà payée",
+                "message": f"L'échéance #{numero_echeance} est déjà marquée comme payée.",
+            })
+            response['HX-Trigger'] = "closePaiementModal"
+            return response
+
+        # ✅ Marquer l'échéance comme payée dans le JSON
+        echeance_actuelle['paye'] = True
+        echeance_actuelle['date_paiement'] = date_paiement.isoformat()
+
+        # ✅ Recalculer le montant total payé
+        vente.montant_total_paye = sum(
+            e['montant'] for e in vente.echeances if e['paye']
+        )
         vente.save()
-        
-        # ✅ Mettre à jour le montant total payé
-        montant_total_paye = sum(e['montant'] for e in vente.echeances if e['paye'])
-        vente.montant_total_paye = montant_total_paye
-        vente.save()
-        
-        # ✅ Mettre à jour le PaiementFinancement
+
+        # ✅ Synchroniser le PaiementFinancement correspondant
         paiement = PaiementFinancement.objects.filter(
             vente=vente,
             reference=f"PAY-{vente.id}-{numero_echeance}"
         ).first()
-        
+
         if paiement:
-            paiement.est_paye = True
+            paiement.statut = 'paye'
             paiement.date_paiement = date_paiement
             paiement.save()
-        
-        messages.success(request, f"✅ Échéance #{numero_echeance} marquée comme payée !")
-    
-    return redirect('commercial_app:vente-detail', vente_id)
+
+    response = render(request, "partials/vente/_vente_result.html", {
+        "success": True,
+        "title": "✅ Paiement enregistré",
+        "message": f"L'échéance #{numero_echeance} a été marquée comme payée.",
+        "reload_on_close": True,
+    })
+    response['HX-Trigger'] = "closePaiementModal"
+    return response
 
 class VenteListView(LoginRequiredMixin, ListView):
     model = Vente

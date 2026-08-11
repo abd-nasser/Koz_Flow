@@ -12,7 +12,7 @@ def generer_echeances_demande(demande):
             'numero': i + 1,
             'date': (date_debut + timedelta(days=30 * i)).isoformat(),
             'montant': float(demande.mensualite),
-            'statut': 'en_attente',
+            'paye': False,
             'date_paiement': None,
         }
         echeances.append(echeance)
@@ -29,7 +29,7 @@ def generer_echeances_offre(offre):
             'numero': i + 1,
             'date': (date_debut + timedelta(days=30 * i)).isoformat(),
             'montant': float(offre.mensualite),
-            'statut': 'en_attente',
+            'paye': False,
             'date_paiement': None,
         }
         echeances.append(echeance)

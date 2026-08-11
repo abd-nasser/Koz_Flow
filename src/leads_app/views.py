@@ -2,6 +2,7 @@ from datetime import timedelta, timezone, datetime
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import Q
+from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -751,16 +752,19 @@ def upload_offre_documents(request, offre_id):
                                                                 "reload_on_close": True,
                                                             })
                 response["HX-Trigger"] = "closeDocModal"
+                return response
             
             else:
                 # ❌ Dossier incomplet (documents manquants)
                 dossier.statut_dossier = "incomplet"
                 dossier.save()
-                return render(request, 'partials/documents/_documents_toast_oob.html', {
+                response = render(request, 'partials/documents/_documents_toast_oob.html', {
                                     "success": False,
                                     "title": "❌ Dossier incomplet",
                                     "message": "Votre dossier est incomplet, il manque des documents requis.",
                                 })
+                response["HX-Trigger"] = "closeDocModal"
+                return response
                
         else:
             # ❌ Formulaire invalide
@@ -934,6 +938,9 @@ def valide_dossier(request, dossier_id):
                 echeances=generer_echeances_offre(offre),
             )
             # Pas de offre.save() — statut/type/partenaire restent inchangés, KPI se basent dessus directement
+            offre.statut = "acceptee"
+            offre.save()
+            print(f"{offre.statut}")
 
             client = offre.client
             context_email = {
