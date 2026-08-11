@@ -4,6 +4,9 @@ from django.contrib import admin
 from django.urls import path, include
 from koz_flow.views import health_check
 
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import StaticViewSitemap, VehiculSitemap, ProduitSitemap
+
 urlpatterns = [
     path("", include("home_app.urls")),
     path('api/auth/', include('auth_app.urls')),
@@ -21,6 +24,17 @@ urlpatterns = [
     
     path('health/', health_check, name='health-check'),
     path('koz_adminitration_2k26/', admin.site.urls),
+]
+
+
+sitemaps = {
+    'pages': StaticViewSitemap,
+    'vehicules': VehiculSitemap,
+    'produits': ProduitSitemap,
+}
+
+urlpatterns += [
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
 ]
 
 if settings.DEBUG:

@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="relative overflow-x-hidden">
-{% include 'modals/auth/login_modal.html' %}
+{% include 'modals/auth/login_simple_modal.html' %}
     <!-- Overlay pour étendre le gradient -->
     <div class="gradient-overlay"></div>
     
@@ -73,7 +73,7 @@
                     </p>
                     
                     <div class="flex flex-col items-center gap-6">
-                        <button onclick="openLoginModal()" 
+                        <button onclick="document.getElementById('login_simple_modal').showModal()" 
                                 class="btn-glow px-10 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-2xl">
                             <i class="fas fa-sign-in-alt mr-3"></i>
                             Connexion à mon espace
@@ -175,16 +175,7 @@
    
 
     <script>
-        function openLoginModal() {
-            const modal = document.getElementById('login_modal');
-            if (modal) {
-                modal.showModal();
-                modal.classList.add('modal-open-animation');
-                setTimeout(() => {
-                    modal.classList.remove('modal-open-animation');
-                }, 500);
-            }
-        }
+    
         
         // Création des particules dynamiques
         document.addEventListener('DOMContentLoaded', function() {

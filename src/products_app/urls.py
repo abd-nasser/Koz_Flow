@@ -33,6 +33,8 @@ urlpatterns = [
     # Produits
     path('', ProductsListView.as_view(), name='products-list'),
     path('ajouter/', ProductsCreateView.as_view(), name='products-create'),
+     # ✅ URL SEO-friendly avec slug
+    path('produit/<slug:slug>/', ProductsDetailView.as_view(), name='detail-produit-slug'),
     path('<int:pk>/', ProductsDetailView.as_view(), name='products-detail'),
     path('<int:pk>/modifier/', ProductsUpdateView.as_view(), name='products-update'),
     path('<int:pk>/supprimer/', ProductsDeleteView.as_view(), name='products-delete'),

@@ -1,6 +1,8 @@
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.text import slugify
 
 # ============================================================
 # CATÉGORIE PRODUIT (améliorée)
@@ -174,6 +176,29 @@ class Products(models.Model):
     date_ajout = models.DateTimeField(auto_now_add=True, verbose_name="Date d'ajout")
     date_modification = models.DateTimeField(auto_now=True, verbose_name="Dernière modification")
     
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Laissez vide pour génération automatique"
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = f"{self.nom} {self.marque.nom if hasattr(self, 'marque') else ''}"
+            self.slug = slugify(base)
+            # Vérifier l'unicité
+            original = self.slug
+            counter = 1
+            while Products.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original}-{counter}"
+                counter += 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.nom
+    
     class Meta:
         ordering = ['ordre', '-date_ajout']
         verbose_name = "Produit"
@@ -220,6 +245,9 @@ class Products(models.Model):
     def get_etoiles(self):
         """Retourne la note moyenne (à implémenter avec un modèle Avis)"""
         return 0
+    
+    def get_absolute_url(self):
+        return reverse('products_app:detail-produit-slug', kwargs={'slug': self.slug})
     
     
 

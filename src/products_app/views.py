@@ -1,5 +1,6 @@
 # products_app/views.py
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -74,6 +75,7 @@ class ProductsListView(ListView):
     template_name = 'products_templates/SITE/SITE_products_list.html'
     context_object_name = 'products'
     paginate_by = 12
+
 
     def get_queryset(self):
         queryset = Products.objects.filter(est_disponible=True).select_related('categorie', 'marque', 'unite')
@@ -178,6 +180,13 @@ class ProductsDetailView(DetailView):  # ← DetailView,
     model = Products
     template_name = 'products_templates/SITE/SITE_product_detail.html'
     context_object_name = 'produit'
+    
+    def get_object(self):
+        if 'pk' in self.kwargs:
+            return get_object_or_404(Products, pk=self.kwargs['pk'])
+        elif 'slug' in self.kwargs:
+            return get_object_or_404(Products, slug=self.kwargs['slug'])
+        raise Http404("Produit non trouvé")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

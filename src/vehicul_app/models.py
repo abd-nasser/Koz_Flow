@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.urls import reverse
+from django.utils.text import slugify
 class Marque(models.Model):
     nom = models.CharField(max_length=100, null=True, blank=True)
     logo = models.ImageField(upload_to="marques/", null=True, blank=True)
@@ -86,6 +87,14 @@ class Vehicul(models.Model):
     actualite = models.BooleanField(default=False)
     est_vedette = models.BooleanField(default=False)
     
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text="Laissez vide pour génération automatique"
+    )
+    
     # ✅ Propriété qui choisit la bonne image
     @property
     def display_image(self):
@@ -98,7 +107,23 @@ class Vehicul(models.Model):
         marque_nom = self.marque.nom if self.marque else "?"
         modele_nom = self.modele if self.modele else "?"
         return f"{marque_nom} {modele_nom}"
+    
+    def get_absolute_url(self):
+        return reverse('vehicul_app:site-vehicul-detail-slug', kwargs={'slug': self.slug})
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = f"{self.marque.nom} {self.modele} {self.annee}"
+            self.slug = slugify(base)
+            # Gérer l'unicité
+            original = self.slug
+            counter = 1
+            while Vehicul.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f"{original}-{counter}"
+                counter += 1
+        super().save(*args, **kwargs)
+        
+        
 
 # ============================================================
 # ✅ NOUVEAU MODÈLE : IMAGES MULTIPLES POUR VÉHICULE

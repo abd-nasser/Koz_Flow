@@ -11,7 +11,7 @@ from django.contrib import messages
 
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -484,6 +484,10 @@ def contacter_vehicule(request, vehicul_id):
     messages.success(request, f"✅ Votre message a été envoyé au commercial pour {vehicule.marque.nom} {vehicule.modele}")
     return redirect('chat_app:chat-view')
 
+def detail_vehicul_slug(request, slug):
+    vehicul = get_object_or_404(Vehicul, slug=slug)
+    return redirect('vehicul_app:site-vehicul-detail', vehicul.pk)
+
 class SITE_VehiculListView(ListView):
     """
     Vue publique pour afficher la liste des véhicules disponibles
@@ -587,57 +591,55 @@ class SITE_VehiculByTypeListView(ListView):
 
         return context
 
+from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView
+
 class SITE_VehiculDetailView(DetailView):
-    """
-    Vue publique pour afficher les détails d'un véhicule
-    Accessible à tous
-    """
     model = Vehicul
     template_name = "vehicul_templates/SITE/SITE_vehicul_detail.html"
     context_object_name = "vehicul"
-    
+
+    def get_object(self):
+        if 'pk' in self.kwargs:
+            return get_object_or_404(Vehicul, pk=self.kwargs['pk'])
+        elif 'slug' in self.kwargs:
+            return get_object_or_404(Vehicul, slug=self.kwargs['slug'])
+        raise Http404("Aucun véhicule trouvé")
+
     def get_queryset(self):
         return Vehicul.objects.select_related('marque', 'type_vehicule').prefetch_related('images')
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
-        # Images du véhicule
-        images = self.object.images.all().order_by('ordre', 'date_ajout')
+        vehicule = self.object
+
+        # === TOUT TON CONTEXTE EXISTANT ===
+        images = vehicule.images.all().order_by('ordre', 'date_ajout')
         context['images'] = images
-        
-        # Image principale
+
         image_principal = images.filter(est_principale=True).first()
         if not image_principal and images.exists():
             image_principal = images.first()
         context['image_principal'] = image_principal
-        
-        # Formulaire de financement (pour utilisateurs connectés)
+
         if self.request.user.is_authenticated:
             initial = {"duree_mois": 36, "apport": 0}
             context['dmd_fin_form'] = DemandeFinancementForm(initial=initial)
-        
-        # Véhicules similaires (même marque)
+
         context['vehicules_similaires'] = Vehicul.objects.filter(
-            marque=self.object.marque,
+            marque=vehicule.marque,
             disponible=True
-        ).exclude(pk=self.object.pk)[:4]
-        
-            # Images paginées (1 par page pour le hero)
-        images = self.object.images.all()
-        paginator = Paginator(images, 1)  # 1 image par page
+        ).exclude(pk=vehicule.pk)[:4]
+
+        paginator = Paginator(images, 1)
         page_number = self.request.GET.get('page', 1)
         vehicule_imgs_page = paginator.get_page(page_number)
-        direction = self.request.GET.get('direction', 'right')
-        
-        
+
         context['vehicule_imgs_page'] = vehicule_imgs_page
         context['total_page'] = paginator.num_pages
         context['current_page'] = page_number
-        context['direction'] = direction
-        # Image principale pour le fallback
-        context['image_principal'] = images.filter(est_principale=True).first()
-        
+        context['direction'] = self.request.GET.get('direction', 'right')
+
         return context
     
 class SITE_MarqueListeView(ListView):
