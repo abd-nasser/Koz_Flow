@@ -121,7 +121,7 @@
                     
                     <!-- Connexion -->
                     <button onclick="document.getElementById('login_simple_modal').showModal()" 
-                            class="btn btn-ghost btn-sm hidden sm:inline-flex hover:bg-gray-100 transition">
+                            class="btn btn-ghost btn-sm  sm:inline-flex hover:bg-gray-100 transition">
                         Connexion
                     </button>
                     
@@ -149,9 +149,14 @@
                 <a href="#financement" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Financement</a>
                 <a href="#contact" class="px-4 py-2.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">Contact</a>
                 <hr class="my-2">
-                <a href="#" class="px-4 py-2.5 rounded-lg text-blue-600 font-medium hover:bg-blue-50 transition">
+                
+                {% if user.is_authenticated %}
+                    <a href="#" class="px-4 py-2.5 rounded-lg text-blue-600 font-medium hover:bg-blue-50 transition">
                     <i class="fas fa-shopping-cart mr-2"></i> Panier ({{ user.panier.nb_articles|default:0 }})
                 </a>
+                {% endif %}
+                    
+                
             </div>
         </div>
         <!-- Messages flash -->

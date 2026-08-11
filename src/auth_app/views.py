@@ -264,7 +264,7 @@ class LogoutView(APIView):
 class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = kozUser
     form_class = UserRegisterForm
-    
+    time.sleep(3)
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_staff
     
@@ -295,34 +295,20 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             form.instance.is_active = True
             form.instance.assigned_commercial = self.request.user
         
-        response = super().form_valid(form)  # Sauvegarde avec les bonnes valeurs
-        
-        messages.success(self.request, 
-            f"✅ Utilisateur {form.cleaned_data.get('email')} créé !\n"
-            f"📧 Les identifiants temporaires ont été envoyés par email."
-        )
-        
+       # Sauvegarde avec les bonnes valeurs
+        response = render(self.request, 'partials/auth/register_result.html',{
+                                                                    'success': True,
+                                                                    'title': f" Utilisateur {form.cleaned_data.get('email')} créé !\n",
+                                                                    'message': "📧 Les identifiants temporaires ont été envoyés par email.",
+                                                                    'reload_on_close': True,}
+                          )
+        response["HX-Trigger"] = "closeRegisterModal"
         return response
     
     def form_invalid(self, form):
         #Quand le formulaire est invalide, on reste sur la meme page
         #on passe le formulaire invalide au context
-        if self.request.user.is_superuser or self.request.user.role =="directeur":
-            dashboard = DirecteurDashboardView()
-            dashboard.request = self.request
-            dashboard.kwargs = self.kwargs
-            dashboard.args = self.args   
-        else:
-            dashboard = CommercialDashboardView()
-            dashboard.request = self.request 
-            dashboard.kwargs = self.kwargs
-            dashboard.args = self.args   
-            
-        context = dashboard.get_context_data()
-        context["user_register_form"] = form
-        context["open_user_register_modal"] = True # variable pour réouvrir le modal avec les erreurs
-        return self.render_to_response(context)
-
+        return render(self.request, 'partials/auth/_user_register_form_errors.html', {"user_register_form":form})
 
 
 def login_simple(request):
