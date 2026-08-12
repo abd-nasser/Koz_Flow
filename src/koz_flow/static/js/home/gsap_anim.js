@@ -400,9 +400,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ease: "power3.out",
         scrollTrigger: {
             trigger: ".suv",
-            start: "top 95%",
+            start: "top 85%",
             end: "top 40%",
             toggleActions: "play none none reverse",
+            
               
         }
     });
@@ -418,10 +419,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ease: "power3.out",
         scrollTrigger: {
             trigger: ".suv",
-            start: "10% 70%",
+            start: "top 85%",
             end: "top 40%",
             toggleActions: "play none none reverse",
-            
+           
             
         }
     });
@@ -437,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ease: "power3.out",
         scrollTrigger: {
             trigger: ".suv",
-            start: "15% 75%",
+            start: "top 85%",
             end: "top 40%",
             toggleActions: "play none none reverse",
             

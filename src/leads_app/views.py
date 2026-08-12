@@ -231,6 +231,7 @@ def demande_financement_view(request, vehicul_id):
     demande = form.save(commit=False)
     demande.client = request.user
     demande.Vehicul_interested = vehicul
+    demande.montant_finance = vehicul.prix - form.cleaned_data.get('apport', 0)
     demande.etape = "nouvelle"
     demande.save()
 

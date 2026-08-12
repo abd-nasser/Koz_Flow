@@ -36,7 +36,7 @@ class TypeVehiculeForm(forms.ModelForm):
 class VehiculForm(forms.ModelForm):
     class Meta:
         model = Vehicul
-        fields = ["marque","modele", "annee", "stock",
+        fields = ["marque","modele","type_vehicule","annee", "stock",
                   "prix", "kilometrage", "carburant","actualite","est_vedette",
                   "image_principale",
                   "disponible", "description",
@@ -44,6 +44,7 @@ class VehiculForm(forms.ModelForm):
         
         widgets = {
             "marque":forms.Select(attrs={"class":"select select-bordered w-full"}),
+            "ype_vehicule":forms.Select(attrs={"class":"select select-bordered w-full"}),
             "modele": forms.TextInput(attrs={"class":"input input-bordered w-full", "placeholder":"Saisir le modèle"}),
             "annee": forms.NumberInput(attrs={"class":"input input-bordered w-full", "placeholder":"Saisir l'année"}),
             "stock":forms.NumberInput(attrs={"class":"input input-bordered w-full", "placeholder":"nombre"}),

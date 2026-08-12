@@ -1,7 +1,7 @@
 from django.db import models
 from vehicul_app.models import Vehicul
 from auth_app.models import kozUser
-
+from decimal import Decimal
 class DevisLeads(models.Model):
     """ 
         TABLE WHO STOCK QUOTE REQUEST
@@ -183,12 +183,17 @@ class Vente(models.Model):
         help_text="Liste des échéances avec dates et montants"
     )
     
-    @property
+    property
     def reste_a_payer(self):
-        """Calcule le reste à payer"""
-        if self.montant_finance:
-            return self.montant_finance - self.montant_total_paye
-        return 0
+        """Calcule le reste à payer sur la partie financée (hors apport)."""
+        if not self.montant_finance:
+            return Decimal('0')
+
+        total_echeances_payees = sum(
+            (Decimal(str(e['montant'])) for e in self.echeances if e.get('paye')),
+            Decimal('0')
+        )
+        return self.montant_finance - total_echeances_payees
     
     @property
     def nb_echeances_restantes(self):

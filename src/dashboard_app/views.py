@@ -1,6 +1,7 @@
 from multiprocessing import context
 
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Value, F
+from django.db.models.functions import Coalesce
 import json
 import re
 from django.utils import timezone
@@ -461,19 +462,29 @@ class DashboardView(LoginRequiredMixin,TemplateView):
         # ============================================================
         # 5. Statistiques globales
         # ============================================================
-        stats = Vente.objects.filter(
-            statut__in=["conclue", "conclue_par_acceptation_offre_simple", "conclue_par_acceptation_offre_financement","conclue_sur_acceptation_demande_financement"],
-            date_vente__gte=start_date
-        ).aggregate(
-            total=Sum("montant"),
-            nombre=Count("id")
-        )
+        ventes = Vente.objects.filter(
+                        statut__in=[
+                            "conclue",
+                            "conclue_par_acceptation_offre_simple",
+                            "conclue_par_acceptation_offre_financement",
+                            "conclue_sur_acceptation_demande_financement",
+                        ],
+                        date_vente__gte=start_date
+                    )
 
-        context["total_ca"] = stats["total"] or 0
-        context["nb_ventes"] = stats["nombre"]
+        total_simple = 0
+        total_autres = 0
 
+        for vente in ventes:
+            if vente.type_vente == "cash":  # simple
+                total_simple += float(vente.montant or 0)
+            else:
+                total_autres += float(vente.montant_total_paye or 0)
+
+        total_ca = total_simple + total_autres
+        context['total_ca'] = total_ca
+        context['nb_ventes']  = ventes.count()
         return context
-                
         
         
         

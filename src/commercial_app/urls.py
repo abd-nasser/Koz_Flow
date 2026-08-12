@@ -5,6 +5,7 @@ app_name = "commercial_app"
 
 urlpatterns = [
     path("dashboard/", views.CommercialDashboardView.as_view(), name="commercial-view"),
+    path("client/list/", views.CommercialClientListFilter.as_view(), name="client-list-filter"),
     path("générer/<int:demande_id>/offre/", views.creer_offre, name="creer-offre"),
     path("offres/", views.OffreView.as_view(), name="offre-list"),
     path("générer/<int:pk>/simple/offre/", views.OffreSimpleCreateView.as_view(), name="creer-offre-simple"),

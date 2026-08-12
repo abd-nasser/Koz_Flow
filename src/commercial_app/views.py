@@ -15,6 +15,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from decimal import Decimal
 
 
 from auth_app.models import kozUser
@@ -300,7 +301,22 @@ def negocier_offre(request, offre_id):
     return response
 
    
-    
+class CommercialClientListFilter(LoginRequiredMixin, ListView):   
+    model = kozUser
+    context_object_name = "clients"
+    template_name = "partials/client/partials_client_list.html"
+    def get_queryset(self):
+        queryset = kozUser.objects.filter(role="client")
+        q = self.request.GET.get("q", "")
+        if q:
+                queryset = queryset.filter(
+                    Q(nom_complet__icontains=q) |Q(email__icontains=q)|
+                    Q(telephone__icontains=q)|Q(pays__icontains=q)|Q(ville__icontains=q)|
+                    Q(genre__icontains=q)
+                )
+        
+        
+        return queryset.order_by('-date_inscription')
 
 class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     
@@ -327,8 +343,8 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         
     
            
-        context['clients'] = tous_les_clients
         
+        context["clients"]= tous_les_clients
         # ========================================
         # ✅ 2. STATISTIQUES
         # ========================================
@@ -720,7 +736,7 @@ def changer_statut_vente(request, vente_id):
                     if not vente.echeances:
                         # ✅ Générer les échéances
                         if vente.offre:
-                            echeances = generer_echeances_offre(vente.offre)
+                            echeances = generer_echeances_offre(vente.offre) 
                         elif vente.demande_financement:
                             echeances = generer_echeances_demande(vente.demande_financement)
                         else:
@@ -728,6 +744,7 @@ def changer_statut_vente(request, vente_id):
                         
                         if echeances:
                             vente.echeances = echeances
+                             
                             vente.save()
                             
                             # ✅ Créer les PaiementFinancement
@@ -761,7 +778,7 @@ def changer_statut_vente(request, vente_id):
                         response = render(request, "partials/vente/_vente_result.html",{
                                                                                         "success": True,
                                                                                         "title": "✅ vente mis à jour",
-                                                                                        "message":"les échéances existent déjà",
+                                                                                        "message":"les échéances crées depuis la validation du dossier",
                                                                                         "reload_on_close":True
                                                                                                             })
                         response['HX-Trigger'] = "closeStatuGestionModal"
@@ -811,6 +828,7 @@ def changer_statut_vente(request, vente_id):
 
 @login_required
 def marquer_paye(request, vente_id, numero_echeance):
+    time.sleep(3)
     vente = get_object_or_404(Vente, id=vente_id)
     numero_echeance = int(numero_echeance)
 
@@ -871,10 +889,11 @@ def marquer_paye(request, vente_id, numero_echeance):
         echeance_actuelle['paye'] = True
         echeance_actuelle['date_paiement'] = date_paiement.isoformat()
 
-        # ✅ Recalculer le montant total payé
-        vente.montant_total_paye = sum(
-            e['montant'] for e in vente.echeances if e['paye']
+        # ✅ Apport déjà versé + toutes les échéances payées
+        total_echeances_payees = sum(
+            Decimal(str(e['montant'])) for e in vente.echeances if e['paye']
         )
+        vente.montant_total_paye = vente.montant + total_echeances_payees
         vente.save()
 
         # ✅ Synchroniser le PaiementFinancement correspondant

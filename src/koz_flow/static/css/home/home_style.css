@@ -577,6 +577,20 @@ video {
 
 
 /* -------- Responsive : on empile -------- */
+@media (min-width: 1200px) {
+/* VEHICUL TYPES SECTION */
+    .type-contain .suv,
+    .type-contain .berline,
+    .type-contain .truck {
+        left: 0;
+        top: 0;
+        margin: auto;
+        display: flex;
+       width: 25rem;
+        align-items: center;
+        
+    }
+}
 @media (max-width: 1024px) {
 
     .hero-section{
