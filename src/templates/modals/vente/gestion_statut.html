@@ -44,12 +44,13 @@
                     </select>
                 </div>
             </div>
-            <div id="statut-indic" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
-                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
-                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                                <p class="text-white font-medium">Envoi en cours...</p>
-                            </div>
+            <!-- Overlay de chargement HTMX (Loading Indicator) -->
+                    <div id="statut-indic" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                        <div class="p-6 text-center flex flex-col items-center">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                            <p class="text-sm font-bold text-slate-800"> En cours de validation...</p>
                         </div>
+                    </div>
             <!-- Actions -->
             <div class="flex gap-3 justify-end mt-6 pt-4 border-t border-gray-100">
                 <button type="button" class="btn btn-ghost" onclick="document.getElementById('gestion_statut_modal').close()">
@@ -63,11 +64,11 @@
     </div>
 </dialog>
 
-    <script>
-document.addEventListener('closeStatuGestionModal', function() {
-        document.getElementById('gestion_statut_modal').close();
-    });
-    </script>
+<script>
+        document.addEventListener('closeStatuGestionModal', function() {
+                document.getElementById('gestion_statut_modal').close();
+            });
+</script>
 <style>
     .btn-glow {
         background: linear-gradient(135deg, #3b82f6, #2563eb);

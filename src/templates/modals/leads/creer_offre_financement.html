@@ -16,10 +16,10 @@
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <div id="offre-message-zone" class="mb-4"></div>
+        <div id="offre-fin-message-zone" class="mb-4"></div>
         <form
         hx-post="{% url 'commercial_app:creer-offre-financement' client.pk %}"
-        hx-target="#offre-message-zone"
+        hx-target="#offre-fin-message-zone"
         hx-indicator="#offre-fin-indicator"
         enctype="multipart/form-data"   
         class="p-6">
@@ -42,11 +42,11 @@
                             <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
                         {% endif %}
 
-                        <div id="offre-fin-indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
-                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
-                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                                <p class="text-gray-700 font-medium">Création en cours...</p>
-                            </div>
+                        <div id="offre-fin-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                        <div class="p-6 text-center flex flex-col items-center">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                            <p class="text-sm font-bold text-slate-800"> Envoi de documents cours...</p>
+                        </div>
                         </div>
                         {% if field.errors %}
                             <div class="mt-1 text-red-500 text-xs">

@@ -44,8 +44,6 @@ class DemandeFinancementForm(forms.ModelForm):
             'apport',
             'duree_mois',
             'revenus_mensuel',
-            'mensualite'
-            
         ]
         widgets = {
             'apport': forms.NumberInput(attrs={
@@ -77,14 +75,14 @@ class DemandeFinancementForm(forms.ModelForm):
         cleaned_data = super().clean()
         apport = cleaned_data.get('apport')
         revenus = cleaned_data.get('revenus_mensuel')
-
+        
         if apport is None or apport <= 0:
             raise forms.ValidationError("L'apport ne peut pas être négatif.")
         if revenus is  None or revenus <= 0:
             raise forms.ValidationError("Les revenus ne peuvent pas être négatifs")
         return cleaned_data
 
-
+  
 #POUR LE COMMERCIAL
 class GestionFinancementForm(forms.ModelForm):
     class Meta:

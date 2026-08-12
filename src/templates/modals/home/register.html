@@ -182,12 +182,12 @@
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-xs">
                                 <i class="fas fa-lock"></i>
                             </div>
-                            <input type="password" id="password" name="password" required 
+                            <input type="password" id="rgstr-password" name="password" required 
                                    class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder:text-slate-400 font-medium" 
                                    placeholder="••••••••">
-                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 text-sm">
-                            <i id="toggleIcon" class="fas fa-eye"></i>
-                        </button>
+                            <button type="button" onclick="togglePasswordVisibility('rgstr-password', 'rgstr-toggleIcon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 text-sm">
+                                <i id="rgstr-toggleIcon" class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -203,8 +203,9 @@
                             <input type="password" id="password_2" name="password2" required 
                                    class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all placeholder:text-slate-400 font-medium" 
                                    placeholder="••••••••">
-                             <button type="button" onclick="togglePasswordVisibility2()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 text-sm">
-                            <i id="toggleIcon2" class="fas fa-eye"></i>
+                            <button type="button" onclick="togglePasswordVisibility('password_2', 'toggleIcon2')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 text-sm">
+                                <i id="toggleIcon2" class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -272,39 +273,21 @@
         pointer-events: auto;
     }
 </style>
-
 <script>
-    // Événement personnalisé de fermeture
+    function togglePasswordVisibility(inputId, iconId) {
+        const pwdInput = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+
+        if (!pwdInput || !icon) return;
+
+        const isPassword = pwdInput.type === 'password';
+        pwdInput.type = isPassword ? 'text' : 'password';
+        icon.classList.toggle('fa-eye', !isPassword);
+        icon.classList.toggle('fa-eye-slash', isPassword);
+    }
+
     document.addEventListener('closeRegisterModal', function(){
-        document.getElementById('register_modal').close();
+        const modal = document.getElementById('register_modal');
+        if (modal) modal.close();
     });
-
-     // Bascule d'affichage du mot de passe
-    function togglePasswordVisibility() {
-        const pwdInput = document.getElementById('password');
-        const icon = document.getElementById('toggleIcon');
-        if (pwdInput.type === 'password') {
-            pwdInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            pwdInput.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
-
-    function togglePasswordVisibility2() {
-        const pwdInput = document.getElementById('password_2');
-        const icon = document.getElementById('toggleIcon2');
-        if (pwdInput.type === 'password') {
-            pwdInput.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            pwdInput.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
 </script>

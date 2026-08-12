@@ -309,7 +309,7 @@
                                     </div>
 
                                     <!-- Action Button -->
-                                    <a href="{% url 'vehicul_app:site-vehicul-detail' slug=vehicule.slug %}" class="btn-primary block w-full py-2 rounded-md font-semibold text-center text-sm">
+                                    <a href="{% url 'vehicul_app:site-vehicul-detail-slug' slug=vehicule.slug %}" class="btn-primary block w-full py-2 rounded-md font-semibold text-center text-sm">
                                         <i class="fas fa-eye mr-2"></i> Voir les détails
                                     </a>
                                 </div>
@@ -374,9 +374,10 @@
     <!-- ===== FOOTER ===== -->
     <footer class="bg-gray-900 text-gray-400 py-6 mt-12">
         <div class="max-w-7xl mx-auto px-4 text-center text-sm">
-            <p>&copy; 2024 KOZ Services - Concessionnaire automobile</p>
+            <p>&copy; {% now 'Y' %} KOZ Services - Concessionnaire automobile</p>
         </div>
     </footer>
     
 </body>
-</html>
+</html><a href="#" class="hover-3d my-12 mx-2 cursor-pointer">
+  

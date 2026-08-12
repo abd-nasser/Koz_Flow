@@ -212,11 +212,14 @@ def demande_financement_view(request, vehicul_id):
     ).first()
 
     if demande_existante:
-        return render(request, "partials/leads/_dmd_fin_result.html", {
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
             "success": False,
             "title": "❌ Erreur lors de l'envoi",
             "message": "Cette demande a déjà été envoyée.",
         })
+        response["HX-Trigger"] = "closeFinModal"
+        return response
+        
 
     if request.method != "POST":
         return redirect("vehicul_app:detail-vehicul", vehicul.pk)
@@ -232,6 +235,7 @@ def demande_financement_view(request, vehicul_id):
     demande.client = request.user
     demande.Vehicul_interested = vehicul
     demande.montant_finance = vehicul.prix - form.cleaned_data.get('apport', 0)
+    demande.mensualite = form.cleaned_data.get("mensualite_souhaitee")
     demande.etape = "nouvelle"
     demande.save()
 
@@ -274,12 +278,14 @@ def demande_financement_view(request, vehicul_id):
 
     except Exception as e:
         logger.error(f"Erreur lors de l'envoi de la demande de financement : {e}")
-        return render(request, "partials/leads/_dmd_fin_result.html", {
+        response = render(request, "partials/leads/_dmd_fin_result.html", {
             "success": False,
             "title": "❌ Erreur lors de l'envoi",
             "message": "L'envoi de la demande a échoué.",
         })
-
+        response["HX-Trigger"] = "closeFinModal"
+        return response
+    
 @login_required
 def attente_document(request, demande_id):
     time.sleep(1.5)
@@ -865,7 +871,6 @@ def valide_dossier(request, dossier_id):
                 mensualite=demande.mensualite,
                 duree_mois=demande.duree_mois,
                 montant_total_paye=demande.apport,
-                echeances=generer_echeances_demande(demande),
             )
 
             demande.etape = nouvelle_etape
@@ -936,7 +941,7 @@ def valide_dossier(request, dossier_id):
                 mensualite=offre.mensualite,
                 duree_mois=offre.duree_mois,
                 montant_total_paye=offre.apport_demande,
-                echeances=generer_echeances_offre(offre),
+                
             )
             # Pas de offre.save() — statut/type/partenaire restent inchangés, KPI se basent dessus directement
             offre.statut = "acceptee"

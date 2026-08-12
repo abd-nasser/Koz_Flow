@@ -20,7 +20,7 @@
         <form 
             hx-post="{% url 'leads_app:document-update' document.pk %}"
             hx-target="#dmd-message-zone"
-            hx-indicator="#dmd-indicator"
+            hx-indicator="#up-dmd-doc-indicator"
             enctype="multipart/form-data"  
             class="p-6">
             {% csrf_token %}
@@ -95,11 +95,11 @@
                         <div>{{ update_doc_form.bulletin_3.label_tag }} {{ update_doc_form.bulletin_3 }}</div>
                     </div>
                 </div>
-                <div id="dmd-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
-                    <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
-                        <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                        <p class="text-gray-700 font-medium">En cours de traitement...</p>
-                    </div>
+                <div id="up-dmd-doc-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                        <div class="p-6 text-center flex flex-col items-center">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                            <p class="text-sm font-bold text-slate-800"> Envoi de documents cours...</p>
+                        </div>
                 </div>
 
                 <!-- BANQUE -->

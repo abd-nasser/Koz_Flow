@@ -15,13 +15,13 @@
         </div>
 
         <!-- Corps du modal -->
-        <div id="dmd-message-zone"></div>
+        <div id="gest-doc-message-zone"></div>
         <div class="p-6 space-y-4">
             
             <!-- Action : Vérifier -->
             <a hx-get="{% url 'leads_app:verifier-document' document.pk %}" 
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#gest-doc-message-zone"
+               hx-indicator="#gest-doc-indicator"
                 class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
                     <i class="fas fa-search text-blue-700 text-xl"></i>
@@ -35,8 +35,8 @@
 
             <!-- Action : Modifier -->
             <a hx-get="{% url 'leads_app:modifier-document' document.pk %}" 
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#gest-doc-message-zone"
+               hx-indicator="#gest-doc-indicator"
                 class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition">
                     <i class="fas fa-edit text-yellow-700 text-xl"></i>
@@ -52,8 +52,8 @@
 
             <!-- Action : Valider -->
             <a hx-get="{% url 'leads_app:valider-document' document.pk %}" 
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#gest-doc-message-zone"
+               hx-indicator="#gest-doc-indicator"
                 class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition">
                     <i class="fas fa-check-circle text-green-700 text-xl"></i>
@@ -66,18 +66,18 @@
             </a>
 
 
-            <div id="indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
-                <div class="bg-white p-6 items-center rounded-xl justify-center  text-center shadow-2xl">
-                    <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-30 h-30 ml-7 mb-3">
-                    <p class="text-gray-700 font-medium">En cours de traitement...</p>
+               <div id="gest-doc-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                        <div class="p-6 text-center flex flex-col items-center">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                            <p class="text-sm font-bold text-slate-800"> Envoi de documents cours...</p>
+                        </div>
                 </div>
-            </div>
 
 
             <!-- Action : Rejeter -->
             <a hx-get="{% url 'leads_app:rejeter-document' document.pk %}" 
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#gest-doc-message-zone"
+               hx-indicator="#gest-doc-indicator"
                 class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
                     <i class="fas fa-times-circle text-red-700 text-xl"></i>
@@ -91,8 +91,8 @@
 
             <!-- Action : reverification -->
             <a hx-get="{% url 'leads_app:reverifier-document' document.pk %}" 
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#gest-doc-message-zone"
+               hx-indicator="#gest-doc-indicator"
                 class="flex items-center gap-4 p-4 rounded-xl bg-violet-50-50 border border-violet-200-200 hover:bg-violet-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center group-hover:bg-violet-200 transition">
                     <i class="fas fa-check-circle text-violet-700 text-xl"></i>

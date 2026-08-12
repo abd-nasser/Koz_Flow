@@ -15,13 +15,13 @@
         </div>
 
         <!-- Corps du modal -->
-        <div id="dmd-message-zone"></div>
+        <div id="dmd-gest-message-zone"></div>
         <div class="p-6 space-y-4">
             
             <!-- Action : Demande de documents -->
             <a hx-get="{% url 'leads_app:attente-document' demande.pk %}"
-               hx-target="#dmd-message-zone"
-               hx-indicator="#indicator"
+               hx-target="#dmd-gest-message-zone"
+               hx-indicator="#gest-dmd-indic"
                class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group">
                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
                     <i class="fas fa-file-alt text-blue-700 text-xl"></i>
@@ -35,12 +35,12 @@
 
             <!-- Action : Accorder la demande -->
 
-            <div id="indicator" class="htmx-indicator fixed inset-0  flex items-center justify-center z-50">
-                <div class="bg-white p-6 items-center rounded-xl justify-center  text-center shadow-2xl">
-                    <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-30 h-30 ml-7 mb-3">
-                    <p class="text-gray-700 font-medium">En cours de traitement...</p>
+            <div id="gest-dmd-indic" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                        <div class="p-6 text-center flex flex-col items-center">
+                            <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                            <p class="text-sm font-bold text-slate-800"> Envoi de documents cours...</p>
+                        </div>
                 </div>
-            </div>
 
             <!-- Action : Refuser la demande -->
             <a hx-get="{% url 'leads_app:refuser-demande' demande.pk %}" 
