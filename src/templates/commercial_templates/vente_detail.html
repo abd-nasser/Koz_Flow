@@ -170,7 +170,11 @@
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
                                 <span class="text-gray-600">Montant :</span>
-                                <strong class="text-green-600 text-lg">{{ vente.montant_total_paye|intcomma }} FCFA</strong>
+                                {% if vente.type_vente == 'cash' %}
+                                <strong class="text-green-600 text-lg">{{ vente.montant|intcomma }} FCFA</strong>
+                                {% else %}
+                                 <strong class="text-green-600 text-lg">{{ vente.montant_total_paye|intcomma }} FCFA</strong>
+                                 {% endif %}
                             </div>
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-calendar-alt text-blue-500 w-5"></i>
@@ -293,7 +297,7 @@
                                 <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
                                 {% if vente.offre.type_offre == 'simple' %}
                                     <span class="text-gray-600">Montant proposé :</span>
-                                    <strong class="text-green-600">{{ vente.offre.montant|intcomma }} FCFA</strong>
+                                    <strong class="text-green-600">{{ vente.offre.montant_propose|intcomma }} FCFA</strong>
                                 {% else %}
                                     <span class="text-gray-600">Montant financier :</span>
                                     <strong class="text-green-600">{{ vente.offre.montant_finance|intcomma }} FCFA</strong>

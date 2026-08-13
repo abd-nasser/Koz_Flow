@@ -153,7 +153,7 @@
                 </div>
                 <span class="text-xl font-bold text-gray-800 hidden sm:inline">KOZ Services</span>
             </a>
-            <a href="{% url 'services_app:services-list' %}" class="text-gray-600 hover:text-blue-600 transition flex items-center gap-2">
+            <a href="{% url 'home_app:home-page' %}" class="text-gray-600 hover:text-blue-600 transition flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i> Retour
             </a>
         </div>
@@ -396,8 +396,7 @@
     <!-- ============================================================ -->
     <!-- MODALE AVIS                                                   -->
     <!-- ============================================================ -->
-    {% include 'modals/contact/contact_modal.html' %}
-    {% include 'modals/auth/login_simple_modal.html' %}
+ 
 
     <!-- ===== MODAL AVIS (PREMIUM) ===== -->
 <dialog id="avis_modal" class="modal modal-bottom sm:modal-middle backdrop-blur-sm transition-all duration-300">
@@ -416,7 +415,7 @@
 
         <!-- EN-TÊTE DE LA MODALE -->
         <div class="flex items-start gap-4 mb-6">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 shrink-0">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-300 text-white flex items-center justify-center text-xl shadow-lg shadow-amber-500/30 shrink-0">
                 <i class="fas fa-star"></i>
             </div>
             <div>
@@ -441,11 +440,7 @@
                 
                 <!-- Système d'étoiles interactif (Option A : si ton champ Django génère un select/input standard, tu peux le styliser ou utiliser la notation radio ci-dessous) -->
                 <div class="rating rating-lg rating-half gap-1">
-                    <input type="radio" name="note" value="1" class="mask mask-star-2 bg-amber-400" />
-                    <input type="radio" name="note" value="2" class="mask mask-star-2 bg-amber-400" />
-                    <input type="radio" name="note" value="3" class="mask mask-star-2 bg-amber-400" />
-                    <input type="radio" name="note" value="4" class="mask mask-star-2 bg-amber-400" />
-                    <input type="radio" name="note" value="5" class="mask mask-star-2 bg-amber-400" checked />
+                    {{ service_avis_form.note }}
                 </div>
                 
                 <!-- Si tu préfères utiliser directement le champ rendu par Django, décommente la ligne suivante : -->
@@ -503,7 +498,8 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-
+       {% include 'modals/contact/contact_modal.html' %}
+    {% include 'modals/auth/login_simple_modal.html' %}
     <!-- ============================================================ -->
     <!-- SCRIPTS                                                       -->
     <!-- ============================================================ -->

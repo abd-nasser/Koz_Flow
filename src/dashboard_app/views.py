@@ -516,7 +516,7 @@ class ListeFiltreeView(ListView):
         
         # Base queryset selon le modèle
         if model_name == 'offres':
-            queryset = Offre.objects.filter(**{filter_nom: filter_valeur})
+            queryset = Offre.objects.filter(**{filter_nom: filter_valeur}).order_by('-date_creation')
             
             # 👇 AJOUTE ÇA
             #if user.role == 'commercial' or user.is_staff:
@@ -532,7 +532,7 @@ class ListeFiltreeView(ListView):
             return queryset
         
         if model_name == 'documents':
-            queryset = Documents.objects.filter(**{filter_nom: filter_valeur})
+            queryset = Documents.objects.filter(**{filter_nom: filter_valeur}).order_by('-date_upload')
            # if user.role == 'commercial' or user.is_staff:
                 #queryset = queryset.filter(client__assigned_commercial=user)
             return queryset

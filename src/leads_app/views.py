@@ -1616,7 +1616,7 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
                 "message": "Votre dossier complet a été mis à jour.",
                 "reload_on_close": True,
             })
-            response["HX-Trigger"] = "closeDocModal"
+            response["HX-Trigger"] = "closeUpdateDocModal"
             return response
         else:
             dossier.statut_dossier = "incomplet"

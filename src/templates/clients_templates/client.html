@@ -13,6 +13,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/client/client_style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://unpkg.com/splitting/dist/splitting.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -53,7 +61,7 @@
         }
     </style>
 </head>
-
+<div id="result-toast-container"></div>
 <body class="min-h-full flex flex-col text-slate-800 antialiased relative selection:bg-blue-600 selection:text-white">
 
     <!-- Glowing backdrop & Particules -->
@@ -71,7 +79,7 @@
         {% endfor %}
     </div>
     {% endif %}
-
+    
     <!-- ========== NAVBAR ========== -->
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200/80 shadow-sm transition-all">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center gap-4">
@@ -97,7 +105,7 @@
 
                 <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
 
-                <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" 
+                <a href="{% url 'auth_app:logout-sur-erp' %}" id="logoutBtn" 
                    class="inline-flex items-center gap-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs">
                     <i class="fas fa-sign-out-alt text-xs"></i>
                     <span class="hidden sm:inline">Déconnexion</span>
@@ -191,7 +199,9 @@
             min-height:65vh;
         }
     </style>
+    
     <main class="flex-1 relative z-10 py-6 ">
+        
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
 
             <!-- Dynamic Section Dossier (Conditionnelle) -->
@@ -306,43 +316,7 @@
         </div>
     </main>
 
-    <!-- ========== MODAL CHANGER MOT DE PASSE (DaisyUI / HTML Dialog) ========== -->
-    <dialog id="change_pass_modal" class="modal modal-bottom sm:modal-middle">
-        <div class="modal-box bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 max-w-md">
-            <h3 class="font-extrabold text-lg text-slate-900 flex items-center gap-2 mb-2">
-                <i class="fas fa-key text-blue-600"></i> Modifier mon mot de passe
-            </h3>
-            <p class="text-xs text-slate-500 mb-6">Assurez la sécurité de votre compte avec un mot de passe fort.</p>
-            
-            <!-- Tu peux y intégrer ton formulaire HTMX ou standard Django -->
-            <form method="dialog">
-                <button class="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-slate-400 hover:text-slate-700">✕</button>
-            </form>
-
-            <form method="POST" action="" class="space-y-4">
-                {% csrf_token %}
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ancien mot de passe</label>
-                    <input type="password" name="old_password" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nouveau mot de passe</label>
-                    <input type="password" name="new_password" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none">
-                </div>
-                <div class="pt-3 flex gap-3">
-                    <button type="button" onclick="document.getElementById('change_pass_modal').close()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition">
-                        Annuler
-                    </button>
-                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-md shadow-blue-500/20">
-                        Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-        <form method="dialog" class="modal-backdrop bg-slate-900/40 backdrop-blur-xs">
-            <button>close</button>
-        </form>
-    </dialog>
+    {% include 'modals/auth/change_password.html' %}
 
     <!-- ========== FOOTER ========== -->
     <footer class="bg-white border-t border-slate-200/80 py-8 mt-auto">

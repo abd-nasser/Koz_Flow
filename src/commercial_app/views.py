@@ -113,6 +113,7 @@ def creer_offre(request, demande_id=None):
 
 @login_required
 def accepter_offre(request, offre_id):
+    time.sleep(1.5)
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
 
     if offre.statut != 'envoyee':
@@ -341,8 +342,6 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         # ========================================
         tous_les_clients = kozUser.objects.filter(role="client")
         
-    
-           
         
         context["clients"]= tous_les_clients
         # ========================================

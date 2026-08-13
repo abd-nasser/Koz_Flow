@@ -4,14 +4,14 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 from chat_app import views
 from .views import (ApiRegisterView, LoginView, 
                     MeView, LogoutView, site_user_register,
-                    UserRegisterView, ChangePasswordView, login_page, login_simple, logout_simple)
+                    UserRegisterView, ChangePasswordView, login_page, login_simple, logout_simple_sur_home_page, logout_sur_ERP)
 
 app_name = "auth_app"
 
 urlpatterns = [
     
     #path("", views.home_page_view, name="home-page")
-    path("interface/connection", login_page, name="login-page"),
+    path("interface/connection", login_page, name="interface-login-page"),
     
     # Inscription
     path('register/', ApiRegisterView.as_view(), name='register'),
@@ -42,5 +42,6 @@ urlpatterns = [
     path("Userregister/",UserRegisterView.as_view(), name="user-register"),
     path("change_password/",ChangePasswordView.as_view(), name="change-password"),
     path("login/simple/", login_simple, name="login-simple"),
-    path("logout/simple/", logout_simple, name="logout-simple")
+    path("logout/simple/", logout_simple_sur_home_page, name="logout-simple-sur-home-page"),
+    path('logout/sur/ERP', logout_sur_ERP, name="logout-sur-erp" )
 ]

@@ -13,7 +13,7 @@
                                 Vente #{{ vente.id }}
                             </h3>
                             <span class="badge px-3 py-1 rounded-full text-xs font-semibold
-                                {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_offre_acceptee' %}bg-green-100 text-green-700
+                                {% if vente.statut == 'conclue' or vente.statut == 'conclue_par_acceptation_offre_simple' or vente.statut == 'conclue_par_acceptation_offre_financement' or vente.statut == 'conclue_sur_acceptation_demande_financement' %}bg-green-100 text-green-700
                                 {% elif vente.statut == 'perdue' or vente.statut == 'perdue_par_offre_refusee' %}bg-red-100 text-red-700
                                 {% else %}bg-yellow-100 text-yellow-700{% endif %}">
                                 {{ vente.get_statut_display }}
@@ -61,6 +61,15 @@
                                     <i class="fas fa-external-link-alt text-xs"></i>
                                 </a>
                             </div>
+                            {% elif vente.offre %}
+                            <div class="flex items-center gap-2 text-gray-600 sm:col-span-2">
+                                <i class="fas fa-link text-blue-500 w-5"></i>
+                                <span><strong>Liée à une offre :</strong> #{{ vente.offre.id }}</span>
+                                <a href="{% url 'commercial_app:offre-detail' vente.offre.id %}" 
+                                   class="text-blue-500 hover:text-blue-700 transition ml-1">
+                                    <i class="fas fa-external-link-alt text-xs"></i>
+                                </a>
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -82,29 +91,6 @@
         {% endfor %}
     </div>
 
-    <!-- Pagination -->
-    {% if is_paginated %}
-    <div class="mt-8 flex justify-center">
-        <div class="join">
-            {% if page_obj.has_previous %}
-                <a href="?page=1" class="join-item btn btn-sm"
-                   hx-get="{% url 'commercial_app:vente-list' %}?page=1"
-                   hx-target="#ventes-list-container">«</a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="join-item btn btn-sm"
-                   hx-get="{% url 'commercial_app:vente-list' %}?page={{ page_obj.previous_page_number }}"
-                   hx-target="#ventes-list-container">‹</a>
-            {% endif %}
-            <span class="join-item btn btn-sm btn-disabled">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="join-item btn btn-sm"
-                   hx-get="{% url 'commercial_app:vente-list' %}?page={{ page_obj.next_page_number }}"
-                   hx-target="#ventes-list-container">›</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}" class="join-item btn btn-sm"
-                   hx-get="{% url 'commercial_app:vente-list' %}?page={{ page_obj.paginator.num_pages }}"
-                   hx-target="#ventes-list-container">»</a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
+   
 </div>
 

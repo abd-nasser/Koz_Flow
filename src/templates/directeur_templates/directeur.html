@@ -123,7 +123,7 @@
                     </div>
 
                     <!-- Déconnexion -->
-                    <a href="{% url 'auth_app:logout-simple' %}" id="logoutBtn" class="bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 border border-slate-200/80 p-2 sm:px-3 sm:py-2 rounded-xl text-xs transition-all duration-200 flex items-center gap-2">
+                    <a href="{% url 'auth_app:logout-sur-erp' %}" id="logoutBtn" class="bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 border border-slate-200/80 p-2 sm:px-3 sm:py-2 rounded-xl text-xs transition-all duration-200 flex items-center gap-2">
                         <i class="fas fa-sign-out-alt"></i>
                         <span class="hidden md:inline">Déconnexion</span>
                     </a>
@@ -134,7 +134,8 @@
 
     <!-- Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div id="result-toast-container"></div>
+
+        <div id="result-toast-container" class="result-toast-container"></div>
 
         <!-- Banner Welcome Executive (Bleu Roi & Effet Glass) -->
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 border border-blue-600/30 p-6 sm:p-8 shadow-xl shadow-blue-900/10 text-white">

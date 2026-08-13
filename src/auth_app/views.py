@@ -365,29 +365,25 @@ def login_simple(request):
         return response
     
 
-def logout_simple(request):
+def logout_simple_sur_home_page(request):
     django_logout(request)
     return redirect("home_app:home-page")
-    
+
+def logout_sur_ERP(request):
+    django_logout(request)
+    return redirect("auth_app:interface-login-page")  
     
 class ChangePasswordView(LoginRequiredMixin, FormView):
     form_class = ChangePasswordForm
-    
+    time.sleep(1.5)
     def get_template_names(self):
         if self.request.user.is_superuser or self.request.user.role == "directeur":
             return ["directeur_templates/directeur.html"]
         elif self.request.user.role == "commercial":
             return ["commercial_templates/commercial.html"]
         else:
-            return ["client_templates/client.html"]
+            return ["clients_templates/client.html"]
            
-    def get_success_url(self):
-        if self.request.user.is_superuser or self.request.user.role == "directeur":
-            return reverse_lazy("directeur_app:directeur-view")
-        elif self.request.user.role == "commercial":
-            return reverse_lazy("commercial_app:commercial-view")
-        else:
-            return reverse_lazy("client_app:client-view")
 
     def get_form_kwargs(self):
         kwargs =  super().get_form_kwargs()
@@ -429,25 +425,19 @@ class ChangePasswordView(LoginRequiredMixin, FormView):
             print(f"Erreur envoi email: {e}")
     
         
-        messages.success(self.request, "Votre mot de passe a été changé avec succès !")
         
-        return super().form_valid(form)
+        
+        response = render(self.request, "partials/auth/_password_change_result.html", {
+            "success": True,
+            "title" : "✅ Réussi",
+            "message":"🔐 Votre mot de passe a été modifié avec succès",
+            "reload_on_close": True
+        })
+        response["HX-Trigger"] = "closeChangePassModal"
+        return response
         
     def form_invalid(self, form):
-        #Quand le formulaire est invalide, on reste sur la meme page
-        # on passe le formulaire invalide au context
-        if self.request.user.is_superuser or self.request.user.role =="directeur":
-            dashboard = DirecteurDashboardView()
-            dashboard.request = self.request
-        
-        else:
-            dashboard = CommercialDashboardView()
-            dashboard.request = self.request
-        context = dashboard.get_context_data()
-        context["change_pass_form"] = form
-        context["open_change_pass_modal"] = True # variable pour réouvrir le modal avec les erreurs
-        return self.render_to_response(context)
-        
+       return render(self.request, 'partials/auth/_password_change_form_errors.html', {"change_pass_form":form})
     
     
         
