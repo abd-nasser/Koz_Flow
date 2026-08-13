@@ -114,8 +114,12 @@ def creer_offre(request, demande_id=None):
 @login_required
 def accepter_offre(request, offre_id):
     time.sleep(1.5)
+    if request.user.role != "client":
+        messages.error(request, "Vous n'etes pas autorisé à exectuer cette action")
+        return redirect("client_app:client-view")
+    
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
-
+    
     if offre.statut != 'envoyee':
         response = render(request, 'partials/offre/_offres_result.html', {
             'success': False,
@@ -135,6 +139,7 @@ def accepter_offre(request, offre_id):
         if offre.type_offre == "simple":
             vente = Vente.objects.create(
                 client=request.user,
+                vehicul=offre.vehicule_propose,
                 statut="gestion_de_statut",
                 montant=offre.montant_propose,
                 offre=offre,
@@ -184,6 +189,10 @@ def accepter_offre(request, offre_id):
 @login_required
 def refuser_offre(request, offre_id):
     time.sleep(1.5)
+    if request.user.role != "client":
+        messages.error(request, "Vous n'etes pas autorisé à exectuer cette action")
+        return redirect("client_app:client-view")
+    
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
@@ -242,6 +251,10 @@ def refuser_offre(request, offre_id):
 @login_required
 def negocier_offre(request, offre_id):
     time.sleep(1.5)
+    if request.user.role != "client":
+        messages.error(request, "Vous n'etes pas autorisé à exectuer cette action")
+        return redirect("client_app:client-view")
+        
     offre = get_object_or_404(Offre, id=offre_id, client=request.user)
     
     if offre.statut != 'envoyee':
@@ -302,7 +315,10 @@ def negocier_offre(request, offre_id):
     return response
 
    
-class CommercialClientListFilter(LoginRequiredMixin, ListView):   
+class CommercialClientListFilter(LoginRequiredMixin, UserPassesTestMixin, ListView):  
+    def test_func(self):
+        return self.request.user.is_superuser or self.request.user.is_staff or self.request.user.role in ['directeur', 'commercial']
+    
     model = kozUser
     context_object_name = "clients"
     template_name = "partials/client/partials_client_list.html"
@@ -526,7 +542,9 @@ class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView
         time.sleep(3)
         return render(self.request, 'partials/offre/_offre_financement_form_errors.html', {'offre_financement_form': form})
         
-class OffreView(LoginRequiredMixin, ListView):
+class OffreView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    def test_func(self):
+        return self.request.user.role in ['directeur', 'commercial', 'client']
     model = Offre
     context_object_name = "offres"
     def get_template_names(self):
@@ -594,7 +612,10 @@ class OffreView(LoginRequiredMixin, ListView):
         context["STATUTS_OFFRE"] = Offre.STATUTS_OFFRE
         return context
         
-class OffreDetailView(LoginRequiredMixin, DetailView):
+class OffreDetailView(LoginRequiredMixin,UserPassesTestMixin ,DetailView):
+    def test_func(self):
+        return self.request.user.role in ['directeur', 'commercial', 'client']
+    
     model = Offre
     context_object_name = "offre"
     
@@ -711,6 +732,11 @@ class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # commercial_app/views.py
 from leads_app.utils import generer_echeances_offre, generer_echeances_demande
 def changer_statut_vente(request, vente_id):
+    if request.user.role not in ["directeur", "commercial"]:
+        messages.warning(request, "Vous n'etes pas autorisé changer le status de cette vente")
+        messages.warning(request, "Si toute fois nouvelle tentative votre compte sera bloqué")
+        return redirect('home_app:home-page')
+    
     time.sleep(1.5)
     vente = get_object_or_404(Vente, id=vente_id)
     
@@ -827,6 +853,10 @@ def changer_statut_vente(request, vente_id):
 
 @login_required
 def marquer_paye(request, vente_id, numero_echeance):
+    if request.user.role not in ["directeur", "commercial"]:
+            messages.warning(request, "Vous n'etes pas autorisé changer le status de cette vente")
+            messages.warning(request, "Si toute fois nouvelle tentative votre compte sera bloqué")
+            return redirect('home_app:home-page')
     time.sleep(3)
     vente = get_object_or_404(Vente, id=vente_id)
     numero_echeance = int(numero_echeance)
@@ -915,7 +945,10 @@ def marquer_paye(request, vente_id, numero_echeance):
     response['HX-Trigger'] = "closePaiementModal"
     return response
 
-class VenteListView(LoginRequiredMixin, ListView):
+class VenteListView(LoginRequiredMixin,UserPassesTestMixin ,ListView):
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+                    
     model = Vente
     context_object_name = "ventes"
     paginate_by = 20
@@ -960,7 +993,9 @@ class VenteListView(LoginRequiredMixin, ListView):
         context['statut_choices'] = Vente.STATUT_VENTE
         return context
 
-class VenteDetailView(LoginRequiredMixin, DetailView):
+class VenteDetailView(LoginRequiredMixin,UserPassesTestMixin ,DetailView):
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
     model = Vente
     template_name = "commercial_templates/vente_detail.html"
     context_object_name = "vente"

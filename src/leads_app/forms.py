@@ -1,9 +1,16 @@
 # leads_app/forms.py
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import demande_financement
+from .models import demande_financement, Vente
 from client_app.models import Documents
 
+
+
+
+class VenteSimpleForm(forms.ModelForm):
+    class Meta:
+        model = Vente
+        fields = ["client", "montant" ]
 
 ##POUR LE CLIENT
 class DemandeFinancementForm(forms.ModelForm):
@@ -99,7 +106,6 @@ class GestionFinancementForm(forms.ModelForm):
             
         }
 
-# client_app/forms.py
 
 
 

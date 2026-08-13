@@ -125,17 +125,18 @@ class Vente(models.Model):
         ('perdue_par_rejet_dossier_demande_financement', 'Perdue par rejet de dossier (demande de financement)')
     ]
     
-    client = models.ForeignKey('auth_app.kozUser', on_delete=models.CASCADE, related_name='ventes')
+    client = models.ForeignKey('auth_app.kozUser', on_delete=models.PROTECT, related_name='ventes')
+    vehicul = models.ForeignKey(Vehicul, on_delete=models.PROTECT,related_name='ventes')
     demande_financement = models.OneToOneField(
         'demande_financement', 
-        on_delete=models.CASCADE, 
+        on_delete=models.PROTECT, 
         related_name='vente', 
         null=True, 
         blank=True
     )
     offre = models.OneToOneField(
         "commercial_app.offre", 
-        on_delete=models.CASCADE, 
+        on_delete=models.PROTECT, 
         related_name='vente', 
         null=True, 
         blank=True
@@ -214,6 +215,11 @@ class Vente(models.Model):
         """
         offre = self.offre
         demande = self.demande_financement
+        
+        if not offre and not demande:
+            if self.statut == 'conclue':
+                return 'cash'
+            return 'non_classifie'
         
         # ✅ CAS 1 : Vente cash (offre simple)
         if offre and offre.type_offre == "simple":

@@ -462,16 +462,7 @@ class DashboardView(LoginRequiredMixin,TemplateView):
         # ============================================================
         # 5. Statistiques globales
         # ============================================================
-        ventes = Vente.objects.filter(
-                        statut__in=[
-                            "conclue",
-                            "conclue_par_acceptation_offre_simple",
-                            "conclue_par_acceptation_offre_financement",
-                            "conclue_sur_acceptation_demande_financement",
-                        ],
-                        date_vente__gte=start_date
-                    )
-
+       
         total_simple = 0
         total_autres = 0
 

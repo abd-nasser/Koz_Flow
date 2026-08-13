@@ -34,7 +34,7 @@ class OffreFinancementForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['duree_mois'].choices = [(12, '12 mois'), (24, '24 mois'), (36, '36 mois'), (48, '48 mois'), (60, '60 mois')]
         self.fields['duree_mois'].widget.attrs.update({'class': 'select select-bordered w-full'})
-        
+        self.fields['vehicule_propose'].required = True
         
         
 

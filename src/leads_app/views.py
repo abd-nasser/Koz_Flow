@@ -196,6 +196,15 @@ def demande_financement_view(request, vehicul_id):
     import time
     time.sleep(2)
     vehicul = get_object_or_404(Vehicul, id=vehicul_id)
+    if not vehicul:
+        response = render(request, 'partials/leads/_demande_fin_result.html', {
+            'success': False,
+            'title': '⚠️ Véhicule manquant',
+            'message': "Cette demande concerne un véhicule hors catalogue. contacter le commercial via le chat interne.",
+            'reload_on_close': False,
+        })
+        response['HX-Trigger'] = 'closeOffreGestionModal'
+        return response
 
     if request.user.role != "client":
         messages.error(request, "Seuls les clients peuvent faire une demande.")
@@ -835,6 +844,16 @@ def valide_dossier(request, dossier_id):
                 })
                 response["HX-Trigger"] = "closeGestionDocModal"
                 return response
+            
+            # ✅ Vérifier qu'un véhicule du catalogue est bien associé
+            if not demande.Vehicul_interested:
+                response = render(request, "partials/documents/_documents_result.html", {
+                    "success": False,
+                    "title": "⚠️ Véhicule manquant",
+                    "message": "Cette demande concerne un véhicule hors catalogue. Ajoutez-le au catalogue et associez-le à la demande avant de valider le dossier.",
+                })
+                response["HX-Trigger"] = "closeGestionDocModal"
+                return response
 
             if hasattr(demande, 'vente') and demande.vente:
                 response = render(request, "partials/documents/_documents_result.html", {
@@ -864,6 +883,7 @@ def valide_dossier(request, dossier_id):
 
             Vente.objects.create(
                 client=demande.client,
+                vehicul=demande.Vehicul_interested,
                 demande_financement=demande,
                 statut='gestion_de_statut',
                 montant=demande.apport,
@@ -893,6 +913,15 @@ def valide_dossier(request, dossier_id):
         # CONTEXTE 2 : OFFRE DE FINANCEMENT
         # ============================================================
         elif offre:
+            if not offre.vehicule_propose:
+                response = render(request, "partials/documents/_documents_result.html", {
+                    "success": False,
+                    "title": "⚠️ Véhicule manquant",
+                    "message": "Cette offre concerne un véhicule hors catalogue. Ajoutez-le au catalogue avant de valider.",
+                })
+                response["HX-Trigger"] = "closeGestionDocModal"
+                return response
+            
             if not offre.financement_type:
                 response = render(request, "partials/documents/_documents_result.html", {
                     "success": False, "title": "⚠️ Info",
@@ -934,6 +963,7 @@ def valide_dossier(request, dossier_id):
 
             Vente.objects.create(
                 client=offre.client,
+                vehicul=offre.vehicule_propose,
                 offre=offre,
                 statut='gestion_de_statut',
                 montant=offre.apport_demande,

@@ -293,16 +293,22 @@
                                     </strong>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
-                                {% if vente.offre.type_offre == 'simple' %}
-                                    <span class="text-gray-600">Montant proposé :</span>
-                                    <strong class="text-green-600">{{ vente.offre.montant_propose|intcomma }} FCFA</strong>
-                                {% else %}
-                                    <span class="text-gray-600">Montant financier :</span>
-                                    <strong class="text-green-600">{{ vente.offre.montant_finance|intcomma }} FCFA</strong>
-                                {% endif %}
-                            </div>
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-money-bill-wave text-blue-500 w-5"></i>
+
+                            {% if not vente.offre and not vente.demande_financement %}
+                                <span class="text-gray-600">Montant :</span>
+                                <strong class="text-green-600">{{ vente.montant|intcomma }} FCFA</strong>
+                            {% elif vente.offre and vente.offre.type_offre == 'simple' %}
+                                <span class="text-gray-600">Montant proposé :</span>
+                                <strong class="text-green-600">{{ vente.offre.montant_propose|intcomma }} FCFA</strong>
+                            {% elif vente.offre %}
+                                <span class="text-gray-600">Montant financier :</span>
+                                <strong class="text-green-600">{{ vente.offre.montant_finance|intcomma }} FCFA</strong>
+                            {% elif vente.demande_financement %}
+                                <span class="text-gray-600">Montant financier :</span>
+                                <strong class="text-green-600">{{ vente.demande_financement.montant_finance|intcomma }} FCFA</strong>
+                            {% endif %}
                         </div>
                         <div class="mt-3 text-right">
                             <a href="{% url 'commercial_app:offre-detail' vente.offre.id %}" 
