@@ -28,7 +28,7 @@ from chat_app.models import Message
 
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
-from leads_app.forms import GestionFinancementForm, DocumentsUploadForm
+from leads_app.forms import GestionFinancementForm, DocumentsUploadForm, VenteSimpleForm
 from client_app.forms import MaintenanceForm
 from .forms import OffreFinancementForm, OffreSimpleForm
 
@@ -142,6 +142,7 @@ def accepter_offre(request, offre_id):
                 vehicul=offre.vehicule_propose,
                 statut="gestion_de_statut",
                 montant=offre.montant_propose,
+                montant_total_paye = offre.montant_propose,
                 offre=offre,
             )
 
@@ -945,6 +946,37 @@ def marquer_paye(request, vente_id, numero_echeance):
     response['HX-Trigger'] = "closePaiementModal"
     return response
 
+
+class venteSimpleCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+    model = Vente
+    form_class = VenteSimpleForm
+    
+    def form_valid(self, form):
+        time.sleep(3)
+        vente = form.save(commit=False)
+        vente.montant_total_paye = form.cleaned_data.get("montant")
+        vente.statut = "gestion_de_statut"
+        vente.save()
+        
+        response = render(self.request, "partials/vente/_vente_result.html", {'success': True,
+                                                                               'title': '✅ Enregisté',
+                                                                               'message': 'Vente enregisté avec succès',
+                                                                               'reload_on_close': True,
+                                                                              })
+        response['HX-Trigger'] = "closeVenteModal"
+        return response
+    
+    def form_invalid(self, form):
+        response = render(self.request, "partials/vente/_vente_result.html", {'success': False,
+                                                                                       'title': '❌Echec',
+                                                                                       'message': "La vente n'a pas été enrégistré",
+                                                                                       'reload_on_close': False,
+                                                                                      })
+        response['HX-Trigger'] = "closeVenteModal"
+        return response
+            
 class VenteListView(LoginRequiredMixin,UserPassesTestMixin ,ListView):
     def test_func(self):
         return self.request.user.role in ['commercial', 'directeur']
@@ -991,6 +1023,8 @@ class VenteListView(LoginRequiredMixin,UserPassesTestMixin ,ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['statut_choices'] = Vente.STATUT_VENTE
+        if "simple_vente_form" not in context:
+            context["simple_vente_form"] = VenteSimpleForm()
         return context
 
 class VenteDetailView(LoginRequiredMixin,UserPassesTestMixin ,DetailView):

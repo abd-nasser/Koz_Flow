@@ -264,7 +264,6 @@ class LogoutView(APIView):
 class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = kozUser
     form_class = UserRegisterForm
-    time.sleep(3)
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_staff
     
@@ -274,14 +273,6 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         else:
             return ["commercial_templates/commercial.html"]
    
-    def get_success_url(self):
-        if self.request.user.is_superuser or self.request.user.role == "directeur":
-            return reverse_lazy("directeur_app:directeur-view")
-        
-        elif self.request.user.role == "commercial":
-            return reverse_lazy("commercial_app:commercial-view")
-        else:
-            return reverse_lazy("client_app:client-view")
        
     def get_form_kwargs(self):
         kwargs =  super().get_form_kwargs()
@@ -289,25 +280,23 @@ class UserRegisterView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return kwargs
     
     def form_valid(self, form):
-        # Modifications AVANT la sauvegarde
         if self.request.user.role == 'commercial':
             form.instance.role = 'client'
             form.instance.is_active = True
             form.instance.assigned_commercial = self.request.user
         
-       # Sauvegarde avec les bonnes valeurs
-        response = render(self.request, 'partials/auth/register_result.html',{
-                                                                    'success': True,
-                                                                    'title': f" Utilisateur {form.cleaned_data.get('email')} créé !\n",
-                                                                    'message': "📧 Les identifiants temporaires ont été envoyés par email.",
-                                                                    'reload_on_close': True,}
-                          )
+        user = form.save()   # ✅ toujours appelé, peu importe qui crée
+        
+        response = render(self.request, 'partials/auth/register_result.html', {
+            'success': True,
+            'title': f"Utilisateur {user.nom_complet} créé !",
+            'message': "📧 Les identifiants temporaires ont été envoyés par email.",
+            'reload_on_close': True,
+        })
         response["HX-Trigger"] = "closeRegisterModal"
         return response
     
     def form_invalid(self, form):
-        #Quand le formulaire est invalide, on reste sur la meme page
-        #on passe le formulaire invalide au context
         return render(self.request, 'partials/auth/_user_register_form_errors.html', {"user_register_form":form})
 
 

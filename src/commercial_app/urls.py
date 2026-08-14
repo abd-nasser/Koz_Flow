@@ -31,13 +31,15 @@ urlpatterns = [
     path("changer/statut/maintenance/<int:maintenance_id>/<str:nouveau_statut>/", views.changer_statut_maintenance, name="changer-statut-maintenance"),
     
     
-    # commercial_app/urls.py
-
+    
+    #######################________Vente____________#############################
+    path("creer/ventes/simple", views.venteSimpleCreate.as_view(), name="create-simple-vente"),
     path('ventes/',views.VenteListView.as_view(), name='vente-list'),
     path('ventes/<int:pk>/detail', views.VenteDetailView.as_view(), name="vente-detail"),
     path('ventes/partial/', views.VenteListView.as_view(), name='vente-list-partial'),
     path('vente/<int:vente_id>/changer-statut/',views.changer_statut_vente, name='changer-statut-vente'),
     path('vente/<int:vente_id>/marquer-paye/<int:numero_echeance>/', views.marquer_paye, name='marquer-paye'),
+    
     
     ########################________RendezVous____________#############################
      path('rendez-vous/', views.CommercialRendezVousListView.as_view(), name='rendez-vous-list'),

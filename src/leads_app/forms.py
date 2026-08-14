@@ -5,13 +5,45 @@ from .models import demande_financement, Vente
 from client_app.models import Documents
 
 
-
+from django import forms
+from .models import Vente
 
 class VenteSimpleForm(forms.ModelForm):
     class Meta:
         model = Vente
-        fields = ["client", "montant" ]
+        fields = ["client", "vehicul", "montant"]
+        labels = {
+            "client": "Client acheteur",
+            "vehicul": "Véhicule à vendre",
+            "montant": "Montant de la vente",
+        }
+        widgets = {
+            "client": forms.Select(attrs={
+                "class": "select select-bordered w-full bg-white font-normal focus:border-blue-600 focus:outline-none"
+            }),
+            "vehicul": forms.Select(attrs={
+                "class": "select select-bordered w-full bg-white font-normal focus:border-blue-600 focus:outline-none"
+            }),
+            "montant": forms.NumberInput(attrs={
+                "class": "input input-bordered w-full bg-white focus:border-blue-600 focus:outline-none",
+                "placeholder": "Ex: 12500000",
+                "min": "0",
+                "step": "500",
+            }),
+        }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['montant'].required = True
+        self.fields['vehicul'].required = True
+        self.fields['client'].required =  True
+        # Libellés par défaut pour les menus déroulants
+        if "client" in self.fields:
+            self.fields["client"].empty_label = "-- Choisir un client --"
+        if "vehicul" in self.fields:
+            self.fields["vehicul"].empty_label = "-- Choisir un véhicule --"
+        
+    
 ##POUR LE CLIENT
 class DemandeFinancementForm(forms.ModelForm):
     #champs pour simulateur de credit 
@@ -76,6 +108,7 @@ class DemandeFinancementForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
     
     
     def clean(self):
@@ -105,8 +138,6 @@ class GestionFinancementForm(forms.ModelForm):
             "notes_commercial":forms.Textarea(attrs={"class":"input input-bordered"}),
             
         }
-
-
 
 
 class DocumentsUploadForm(forms.ModelForm):

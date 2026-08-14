@@ -703,7 +703,6 @@ def upload_multiple_documents(request, demande_id):
     # Si GET (pas POST), rediriger vers la page de détail
     return redirect('leads_app:detail-demande', demande.pk)
 
-
 @login_required
 def upload_offre_documents(request, offre_id):
     time.sleep(3)
@@ -788,7 +787,6 @@ def upload_offre_documents(request, offre_id):
     
     # ✅ GET → rediriger vers le détail de l'offre
     return redirect('commercial_app:offre-detail', pk=offre.pk)
-                            
                             
 @login_required
 def valide_dossier(request, dossier_id):
@@ -976,7 +974,7 @@ def valide_dossier(request, dossier_id):
             # Pas de offre.save() — statut/type/partenaire restent inchangés, KPI se basent dessus directement
             offre.statut = "acceptee"
             offre.save()
-            print(f"{offre.statut}")
+            
 
             client = offre.client
             context_email = {
@@ -1411,6 +1409,7 @@ def reverifier_document(request, dossier_id):
     Remet un dossier en vérification (après correction par le client)
     Utilisable pour les dossiers liés à une demande OU à une offre
     """
+    time.sleep(1.5)
     dossier = get_object_or_404(Documents, id=dossier_id)
     
     # Vérifier que l'utilisateur est commercial ou directeur
@@ -1661,7 +1660,6 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     def form_invalid(self, form):
         return render(self.request, 'partials/documents/_documents_form_errors.html', {'update_doc_form': form})
         
-    
 class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
     def test_func(self):
         doc = self.get_object()

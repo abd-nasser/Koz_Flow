@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/splitting/dist/splitting.css">
+    <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <title>{{ service.nom }} - KOZ Services</title>
     <style>
         /* ===== ANIMATIONS ===== */
@@ -303,12 +304,13 @@
                         class="btn-glow block text-center mt-8 py-3.5 rounded-xl font-semibold transition hover:scale-105">
                     <i class="fas fa-envelope"></i> Demander un devis
                 </button>
+                
             {% endif %}
         </div>
     </div>
             </div>
         </div>
-
+        {% include 'modals/contact/contact_modal.html' %}
         <!-- ===== GALERIE ===== -->
         {% if service.images.all %}
         <div class="mb-16" data-animate="fade-up">
@@ -498,7 +500,7 @@
             <i class="fas fa-times"></i>
         </button>
     </div>
-       {% include 'modals/contact/contact_modal.html' %}
+       
     {% include 'modals/auth/login_simple_modal.html' %}
     <!-- ============================================================ -->
     <!-- SCRIPTS                                                       -->

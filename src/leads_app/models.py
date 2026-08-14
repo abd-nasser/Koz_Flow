@@ -125,7 +125,12 @@ class Vente(models.Model):
         ('perdue_par_rejet_dossier_demande_financement', 'Perdue par rejet de dossier (demande de financement)')
     ]
     
-    client = models.ForeignKey('auth_app.kozUser', on_delete=models.PROTECT, related_name='ventes')
+    client = models.ForeignKey(
+        'auth_app.kozUser', 
+        on_delete=models.PROTECT,
+        limit_choices_to={'role': 'client'}, 
+        related_name='ventes'
+        )
     vehicul = models.ForeignKey(Vehicul, on_delete=models.PROTECT,related_name='ventes')
     demande_financement = models.OneToOneField(
         'demande_financement', 
@@ -184,7 +189,7 @@ class Vente(models.Model):
         help_text="Liste des échéances avec dates et montants"
     )
     
-    property
+    @property
     def reste_a_payer(self):
         """Calcule le reste à payer sur la partie financée (hors apport)."""
         if not self.montant_finance:
@@ -250,7 +255,6 @@ class Vente(models.Model):
     
     def __str__(self):
         return f"Vente {self.id} - {self.client.nom_complet} - {self.statut}"
-    
     
 class PaiementFinancement(models.Model):
     """Suivi des paiements mensuels d'un financement"""
