@@ -1,3 +1,7 @@
+<div id="result-toast-container" class="result-toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <!-- ============================================================ -->
 <!-- MODAL : GESTION DES STATUTS DE VENTE                         -->
 <!-- ============================================================ -->
