@@ -3,6 +3,8 @@
 from django import forms
 from .models import kozUser
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.conf import settings
 from django.contrib import messages
 import secrets
@@ -81,7 +83,7 @@ class UserRegisterForm(forms.ModelForm):
         if user.role in ["directeur", "commercial"]:
             user.is_staff = True
 
-        print(f"Mot de passe généré pour {user.email} : {password}")  # Affiche le mot de passe dans la console (pour les tests)
+  
         user.set_password(password)    
         
         if user.role == "client" and self.created_by and self.created_by.role == "commercial":
@@ -90,29 +92,19 @@ class UserRegisterForm(forms.ModelForm):
 
         if commit:
             user.save()
-        
+           
         try:
+            context_email = {
+                                'new_user': user.nom_complet,
+                                'email': user.email,
+                                'password_temporaire':password,
+                                'link_espace_de_connexion': "https://koz-corporate.pro/api/auth/interface/connexion"
+                                }
+            html_message = render_to_string('emails/auth/identifiant_user.html', context_email)
+            plain_message = strip_tags(html_message)                   
             send_mail(
                 subject="Vos identifiants KOZ Services",
-                message=f"""
-                    Bonjour {user.nom_complet},
-
-                    Votre compte a été créé sur la plateforme KOZ Services.
-
-                    🔐 Vos identifiants de connexion :
-                    📧 Email : {user.email}
-                    🔑 Mot de passe temporaire : {password}
-
-                    ⚠️ Ce mot de passe est temporaire.
-                    Veuillez le user lors de votre première connexion.
-
-                    🔗 Accéder à votre espace : https://koz-corporate.pro/interface/connexion
-
-                    Ce message est automatique, merci de ne pas y répondre.
-
-                    Cordialement,
-                    L'équipe KOZ Services
-                                    """,
+                message=plain_message,
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[user.email],
                 fail_silently=False,  # Si False, l'erreur remonte
@@ -120,7 +112,6 @@ class UserRegisterForm(forms.ModelForm):
             
         except Exception as e:
             # L'utilisateur est créé mais l'email n'a pas été envoyé
-            
             logger.error(f"{e}--Erreur lors d'envoie de l'email")
         
         return user

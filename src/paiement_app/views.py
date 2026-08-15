@@ -7,9 +7,12 @@ from django.http import JsonResponse
 import requests
 import json
 import logging
-
+from django.db.models import F
+from django.db import transaction
+from products_app.models import Products
 from order_app.models import Commande
 from .models import Paiement
+from .utils import notifier_stock_faible
 
 logger = logging.getLogger(__name__)
 
@@ -133,21 +136,59 @@ def initier_paiement(request, commande_id):
         logger.info(f"LigdiCash response: {data}")
         
         if response.status_code == 200 and data.get('response_code') == '00':
-            # ✅ Créer la transaction en base
-            paiement = Paiement.objects.create(
-                commande=commande,
-                client=request.user,
-                montant=montant,
-                token=data.get('token'),
-                statut='en_attente'
-            )
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Paiement initié avec succès',
-                'token': data.get('token'),
-                'paiement_id': paiement.id,
-            })
+            with transaction.atomic():
+                # ✅ Créer la transaction en base
+                paiement = Paiement.objects.create(
+                    commande=commande,
+                    client=request.user,
+                    montant=montant,
+                    token=data.get('token'),
+                    statut='en_attente'
+                )
+
+                articles_panier = commande.panier.articles.all()
+
+                # ✅ Vérification du stock AVANT décrémentation
+                stock_insuffisant = []
+                for ligne in articles_panier:
+                    if ligne.products.stock < ligne.quantite:
+                        stock_insuffisant.append(ligne.products.nom)
+
+                if stock_insuffisant:
+                    logger.error(
+                        f"Stock insuffisant pour paiement {paiement.id} : {', '.join(stock_insuffisant)}"
+                    )
+                    messages.error(request,  f"Stock insuffisant pour paiement {paiement.id} : {', '.join(stock_insuffisant)}" )
+                    # à toi de décider la suite : annuler le paiement ? notifier le client/commercial ?
+                    # pour l'instant on ne décrémente rien et on ne casse pas le flux de paiement déjà validé côté prestataire
+
+                else:
+                    
+                    # ✅ Décrémentation atomique du stock, vi
+                    # a F() pour éviter les race conditions
+                    produit_a_verifier = []
+                    for ligne in articles_panier:
+                        Products.objects.filter(id=ligne.products_id).update(
+                            stock=F('stock') - ligne.quantite
+                        )
+                        produit_a_verifier.append(ligne.products_id)
+                    
+                    # ✅ Alerte stock faible — après décrémentation, avec la valeur fraîche
+                    produits_stock_faible = Products.objects.filter(
+                        id__in=produit_a_verifier,
+                        stock__lte=5
+                    )
+                    for produit in produits_stock_faible:
+                        notifier_stock_faible(produit)
+                        
+                   
+                        
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Paiement initié avec succès',
+                        'token': data.get('token'),
+                        'paiement_id': paiement.id,
+                    })
         else:
             # ❌ Erreur LigdiCash
             return JsonResponse({

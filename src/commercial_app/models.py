@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
 
 class Offre(models.Model):
     client = models.ForeignKey("auth_app.kozUser", on_delete=models.CASCADE, related_name="offres")
@@ -70,6 +71,9 @@ class Offre(models.Model):
         default=timezone.now() + timedelta(days=30)
     )
     date_creation = models.DateTimeField(auto_now_add=True)
+    
+    def get_absolute_url(self):
+        return reverse('commercial_app:offre-detail', kwargs={'pk': self.pk})
 
     def save(self, *args, **kwargs):
         # ✅ Calcul automatique pour les offres de financement

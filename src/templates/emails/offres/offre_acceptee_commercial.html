@@ -23,7 +23,7 @@
         <div class="content">
             <h2>✅ Offre acceptée !</h2>
             <p>Bonjour,</p>
-            <p>Le client <strong>{{ client.nom_complet }}</strong> a <strong>accepté son offre de financement</strong> n°{{ offre_id }}.</p>
+            <p>Le client <strong>{{ client.nom_complet }}</strong> a <strong>accepté son offre </strong> n°{{ offre_id }}.</p>
             
             <div class="info-box">
                 <p><strong>🚗 Véhicule :</strong> {{ vehicule }}</p>
@@ -31,10 +31,15 @@
                 <p><strong>📅 Date d'acceptation :</strong> {{ date_acceptation|date:"d/m/Y H:i" }}</p>
             </div>
             
-            <p>La vente a été automatiquement créée. Vous pouvez maintenant finaliser le processus (livraison, etc.).</p>
             
-            <a href="{{ lien_vente }}" class="btn">💰 Voir la vente</a>
-            <a href="{{ url 'client_app:client-detail' client.id }}" class="btn" style="background: #6b7280;">👤 Voir le client</a>
+            
+            {% if lien_vente is not none %}
+                <a href="{{ lien_vente }}" class="btn">💰 Voir la vente</a>
+                <p>La vente a été automatiquement créée. Vous pouvez maintenant finaliser le processus (livraison, etc.).</p>
+            {% endif %}
+                
+            
+            <a href="{% url 'client_app:client-detail' client.id %}" class="btn" style="background: #6b7280;">👤 Voir le client</a>
         </div>
         <div class="footer">
             <p>KOZ Services - Votre concessionnaire de confiance</p>

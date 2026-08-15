@@ -161,7 +161,7 @@
     </nav>
 
     <!-- ===== MAIN CONTENT ===== -->
-    <div class="max-w-7xl mx-auto px-4 py-10">
+    <main class="max-w-7xl mx-auto px-4 py-10" style="min-height:81vh;">
         
         <!-- Page Title -->
         <div class="mb-10 animate-fade-in-up">
@@ -262,7 +262,7 @@
                                 <!-- Image -->
                                 <a href="{% url 'vehicul_app:site-vehicul-detail' vehicule.pk %}" class="vehicle-image block">
                                     {% if vehicule.image_display %}
-                                        <img src="{{ vehicule.image_display.url }}" alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}">
+                                        <img src="{{ vehicule.image_display.url }}" alt="{{ vehicule.marque.nom }} {{ vehicule.modele }}" class="object-contain">
                                     {% else %}
                                         <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
                                             <i class="fas fa-car text-4xl text-blue-300"></i>
@@ -369,7 +369,7 @@
                 {% endif %}
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- ===== FOOTER ===== -->
     <footer class="bg-gray-900 text-gray-400 py-6 mt-12">

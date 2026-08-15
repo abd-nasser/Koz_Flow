@@ -7,12 +7,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
+
 
 from django.urls import reverse_lazy, reverse
-from django.conf import settings
+
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -24,6 +22,10 @@ from commercial_app.models import Offre
 from vehicul_app.models import Vehicul
 from client_app.models import Documents
 from auth_app.models import kozUser
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from .utils import generer_echeances_demande, generer_echeances_offre
 
 
@@ -35,9 +37,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import DemandeFinancementSerializers
 
-import logging
-import time
 
+import time
+import logging
 logger = logging.getLogger(__name__)
 
 class ApiDemandeFinancementView(APIView):
@@ -441,7 +443,6 @@ def refuser_demande(request, demande_id):
             logger.info(f"Erreur envoi email: {e}")
 
     return redirect("leads_app:detail-demande", demande.pk)    
-
 
 @login_required
 def estimer_prix_vehicule(request):

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.models import AbstractUser
+from django.urls import reverse
 from vehicul_app.models import Vehicul
 from django.utils import timezone
 from datetime import timedelta
@@ -250,3 +251,6 @@ class  kozUser(AbstractBaseUser, PermissionsMixin):
             'directeur': 'Directeur',
         }
         return roles.get(self.role, self.role)
+    
+    def get_absolute_url(self):
+        return reverse('client_app:client-detail', kwargs={'pk': self.pk})

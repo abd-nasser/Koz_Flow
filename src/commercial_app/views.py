@@ -4,10 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from leads_app.utils import generer_echeances_offre, generer_echeances_demande
 from datetime import datetime
 
 
-from django.urls import reverse_lazy,reverse
+from django.urls import reverse_lazy, reverse
 from django.conf import settings
 
 from django.contrib import messages
@@ -25,6 +26,8 @@ from leads_app.models import Vente, demande_financement, PaiementFinancement
 from client_app.models import Maintenance
 from commercial_app.models import Offre
 from chat_app.models import Message
+from products_app.models import Products
+from home_app.models import RendezVous
 
 
 from auth_app.forms import UserRegisterForm, ChangePasswordForm
@@ -35,6 +38,7 @@ from .forms import OffreFinancementForm, OffreSimpleForm
 import logging
 import time
 from django.db import transaction
+
 logger = logging.getLogger(__name__)
 
 
@@ -156,12 +160,11 @@ def accepter_offre(request, offre_id):
                 context_email = {
                     'client': offre.client,
                     'offre_id': offre.id,
+                    'date_acceptation': timezone.now(),
                     'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
                     'montant_finance': offre.montant_finance,
-                    'lien_vente': request.build_absolute_uri(
-                        reverse('commercial_app:changer-statut-vente', args=[vente.id])
-                    ) if vente else None,
-                    'lien_client': request.build_absolute_uri(reverse("client_app:client-detail", offre.client.pk)),
+                    'lien_vente': request.build_absolute_uri(vente.get_absolute_url()) if vente else None,
+                    'lien_client': request.build_absolute_uri(offre.client.get_absolute_url()),
                     'commercial': commercial,
                 }
                 html_message = render_to_string('emails/offres/offre_acceptee_commercial.html', context_email)
@@ -186,7 +189,6 @@ def accepter_offre(request, offre_id):
     response['HX-Trigger'] = 'closeOffreGestionModal'
     return response
     
-
 @login_required
 def refuser_offre(request, offre_id):
     time.sleep(1.5)
@@ -222,10 +224,10 @@ def refuser_offre(request, offre_id):
                     'offre_id': offre.id,
                     'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
                     'date_refus': timezone.now(),
-                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'lien_client': request.build_absolute_uri(offre.client.get_absolute_url()),
                     'commercial': commercial,
                 }
-                html_message = render_to_string('emails/offre_refusee_commercial.html', context_email)
+                html_message = render_to_string('emails/offres/offre_refusee_commercial.html', context_email)
                 plain_message = strip_tags(html_message)
                 send_mail(
                     subject="❌ Un client a refusé son offre - KOZ Services",
@@ -248,7 +250,6 @@ def refuser_offre(request, offre_id):
     response['HX-Trigger'] = 'closeOffreGestionModal'
     return response
    
-
 @login_required
 def negocier_offre(request, offre_id):
     time.sleep(1.5)
@@ -286,8 +287,8 @@ def negocier_offre(request, offre_id):
                     'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Non renseigné",
                     'montant_finance': offre.montant_finance,
                     'date_demande': timezone.now(),
-                    'lien_offre': request.build_absolute_uri(f"/commercial/offre/{offre.id}/modifier/"),
-                    'lien_client': request.build_absolute_uri(f"/commercial/client/{offre.client.id}/"),
+                    'lien_offre': request.build_absolute_uri(offre.get_absolute_url()),
+                    'lien_client': request.build_absolute_uri(offre.client.get_absolute_url()),
                     'commercial': commercial,
                 }
                 html_message = render_to_string('emails/offres/offre_negociation_commercial.html', context_email)
@@ -378,7 +379,8 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
             client__in=tous_les_clients,
             statut="planifiee"
         ).count()
-        from home_app.models import RendezVous
+        
+        context['produits_stock_faible'] = Products.objects.filter(stock__lte=5).order_by('stock')
         context["demande_rendez_vous"] = RendezVous.objects.filter(statut="en_attente").count()
         # ========================================
         # ✅ 3. TOTAL DES NON-LUS (via la propriété)
@@ -386,8 +388,9 @@ class CommercialDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateV
         context["total_non_lus"] = sum(c.nb_messages_non_lus for c in tous_les_clients)
         
         return context
-##########################################________________OFFRE_VIEW_________________####################################################
 
+
+##########################################________________OFFRE_VIEW_________________####################################################
 class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def test_func(self):
@@ -422,7 +425,7 @@ class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
                 'montant_propose': offre.montant_propose,
                 'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
                 'date_expiration': offre.date_expiration,
-                'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
+                'lien_offre': self.request.build_absolute_uri(offre.get_absolute_url()),
             }
             html_message = render_to_string('emails/offres/simple_offre.html', context_email)
             plain_message = strip_tags(html_message)
@@ -451,7 +454,6 @@ class OffreSimpleCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         time.sleep(3)
         return render(self.request, "partials/offre/_offre_simple_form_error.html", {"offre_simple_form":form})
     
-
 class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     
     def test_func(self):
@@ -512,7 +514,7 @@ class OffreDeFinancementView(LoginRequiredMixin, UserPassesTestMixin, CreateView
                 'duree_mois': offre.duree_mois,
                 'apport': offre.apport_demande,
                 'date_expiration': offre.date_expiration,
-                'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
+                'lien_offre': self.request.build_absolute_uri(offre.get_absolute_url())
             }
             html_message = render_to_string('emails/offres/offre_financement_cree_client.html', context_email)
             plain_message = strip_tags(html_message)
@@ -730,8 +732,6 @@ class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
 ######################################___________VENTE/GESTION_View__________________#########################################################
 
-# commercial_app/views.py
-from leads_app.utils import generer_echeances_offre, generer_echeances_demande
 def changer_statut_vente(request, vente_id):
     if request.user.role not in ["directeur", "commercial"]:
         messages.warning(request, "Vous n'etes pas autorisé changer le status de cette vente")
@@ -1402,15 +1402,6 @@ class MaintenanceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView)
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Maintenance supprimée.")
         return super().delete(request, *args, **kwargs)
-
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView
-from home_app.models import RendezVous
-
 
 class CommercialRendezVousListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = RendezVous

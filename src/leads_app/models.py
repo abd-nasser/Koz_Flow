@@ -2,6 +2,7 @@ from django.db import models
 from vehicul_app.models import Vehicul
 from auth_app.models import kozUser
 from decimal import Decimal
+from django.urls import reverse
 class DevisLeads(models.Model):
     """ 
         TABLE WHO STOCK QUOTE REQUEST
@@ -255,6 +256,9 @@ class Vente(models.Model):
     
     def __str__(self):
         return f"Vente {self.id} - {self.client.nom_complet} - {self.statut}"
+    
+    def get_absolute_url(self):
+            return reverse('commercial_app:vente-detail', kwargs={'pk': self.pk})
     
 class PaiementFinancement(models.Model):
     """Suivi des paiements mensuels d'un financement"""

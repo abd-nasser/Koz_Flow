@@ -73,6 +73,10 @@ class Vehicul(models.Model):
     modele = models.CharField(max_length=100)
     annee = models.IntegerField()
     stock = models.IntegerField(null=True, blank=True)
+    stock_min = models.IntegerField(
+            default=1,
+            verbose_name="Stock minimum (alerte)"
+        )
     prix = models.DecimalField(max_digits=12, decimal_places=0)
     kilometrage = models.IntegerField()
     carburant = models.CharField(max_length=20, choices=TYPES_CARBURANT_CHOICES, default="essence")
@@ -102,6 +106,16 @@ class Vehicul(models.Model):
         if principale:
             return principale.image
         return self.image_principale
+    
+    @property
+    def est_en_stock(self):
+        """Vérifie si le produit est en stock"""
+        return self.stock > 0
+    
+    @property
+    def stock_alerte(self):
+        """Vérifie si le stock est en dessous du seuil d'alerte"""
+        return self.stock <= self.stock_min
         
     def __str__(self):
         marque_nom = self.marque.nom if self.marque else "?"
