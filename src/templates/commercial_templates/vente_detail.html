@@ -307,18 +307,27 @@
                                 {% endif %}
                             </div>
                             <div class="bg-white p-3 rounded-lg border border-slate-200/60 sm:col-span-2 lg:col-span-1">
+                                {% if not vente.offre and not vente.demande_financement %}
                                 <span class="text-xs text-slate-400 block mb-1">Montant</span>
                                 <span class="font-extrabold text-emerald-600">
-                                    {% if not vente.offre and not vente.demande_financement %}
                                         {{ vente.montant|intcomma }} FCFA
-                                    {% elif vente.offre and vente.offre.type_offre == 'simple' %}
-                                        {{ vente.offre.montant_propose|intcomma }} FCFA
-                                    {% elif vente.offre %}
-                                        {{ vente.offre.montant_finance|intcomma }} FCFA
-                                    {% elif vente.demande_financement %}
-                                        {{ vente.demande_financement.montant_finance|intcomma }} FCFA
-                                    {% endif %}
                                 </span>
+                                    {% elif vente.offre and vente.offre.type_offre == 'simple' %}
+                                <span class="text-xs text-slate-400 block mb-1">Montant proposé</span>
+                                <span class="font-extrabold text-emerald-600">
+                                        {{ vente.offre.montant_propose|intcomma }} FCFA
+                                </span>
+                                    {% elif vente.offre %}  
+                                <span class="text-xs text-slate-400 block mb-1">Montant financé</span>
+                                <span class="font-extrabold text-emerald-600">
+                                    {{ vente.offre.montant_finance|intcomma }} FCFA
+                                </span>
+                                    {% elif vente.demande_financement %}
+                                <span class="text-xs text-slate-400 block mb-1">Montant financé</span>
+                                <span class="font-extrabold text-emerald-600">
+                                        {{ vente.demande_financement.montant_finance|intcomma }} FCFA 
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

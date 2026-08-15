@@ -198,6 +198,17 @@
                             </div>
                         </div>
 
+                        
+                        {% if offre.vente.statut == "conclue_par_acceptation_offre_financement" %}
+                            <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm relative overflow-hidden">
+                            <span class="text-xs font-semibold text-slate-500 block mb-1">Reste à payer</span>
+                            <div class="text-xl font-extrabold text-red-400">
+                                {{ offre.vente.reste_a_payer|floatformat:0|intcomma }} <span class="text-xs font-semibold text-slate-500">FCFA</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                            
+
                     </div>
                 </div>
 

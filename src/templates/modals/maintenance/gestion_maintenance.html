@@ -1,68 +1,106 @@
-<dialog id="gestion_maintenance_modal" class="modal">
-    <div class="modal-box w-full max-w-md p-0 overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 shadow-2xl">
+<dialog id="gestion_maintenance_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box relative p-0 overflow-hidden rounded-2xl bg-base-100 border border-base-200 shadow-2xl max-w-md w-full">
         
-        <!-- Header avec dégradé -->
-        <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-4">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary to-indigo-700 px-6 py-5 text-white">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">
-                    <i class="fas fa-tools mr-2"></i>Gérer la maintenance
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fas fa-tools text-primary-content/80"></i> Gérer la maintenance
                 </h3>
-                <button type="button" class="text-white/80 hover:text-white text-2xl leading-none transition" 
-                        onclick="document.getElementById('gestion_maintenance_modal').close()">&times;</button>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost text-white/80 hover:text-white hover:bg-white/10">✕</button>
+                </form>
             </div>
-            <p class="text-blue-100 text-sm mt-1">Changer le statut de cette intervention</p>
+            <p class="text-xs text-white/80 mt-1">Changer le statut de l'intervention #{{ maintenance.id }}</p>
         </div>
 
-        <!-- Corps du modal -->
-        <div class="p-6 space-y-4">
+        <!-- Indicateur de chargement HTMX -->
+        <div id="gestion-spinner" class="htmx-indicator px-6 pt-4 flex items-center justify-center gap-2 text-primary font-medium text-xs">
+            <span class="loading loading-spinner loading-xs"></span> Mise à jour du statut...
+        </div>
+
+        <!-- Corps du modal (Actions) -->
+        <div class="p-6 space-y-3">
             
             <!-- Action : Commencer -->
-            <a href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'en_cours' %}" 
-               class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group">
-                <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition">
-                    <i class="fas fa-play text-yellow-700 text-xl"></i>
+            <button type="button"
+                    hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'en_cours' %}"
+                    hx-target="#maintenance-card-{{ maintenance.id }}"
+                    hx-swap="outerHTML"
+                    hx-indicator="#gestion-spinner"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    class="w-full flex items-center gap-4 p-4 rounded-xl bg-warning/10 border border-warning/30 hover:bg-warning/20 transition-all text-left group">
+                <div class="w-10 h-10 rounded-xl bg-warning/20 text-warning flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-play text-base"></i>
                 </div>
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-800">Commencer la maintenance</p>
-                    <p class="text-sm text-gray-500">Débuter l'intervention</p>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm text-base-content">Commencer la maintenance</p>
+                    <p class="text-xs text-base-content/60">Passer au statut "En cours"</p>
                 </div>
-                <i class="fas fa-chevron-right text-gray-400 group-hover:text-yellow-600 transition"></i>
-            </a>
+                <i class="fas fa-chevron-right text-xs text-base-content/40 group-hover:translate-x-1 transition-transform"></i>
+            </button>
 
             <!-- Action : Marquer comme effectuée -->
-            <a href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'effectuee' %}" 
-               class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
-                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition">
-                    <i class="fas fa-check-circle text-green-700 text-xl"></i>
+            <button type="button"
+                    hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'effectuee' %}"
+                    hx-target="#maintenance-card-{{ maintenance.id }}"
+                    hx-swap="outerHTML"
+                    hx-indicator="#gestion-spinner"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    class="w-full flex items-center gap-4 p-4 rounded-xl bg-success/10 border border-success/30 hover:bg-success/20 transition-all text-left group">
+                <div class="w-10 h-10 rounded-xl bg-success/20 text-success flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-check-circle text-base"></i>
                 </div>
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-800">Marquer comme effectuée</p>
-                    <p class="text-sm text-gray-500">L'intervention est terminée</p>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm text-base-content">Marquer comme effectuée</p>
+                    <p class="text-xs text-base-content/60">L'intervention est terminée</p>
                 </div>
-                <i class="fas fa-chevron-right text-gray-400 group-hover:text-green-600 transition"></i>
-            </a>
+                <i class="fas fa-chevron-right text-xs text-base-content/40 group-hover:translate-x-1 transition-transform"></i>
+            </button>
 
             <!-- Action : Annuler -->
-            <a href="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'annulee' %}" 
-               class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
-                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
-                    <i class="fas fa-times-circle text-red-700 text-xl"></i>
+            <button type="button"
+                    hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'annulee' %}"
+                    hx-target="#maintenance-card-{{ maintenance.id }}"
+                    hx-swap="outerHTML"
+                    hx-indicator="#gestion-spinner"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    class="w-full flex items-center gap-4 p-4 rounded-xl bg-error/10 border border-error/30 hover:bg-error/20 transition-all text-left group">
+                <div class="w-10 h-10 rounded-xl bg-error/20 text-error flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i class="fas fa-times-circle text-base"></i>
                 </div>
-                <div class="flex-1">
-                    <p class="font-semibold text-gray-800">Annuler la maintenance</p>
-                    <p class="text-sm text-gray-500">L'intervention est annulée</p>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm text-base-content">Annuler la maintenance</p>
+                    <p class="text-xs text-base-content/60">L'intervention est annulée</p>
                 </div>
-                <i class="fas fa-chevron-right text-gray-400 group-hover:text-red-600 transition"></i>
-            </a>
+                <i class="fas fa-chevron-right text-xs text-base-content/40 group-hover:translate-x-1 transition-transform"></i>
+            </button>
 
         </div>
 
-        <!-- Footer avec bouton de fermeture -->
-        <div class="bg-gray-50 px-6 py-4 flex justify-end">
-            <button type="button" class="btn btn-ghost" onclick="document.getElementById('gestion_maintenance_modal').close()">
-                <i class="fas fa-times mr-2"></i>Fermer
-            </button>
+        <!-- Footer -->
+        <div class="bg-base-200/50 px-6 py-3 flex justify-end border-t border-base-200">
+            <form method="dialog">
+                <button class="btn btn-sm btn-ghost gap-2">
+                    <i class="fas fa-times"></i> Fermer
+                </button>
+            </form>
         </div>
 
     </div>
+
+    <!-- Clic à l'extérieur pour fermer -->
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
 </dialog>
+
+<script>
+    // Écouteur d'événement envoyé par la vue Django via l'en-tête "HX-Trigger: closeGestMaintenanceModal"
+    document.addEventListener('closeGestMaintenanceModal', function() {
+        const modal = document.getElementById('gestion_maintenance_modal');
+        if (modal && typeof modal.close === 'function') {
+            modal.close();
+        }
+    });
+</script>

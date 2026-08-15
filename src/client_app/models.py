@@ -1,5 +1,6 @@
 # Django a déjà des classes pour gérer les utilisateurs, on va les personnaliser
 from django.db import models
+from django.urls import reverse
 from auth_app.models import kozUser
 from vehicul_app.models import Vehicul
 from datetime import timezone, timedelta, datetime
@@ -102,6 +103,8 @@ class Maintenance(models.Model):
         """Kilometre restant avant la prochaine maintenance"""
         return max(0, self.kilometrage_prochain - self.kilometrage_actuel)
     
+    def get_absolute_url(self):
+        return reverse('commercial_app:maintenance-detail', kwargs={'pk': self.pk})
     
     class Meta:
         ordering = ['date_prochaine']

@@ -709,8 +709,7 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def form_invalid(self, form):
        time.sleep(3)
        return render(self.request, "partials/offre/_offre_simple_form_error.html", {"update_offre_form":form})
-        
-    
+         
 class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Offre
     
@@ -1062,7 +1061,7 @@ def confirmer_maintenance(request, maintenance_id):
                     'client': maintenance.client,
                     'commercial': commercial,
                     'maintenance': maintenance,
-                    'lien_maintenance': request.build_absolute_uri(reverse('commercial_app:maintenance-detail', maintenance.id)),
+                    'lien_maintenance': request.build_absolute_uri(maintenance.get_absolute_url()),
                 }
                 html_message = render_to_string('emails/maintenance/maintenance_confirmee_commercial.html', context_email)
                 plain_message = strip_tags(html_message)
@@ -1075,10 +1074,16 @@ def confirmer_maintenance(request, maintenance_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"Erreur envoi email: {e}")
+            logger.error(f"Erreur envoi email: {e}")
     
-    messages.success(request, "Votre maintenance a été confirmée. Un email a été envoyé à votre commercial.")
-    return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+    
+    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+                                                                                   'title': '✅ Succès',
+                                                                                   'message': 'Votre maintenance a été confirmée. Un email a été envoyé à votre commercial.',
+                                                                                   'reload_on_close': True,
+                                                                                  })
+    response["HX-Trigger"] = "closeMaintenanceModal"
+    return response
 
     
 @login_required
@@ -1103,7 +1108,7 @@ def refuser_maintenance(request, maintenance_id):
                     'client': maintenance.client,
                     'commercial': commercial,
                     'maintenance': maintenance,
-                    'lien_maintenance': request.build_absolute_uri(reverse("commercial_app:maintenance-detail", maintenance.pk)),
+                    'lien_maintenance': request.build_absolute_uri(maintenance.get_absolute_url()),
                 }
                 html_message = render_to_string('emails/maintenance/maintenance_annulee_commercial.html', context_email)
                 plain_message = strip_tags(html_message)
@@ -1116,10 +1121,16 @@ def refuser_maintenance(request, maintenance_id):
                     fail_silently=False,
                 )
         except Exception as e:
-            print(f"Erreur envoi email: {e}")
+            logger.error(f"Erreur envoi email: {e}")
     
-    messages.info(request, "Votre maintenance a été annulée. Votre commercial a été notifié.")
-    return redirect('client_app:maintenance-list')
+    
+    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+                                                                                       'title': '✅ Succès',
+                                                                                       'message': 'Votre maintenance a été annulée. Votre commercial a été notifié.',
+                                                                                       'reload_on_close': True,
+                                                                                      })
+    response["HX-Trigger"] = "closeGestMaintenanceModal"
+    return response
 
 
 def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
@@ -1147,7 +1158,7 @@ def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
             'client': maintenance.client,
             'maintenance': maintenance,
             'nouveau_statut': maintenance.get_statut_display(),
-            'lien_maintenance': request.build_absolute_uri(reverse("commercial_app:maintenance-detail", maintenance.pk)),
+            'lien_maintenance': request.build_absolute_uri(maintenance.get_absolute_url()),
         }
         
         if nouveau_statut == 'en_cours':
@@ -1172,10 +1183,15 @@ def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
             fail_silently=False,
         )
     except Exception as e:
-        print(f"Erreur envoi email: {e}")
+        logger.error(f"Erreur envoi email: {e}")
     
-    messages.success(request, f"Maintenance passée en '{maintenance.get_statut_display()}'. Le client a été notifié.")
-    return redirect('commercial_app:maintenance-detail', pk=maintenance.id)
+    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+                                                                            'title': '✅ Succès',
+                                                                            'message': f"Maintenance passée en '{maintenance.get_statut_display()}'. Le client a été notifié.",
+                                                                            'reload_on_close': True,
+                                                                                      })
+    response["HX-Trigger"] = "closeGestMaintenanceModal"
+    return response
 
 
 #######################################__________________MAINTENANCE_VIEW_______________##################################################
@@ -1340,8 +1356,20 @@ class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
         return self.request.user.role in ['commercial', 'directeur']
 
     def form_valid(self, form):
-        messages.success(self.request, "Maintenance ajoutée avec succès.")
-        return super().form_valid(form)
+        response = render(self.request, "partials/maintenance/_maintenance_result",{'success': True,
+                                                                               'title': '✅ Créee',
+                                                                               'message': 'Maintenance créee avec succès',
+                                                                               'reload_on_close': True,
+                                                                              })
+        response["HX-Trigger"] = "closeMaintenanceModal"
+        return response
+    
+    def form_invalid(self, form):
+        return render(self.request, 'partials/_maintenance_form_errors.html',{"maintenance_form":form})
+        
+    
+        
+        
 
 class MaintenanceDetailView(LoginRequiredMixin, DetailView):
     model = Maintenance
@@ -1379,17 +1407,16 @@ class MaintenanceUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
         return self.request.user.role in ['commercial', 'directeur']
 
     def form_valid(self, form):
-        messages.success(self.request, "Maintenance MAJ avec succès.")
-        return super().form_valid(form)
+        response = render(self.request, "partials/maintenance/_maintenance_result",{'success': True,
+                                                                                      'title': '✅ Créee',
+                                                                                      'message': 'Maintenance modfifié avec succès',
+                                                                                      'reload_on_close': True,
+                                                                                     })
+        response["HX-Trigger"] = "closeMaintenanceModal"
+        return response
     
     def form_invalid(self, form):
-        detail_view = MaintenanceDetailView()
-        detail_view.request = self.request
-        detail_view.kwargs = self.kwargs
-        context = detail_view.get_context_data()
-        context["update_maintenance_form"] = form
-        context["open_update_maintenance_form"] = True
-        return self.render_to_response(context)
+        return render(self.request, 'partials/_maintenance_form_errors.html',{"update_maintenance_form":form})
       
 class MaintenanceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Maintenance

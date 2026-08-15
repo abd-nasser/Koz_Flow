@@ -41,7 +41,7 @@
 
         <!-- Corps du formulaire -->
         <form 
-            hx-post="{% url 'leads_app:upload-document' demande.pk %}" 
+            hx-post="{% url 'leads_app:document-update' document.pk %}" 
             hx-target="#dmd-message-zone"
             hx-indicator="#up-dmd-doc-indicator"
             enctype="multipart/form-data"  

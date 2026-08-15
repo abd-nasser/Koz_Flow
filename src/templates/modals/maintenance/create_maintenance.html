@@ -17,14 +17,25 @@
         </div>
 
         <!-- Structure Formulaire avec corps scrollable et boutons fixes -->
-        <form method="post" action="{% url 'commercial_app:maintenance-create' %}" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
+        <form hx-post="{% url 'commercial_app:maintenance-create' %}"
+              hx-target="#msg-maintenance-zone"
+              hx-indicator="#maintenance-indicator" 
+              enctype="multipart/form-data" 
+              class="flex flex-col flex-1 overflow-hidden">
             {% csrf_token %}
             
             <!-- Corps du formulaire (Scrollable) -->
             <div class="p-6 overflow-y-auto flex-1 scrollable-form">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="form-group {% if field.name == 'notes_client' or field.name == 'notes_technicien' %}md:col-span-2{% endif %}">
+                            <div id="maintenance-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
+                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
+                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
+                                <p class="text-white font-medium">Création en cours...</p>
+                            </div>
+                    </div>
                     {% for field in maintenance_form %}
-                        <div class="form-group {% if field.name == 'notes_client' or field.name == 'notes_technicien' %}md:col-span-2{% endif %}">
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 {{ field.label }}
                                 {% if field.field.required %}
@@ -68,14 +79,12 @@
 
 <!-- Script pour rouvrir la modale en cas d'erreur backend -->
 <script>
-    {% if open_maintenance_modal %}
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('maintenanceModal');
-        if (modal && typeof modal.showModal === 'function') {
-            modal.showModal();
-        }
+   
+    document.addEventListener('closeMaintenanceModal', function() {
+          document.getElementById('maintenanceModal').close();
+        
     });
-    {% endif %}
+ 
 </script>
 
 <style>

@@ -258,7 +258,7 @@ class Vente(models.Model):
         return f"Vente {self.id} - {self.client.nom_complet} - {self.statut}"
     
     def get_absolute_url(self):
-            return reverse('commercial_app:vente-detail', kwargs={'pk': self.pk})
+        return reverse('commercial_app:vente-detail', kwargs={'pk': self.pk})
     
 class PaiementFinancement(models.Model):
     """Suivi des paiements mensuels d'un financement"""
