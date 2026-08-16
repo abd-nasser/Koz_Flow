@@ -19,10 +19,12 @@
         <div class="p-6 space-y-4">
             
             <!-- Action : Demande de documents -->
-            <a hx-get="{% url 'leads_app:attente-document' demande.pk %}"
-               hx-target="#dmd-gest-message-zone"
-               hx-indicator="#gest-dmd-indic"
-               class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group">
+            <button hx-post="{% url 'leads_app:attente-document' demande.pk %}"
+                hx-target="#dmd-gest-message-zone"
+                hx-indicator="#gest-dmd-indic"
+                class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                type='button'>
                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
                     <i class="fas fa-file-alt text-blue-700 text-xl"></i>
                 </div>
@@ -31,7 +33,7 @@
                     <p class="text-sm text-gray-500">Demander des pièces justificatives au client</p>
                 </div>
                 <i class="fas fa-chevron-right text-gray-400 group-hover:text-blue-600 transition"></i>
-            </a>
+            </button>
 
             <!-- Action : Accorder la demande -->
 
@@ -43,10 +45,12 @@
                 </div>
 
             <!-- Action : Refuser la demande -->
-            <a hx-get="{% url 'leads_app:refuser-demande' demande.pk %}" 
+            <button hx-post="{% url 'leads_app:refuser-demande' demande.pk %}" 
                 hx-target="#dmd-gest-message-zone"
                 hx-indicator="#gest-dmd-indic"
-               class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
+                class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                type='button'>
                 <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
                     <i class="fas fa-times-circle text-red-700 text-xl"></i>
                 </div>
@@ -55,7 +59,7 @@
                     <p class="text-sm text-gray-500">Rejeter définitivement le financement</p>
                 </div>
                 <i class="fas fa-chevron-right text-gray-400 group-hover:text-red-600 transition"></i>
-            </a>
+            </button>
 
         </div>
 

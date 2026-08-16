@@ -21,11 +21,13 @@
             <!-- Actions pour offre envoyée -->
             <div id="offre-message-zone" ></div>
             <div class="space-y-3">
-                <a 
-                    hx-get="{% url 'commercial_app:accepter-offre' offre.id %}"
+                <button 
+                    hx-post="{% url 'commercial_app:accepter-offre' offre.id %}"
                     hx-target="#offre-message-zone"
                     hx-indicator="#gest-offre-indic" 
-                    class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group">
+                    class="flex items-center gap-4 p-4 rounded-xl bg-green-50 border border-green-200 hover:bg-green-100 transition group"
+                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        type='button'>
                     <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition">
                         <i class="fas fa-check-circle text-green-700 text-xl"></i>
                     </div>
@@ -34,18 +36,20 @@
                         <p class="text-sm text-gray-500">Valider cette offret</p>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400 group-hover:text-green-600 transition"></i>
-                </a>
+                </button>
                 <div id="gest-offre-indic" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
                         <div class="p-6 text-center flex flex-col items-center">
                             <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
                             <p class="text-sm font-bold text-slate-800"> Envoi de documents cours...</p>
                         </div>
                 </div>
-                <a 
-                    hx-get="{% url 'commercial_app:refuser-offre' offre.id %}" 
+                <button 
+                    hx-post="{% url 'commercial_app:refuser-offre' offre.id %}" 
                     hx-target="#offre-message-zone"
                     hx-indicator="#gest-offre-indic"
-                   class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group">
+                    class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    type='button'>
                     <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">
                         <i class="fas fa-times-circle text-red-700 text-xl"></i>
                     </div>
@@ -54,13 +58,15 @@
                         <p class="text-sm text-gray-500">Rejeter cette proposition</p>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400 group-hover:text-red-600 transition"></i>
-                </a>
+                </button>
 
-                <a  
-                    hx-get="{% url 'commercial_app:negocier-offre' offre.id %}" 
+                <button 
+                    hx-post="{% url 'commercial_app:negocier-offre' offre.id %}" 
                     hx-target="#offre-message-zone"
                     hx-indicator="#gest-offre-indic"
-                   class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group">
+                    class="flex items-center gap-4 p-4 rounded-xl bg-yellow-50 border border-yellow-200 hover:bg-yellow-100 transition group"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    type='button'>
                     <div class="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center group-hover:bg-yellow-200 transition">
                         <i class="fas fa-comment-dots text-yellow-700 text-xl"></i>
                     </div>
@@ -69,7 +75,7 @@
                         <p class="text-sm text-gray-500">Discuter des conditions avec votre commercial</p>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400 group-hover:text-yellow-600 transition"></i>
-                </a>
+                </button>
             </div>
 
             {% elif offre.statut == 'acceptee' %}

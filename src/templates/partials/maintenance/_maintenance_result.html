@@ -1,7 +1,7 @@
 {% load static %}
 <div id="result-toast-container" class="result-toast-container" hx-swap-oob="innerHTML">
     <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
-        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full text-center">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full ">
             <h3 class="font-bold text-lg {% if success %}text-green-600{% else %}text-red-600{% endif %}">
                 {{ title }}
                 {% if success %}
@@ -17,20 +17,29 @@
 
 <script>
 (function() {
-    if (window._toastTimeout) {
-        clearTimeout(window._toastTimeout);
-    }
+    if (window._toastTimeout) clearTimeout(window._toastTimeout);
 
-    window._toastTimeout = setTimeout(closeResultToast, 3000);
+    requestAnimationFrame(function() {
+        const bar = document.getElementById('toast-progress-bar');
+        if (bar) bar.style.width = '0%';
+    });
+
+    window._toastTimeout = setTimeout(function() {
+        closeResultToast({{ reload_on_close|yesno:'true,false' }});
+    }, 4000);
 })();
 
-function closeResultToast() {
+function closeResultToast(shouldReload) {
     if (window._toastTimeout) {
         clearTimeout(window._toastTimeout);
         window._toastTimeout = null;
     }
     const container = document.getElementById('result-toast-container');
     if (container) container.innerHTML = '';
+
+    if (shouldReload) {
+        window.location.reload();
+    }
 }
 </script>
 

@@ -1044,8 +1044,13 @@ def confirmer_maintenance(request, maintenance_id):
     maintenance = get_object_or_404(Maintenance, id=maintenance_id, client=request.user)
     
     if maintenance.statut != 'planifiee':
-        messages.warning(request, "Cette maintenance ne peut pas être confirmée.")
-        return redirect('commercial_app:maintenance-detail', maintenance.id)
+        response = render(request, "partials/maintenance/_maintenance_result.html",{'success': False,
+                                                                                               'title': '❌échec',
+                                                                                               'message': 'Cette maintenance ne peut pas être confirmée.',
+                                                                                               'reload_on_close': False,
+                                                                                              })
+        response['HX-Trigger'] = "closeGestMaintenanceModal"
+        return response
     
     maintenance.statut = 'confirmee'
     maintenance.save()
@@ -1077,12 +1082,12 @@ def confirmer_maintenance(request, maintenance_id):
             logger.error(f"Erreur envoi email: {e}")
     
     
-    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+    response = render(request, "partials/maintenance/_maintenance_result.html",{'success': True,
                                                                                    'title': '✅ Succès',
                                                                                    'message': 'Votre maintenance a été confirmée. Un email a été envoyé à votre commercial.',
                                                                                    'reload_on_close': True,
                                                                                   })
-    response["HX-Trigger"] = "closeMaintenanceModal"
+    response["HX-Trigger"] = "closeGestMaintenanceModal"
     return response
 
     
@@ -1091,8 +1096,13 @@ def refuser_maintenance(request, maintenance_id):
     maintenance = get_object_or_404(Maintenance, id=maintenance_id, client=request.user)
     
     if maintenance.statut != 'planifiee':
-        messages.warning(request, "Cette maintenance ne peut pas être annulée.")
-        return redirect('client_app:maintenance-detail', pk=maintenance.id)
+        response = render(request, "partials/maintenance/_maintenance_result.html",{'success': False,
+                                                                                                      'title': '❌échec',
+                                                                                                      'message': 'Cette maintenance ne peut pas être annulée.',
+                                                                                                      'reload_on_close': False,
+                                                                                                     })
+        response['HX-Trigger'] = "closeGestMaintenanceModal"
+        return response
     
     maintenance.statut = 'annulee'
     maintenance.save()
@@ -1124,7 +1134,7 @@ def refuser_maintenance(request, maintenance_id):
             logger.error(f"Erreur envoi email: {e}")
     
     
-    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+    response = render(request, "partials/maintenance/_maintenance_result.html",{'success': True,
                                                                                        'title': '✅ Succès',
                                                                                        'message': 'Votre maintenance a été annulée. Votre commercial a été notifié.',
                                                                                        'reload_on_close': True,
@@ -1185,7 +1195,7 @@ def changer_statut_maintenance(request, maintenance_id, nouveau_statut):
     except Exception as e:
         logger.error(f"Erreur envoi email: {e}")
     
-    response = render(request, "partials/maintenance/_maintenance_result",{'success': True,
+    response = render(request, "partials/maintenance/_maintenance_result.html",{'success': True,
                                                                             'title': '✅ Succès',
                                                                             'message': f"Maintenance passée en '{maintenance.get_statut_display()}'. Le client a été notifié.",
                                                                             'reload_on_close': True,
@@ -1350,27 +1360,69 @@ class MaintenanceCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView)
     model = Maintenance
     form_class = MaintenanceForm
     template_name = "commercial_templates/maintenance_list.html"
-    success_url = reverse_lazy("commercial_app:maintenance-list")
 
     def test_func(self):
         return self.request.user.role in ['commercial', 'directeur']
 
     def form_valid(self, form):
-        response = render(self.request, "partials/maintenance/_maintenance_result",{'success': True,
-                                                                               'title': '✅ Créee',
-                                                                               'message': 'Maintenance créee avec succès',
-                                                                               'reload_on_close': True,
-                                                                              })
+        # ⏱️ Simule un traitement (à supprimer en prod)
+        time.sleep(1.5)
+        
+        # ✅ Sauvegarde du formulaire
+        maintenance = form.save()
+        
+        # ==========================================
+        # 📧 ENVOI DE L'EMAIL AU CLIENT
+        # ==========================================
+        client = maintenance.client  # Assure-toi que Maintenance a un FK vers Client
+        
+        if client and client.email:
+            try:
+                # Contexte pour le template
+                context_email = {
+                    'client': client,
+                    'vehicule': maintenance.vehicul if hasattr(maintenance, 'vehicul') else "Véhicule",
+                    'date_prevue': maintenance.date_prevue if hasattr(maintenance, 'date_prevue') else None,
+                    'type_maintenance': maintenance.type_maintenance if hasattr(maintenance, 'type_maintenance') else "Révision",
+                    'notes_technicien': maintenance.notes_technicien if hasattr(maintenance, 'notes_technicien') else "",
+                    'commercial': self.request.user,
+                    'lien_suivi': self.request.build_absolute_uri(maintenance.get_absolute_url()),
+                }
+                
+                # Rendu du template HTML
+                html_message = render_to_string('emails/maintenance/maintenance_creation_client.html',context_email)
+                plain_message = strip_tags(html_message)
+                
+                # Envoi de l'email
+                send_mail(
+                    subject=f"🛠️ Confirmation de maintenance - {context_email['vehicule']}",
+                    message=plain_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[client.email],
+                    html_message=html_message,
+                    fail_silently=False,
+                )
+                
+            except Exception as e:
+                # On log l'erreur mais on continue (pas bloquant pour la réponse HTMX)
+                logger.error(f"Erreur envoi email maintenance client: {e}")
+        
+        # ==========================================
+        # ✅ RÉPONSE HTMX
+        # ==========================================
+        response = render(self.request, "partials/maintenance/_maintenance_result.html", {
+            'success': True,
+            'title': '✅ Créee',
+            'message': 'Maintenance créee avec succès',
+            'reload_on_close': True,
+        })
         response["HX-Trigger"] = "closeMaintenanceModal"
         return response
     
     def form_invalid(self, form):
-        return render(self.request, 'partials/_maintenance_form_errors.html',{"maintenance_form":form})
+        return render(self.request, 'partials/_maintenance_form_errors.html', {"maintenance_form": form})
         
     
-        
-        
-
 class MaintenanceDetailView(LoginRequiredMixin, DetailView):
     model = Maintenance
     context_object_name = "maintenance"
@@ -1399,16 +1451,52 @@ class MaintenanceUpdateView(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model= Maintenance
     template_name = "commercial_templates/maintenance_detail.html"
     form_class = MaintenanceForm
-    def get_success_url(self):
-        return reverse_lazy ("commercial_app:maintenance-detail", kwargs={"pk":self.object.pk})
-    
-    
+
     def test_func(self):
         return self.request.user.role in ['commercial', 'directeur']
-
+    
     def form_valid(self, form):
-        response = render(self.request, "partials/maintenance/_maintenance_result",{'success': True,
-                                                                                      'title': '✅ Créee',
+        time.sleep(1.5)
+        maintenance = form.save()
+                
+                # ==========================================
+                # 📧 ENVOI DE L'EMAIL AU CLIENT
+                # ==========================================
+        client = maintenance.client  # Assure-toi que Maintenance a un FK vers Client
+                
+        if client and client.email:
+            try:
+                        # Contexte pour le template
+                context_email = {
+                            'client': client,
+                            'vehicule': maintenance.vehicul if hasattr(maintenance, 'vehicul') else "Véhicule",
+                            'date_prevue': maintenance.date_prevue if hasattr(maintenance, 'date_prevue') else None,
+                            'type_maintenance': maintenance.type_maintenance if hasattr(maintenance, 'type_maintenance') else "Révision",
+                            'notes_technicien': maintenance.notes_technicien if hasattr(maintenance, 'notes_technicien') else "",
+                            'commercial': self.request.user,
+                            'lien_suivi': self.request.build_absolute_uri(maintenance.get_absolute_url()),
+                        }
+                        
+                        # Rendu du template HTML
+                html_message = render_to_string('emails/maintenance/maintenance_creation_client.html',context_email)
+                plain_message = strip_tags(html_message)
+                        
+                        # Envoi de l'email
+                send_mail(
+                            subject=f"🛠️ Confirmation de maintenance - {context_email['vehicule']}",
+                            message=plain_message,
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[client.email],
+                            html_message=html_message,
+                            fail_silently=False,
+                        )
+                        
+            except Exception as e:          
+                # On log l'erreur mais on continue (pas bloquant pour la réponse HTMX)
+                logger.error(f"Erreur envoi email maintenance client: {e}")
+        
+        response = render(self.request, "partials/maintenance/_maintenance_result.html",{'success': True,
+                                                                                      'title': '✅ Modifiée',
                                                                                       'message': 'Maintenance modfifié avec succès',
                                                                                       'reload_on_close': True,
                                                                                      })

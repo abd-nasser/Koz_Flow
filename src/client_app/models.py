@@ -52,7 +52,7 @@ class Maintenance(models.Model):
     marque = models.CharField(max_length=50)
     modele = models.CharField(max_length=100)
     annee = models.IntegerField()
-    immatriculation = models.CharField(max_length=20)
+    immatriculation = models.CharField(max_length=20, null=True, blank=True)
     kilometrage_actuel = models.IntegerField()
     
     # Origine (remplace le boolean)
@@ -63,6 +63,7 @@ class Maintenance(models.Model):
     priorite = models.CharField(max_length=20, choices=PRIORITE_CHOICES, default='normale')
     
     # Dates et kilométrage
+    date_prevue = models.DateField(null=True, blank=True)
     date_prochaine = models.DateField()
     date_derniere = models.DateField(null=True, blank=True)
     kilometrage_prochain = models.IntegerField()
@@ -83,7 +84,7 @@ class Maintenance(models.Model):
     
     # Notes
     notes_client = models.TextField(blank=True)
-    notes_technicien = models.TextField(blank=True)
+    notes_technicien = models.TextField(blank=True, verbose_name="Remarque technicien")
     
     # Champs techniques
     date_creation = models.DateTimeField(auto_now_add=True)

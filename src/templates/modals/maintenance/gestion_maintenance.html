@@ -1,3 +1,4 @@
+{% load static %}
 <dialog id="gestion_maintenance_modal" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box relative p-0 overflow-hidden rounded-2xl bg-base-100 border border-base-200 shadow-2xl max-w-md w-full">
         
@@ -20,13 +21,13 @@
         </div>
 
         <!-- Corps du modal (Actions) -->
+        <div id="maintenance-gest-zone"></div>
         <div class="p-6 space-y-3">
             
             <!-- Action : Commencer -->
             <button type="button"
                     hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'en_cours' %}"
-                    hx-target="#maintenance-card-{{ maintenance.id }}"
-                    hx-swap="outerHTML"
+                    hx-target="#maintenance-gest-zone"
                     hx-indicator="#gestion-spinner"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                     class="w-full flex items-center gap-4 p-4 rounded-xl bg-warning/10 border border-warning/30 hover:bg-warning/20 transition-all text-left group">
@@ -43,8 +44,7 @@
             <!-- Action : Marquer comme effectuée -->
             <button type="button"
                     hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'effectuee' %}"
-                    hx-target="#maintenance-card-{{ maintenance.id }}"
-                    hx-swap="outerHTML"
+                    hx-target="#maintenance-gest-zone"
                     hx-indicator="#gestion-spinner"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                     class="w-full flex items-center gap-4 p-4 rounded-xl bg-success/10 border border-success/30 hover:bg-success/20 transition-all text-left group">
@@ -61,8 +61,7 @@
             <!-- Action : Annuler -->
             <button type="button"
                     hx-post="{% url 'commercial_app:changer-statut-maintenance' maintenance.id 'annulee' %}"
-                    hx-target="#maintenance-card-{{ maintenance.id }}"
-                    hx-swap="outerHTML"
+                    hx-target="#maintenance-gest-zone"
                     hx-indicator="#gestion-spinner"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                     class="w-full flex items-center gap-4 p-4 rounded-xl bg-error/10 border border-error/30 hover:bg-error/20 transition-all text-left group">
