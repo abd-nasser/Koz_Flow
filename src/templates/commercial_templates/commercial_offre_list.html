@@ -133,7 +133,7 @@
                             hx-include=".filters-container select, .filters-container input"
                             class="select select-bordered w-full text-sm">
                         <option value="">Tous les types</option>
-                        {% for value, label in TYPE_OFFRE_CHOICES %}
+                        {% for value, label in TYPE_OFFRE %}
                         <option value="{{ value }}" {% if request.GET.type_offre == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>

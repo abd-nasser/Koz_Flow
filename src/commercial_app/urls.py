@@ -12,6 +12,7 @@ urlpatterns = [
     path("generer/<int:pk>/offre/financement",views.OffreDeFinancementView.as_view(), name="creer-offre-financement"),
     path("offre/<int:pk>/", views.OffreDetailView.as_view(), name="offre-detail"),  
     path('offre/<int:pk>/modifier/', views.OffreUpdateView.as_view(), name="update-offre"),
+    path("offre/simple/<int:pk>/modifier/", views.OffreSimpleUpdate.as_view(), name="update-offre-simple"),
     path('offre/<int:pk>/supprimer/',views.OffreDeleteView.as_view(), name='offre-delete'),
     path("offre/<int:offre_id>/accepter/", views.accepter_offre, name="accepter-offre"),
     path("offre/<int:offre_id>/refuser/", views.refuser_offre, name="refuser-offre"),

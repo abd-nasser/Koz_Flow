@@ -1,6 +1,6 @@
-from datetime import timedelta, timezone, datetime
+from datetime import timedelta, datetime
 from decimal import Decimal, InvalidOperation
-
+from django.utils import timezone
 from django.db.models import Q
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
@@ -1621,13 +1621,13 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
             if "update_doc_form" not in context:
                 context["update_doc_form"] = DocumentsUploadForm(instance=self.object)
         return context
-    
+
+
 class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     
     model = Documents
     form_class = DocumentsUploadForm
     template_name = "clients_templates/client_detail_doc.html"     
-      
     
     def form_valid(self, form):
         time.sleep(3)
@@ -1640,6 +1640,51 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
             if dossier.demande_financement:
                 dossier.demande_financement.etape = "en_cours"
                 dossier.demande_financement.save()
+            
+            # ==========================================
+            # 📧 ENVOI DE L'EMAIL AUX COMMERCIAUX
+            # ==========================================
+            try:
+                client = dossier.client if hasattr(dossier, 'client') else None
+                if client and client.email:
+                    # Récupérer tous les commerciaux
+                    from auth_app.models import kozUser
+                    commerciaux = kozUser.objects.filter(role='commercial')
+                    
+                    if commerciaux.exists():
+                        context_email = {
+                            'client': client,
+                            'dossier': dossier,
+                            'lien_dossier': self.request.build_absolute_uri(dossier.get_absolute_url()),
+                            'date_mise_a_jour': timezone.now(),
+                        }
+                        
+                        html_message = render_to_string(
+                            'emails/documents/dossier_mis_a_jour.html',
+                            context_email
+                        )
+                        plain_message = strip_tags(html_message)
+                        
+                        # Envoyer à tous les commerciaux
+                        recipients = [com.email for com in commerciaux if com.email]
+                        
+                        if recipients:
+                            send_mail(
+                                subject=f"✅ Dossier mis à jour - {client.nom_complet}",
+                                message=plain_message,
+                                from_email=settings.DEFAULT_FROM_EMAIL,
+                                recipient_list=recipients,
+                                html_message=html_message,
+                                fail_silently=False,
+                            )
+                            logger.info(f"Email envoyé aux commerciaux pour le dossier {dossier.id}")
+                        
+            except Exception as e:
+                logger.error(f"Erreur envoi email aux commerciaux: {e}")
+
+            # ==========================================
+            # ✅ RÉPONSE HTMX
+            # ==========================================
             response = render(self.request, "partials/documents/_documents_result.html", {
                 "success": True,
                 "title": "✅ Dossier mis à jour",
@@ -1648,6 +1693,7 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
             })
             response["HX-Trigger"] = "closeUpdateDocModal"
             return response
+        
         else:
             dossier.statut_dossier = "incomplet"
             dossier.save()
@@ -1656,11 +1702,11 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
                 "title": "⚠️ Dossier incomplet",
                 "message": "Il manque encore des documents requis.",
             })
-            return response  # pas de reload_on_close, pas de HX-Trigger — état pas encore "complet"
+            return response
         
     def form_invalid(self, form):
-        return render(self.request, 'partials/documents/_documents_form_errors.html', {'update_doc_form': form})
-        
+        return render(self.request, 'partials/documents/_documents_form_errors.html', {'update_doc_form': form})    
+
 class DocumentDeleteView(LoginRequiredMixin,UserPassesTestMixin, DeleteView):
     def test_func(self):
         doc = self.get_object()

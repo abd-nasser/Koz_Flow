@@ -25,10 +25,10 @@
         </div>
 
         <!-- Zone de message HTMX -->
-        <div id="dmd-message-zone" class="px-6 pt-4 empty:hidden"></div>
+        <div id="send-doc-message-zone" class="px-6 pt-4 empty:hidden"></div>
 
         <!-- Indicator HTMX de chargement -->
-        <div id="dmd-doc-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-all">
+        <div id="send-doc-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-all">
             <div class="p-6 text-center flex flex-col items-center">
                 <div class="w-14 h-14 mb-3 relative flex items-center justify-center">
                     <div class="absolute inset-0 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin"></div>
@@ -42,8 +42,8 @@
         <!-- Corps du formulaire -->
         <form 
             hx-post="{% url 'leads_app:upload-document' demande.pk %}" 
-            hx-target="#dmd-message-zone"
-            hx-indicator="#dmd-doc-indicator"
+            hx-target="#send-doc-message-zone"
+            hx-indicator="#send-doc-indicator"
             enctype="multipart/form-data"  
             class="flex flex-col">
             {% csrf_token %}

@@ -24,7 +24,20 @@
         </div>
 
         <!-- Corps du modal avec Formulaire -->
-        <form enctype="multipart/form-data" method="post" action="{% url 'home_app:ajout-textuel-temoignage' %}" class="flex flex-col">
+        <div id="textuel-temoignage-zone" class="empty:hidden"></div>
+        <form 
+        hx-post="{% url 'home_app:ajout-textuel-temoignage' %}"
+        hx-target="#textuel-temoignage-zone"
+        hx-indicator="#textuel-temoignage-indic"
+        enctype="multipart/form-data"  
+        class="flex flex-col">
+        <!-- Overlay de chargement HTMX (Loading Indicator) -->
+                <div id="textuel-temoignage-indic" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 rounded-2xl transition-all">
+                    <div class="p-6 text-center flex flex-col items-center">
+                        <img src="{% static 'images/Loading_animation.svg' %}" class="w-16 h-16 mb-3 object-contain animate-pulse" alt="Chargement...">
+                        <p class="text-sm font-bold text-slate-800">Envoi en cours...</p>
+                    </div>
+                </div>
             {% csrf_token %}
             
             <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollable-form">
@@ -146,14 +159,14 @@
 </dialog>
 
 <!-- Script pour ré-ouvrir automatiquement le modal si erreur serveur -->
-{% if open_temoignage_textuel_modal %}
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const modal = document.getElementById('temoignage_textuel_modal');
-        if (modal) modal.showModal();
+    document.addEventListener('closeHomeModal', function() {
+        document.getElementById('temoignage_textuel_modal').close();
+        
     });
 </script>
-{% endif %}
+
 
 <style>
     /* Boutons et effets */

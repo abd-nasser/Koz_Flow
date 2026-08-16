@@ -581,6 +581,7 @@ class OffreView(LoginRequiredMixin, UserPassesTestMixin, ListView):
             queryset = Offre.objects.all().select_related("client")
             q = self.request.GET.get("q")
             statut = self.request.GET.get("statut")
+            type_offre = self.request.GET.get("type_offre")
             if q:
                 queryset = queryset.filter(
                     Q(client__nom_complet__icontains=q) |Q(client__email__icontains=q)|
@@ -590,6 +591,9 @@ class OffreView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 )
             if statut:
                 queryset = queryset.filter(statut=statut)
+            
+            if type_offre:
+                queryset = queryset.filter(type_offre=type_offre)
                 
             return queryset.order_by("-date_creation")
         
@@ -607,12 +611,18 @@ class OffreView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 )
             if statut:
                 queryset = queryset.filter(statut=statut)
+                
+                
+            if type_offre:
+                queryset = queryset.filter(type_offre=type_offre)
+                            
           
             return queryset.order_by("-date_creation")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["STATUTS_OFFRE"] = Offre.STATUTS_OFFRE
+        context["TYPE_OFFRE"] = Offre.TYPE_OFFRE_CHOICES
         return context
         
 class OffreDetailView(LoginRequiredMixin,UserPassesTestMixin ,DetailView):
@@ -639,6 +649,8 @@ class OffreDetailView(LoginRequiredMixin,UserPassesTestMixin ,DetailView):
         if self.request.user.role != "client":
             if "update_offre_form" not in context:
                 context["update_offre_form"] = OffreFinancementForm(instance=self.object)
+            if "update_offre_simple_form" not in context:
+                context['update_offre_simple_form'] = OffreSimpleForm(instance=self.object)
             return context
         return context
 
@@ -646,8 +658,6 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Offre
     form_class = OffreFinancementForm
     
-    def get_success_url(self):
-        return reverse_lazy("commercial_app:offre-detail", kwargs={"pk": self.object.pk})
     
     def get_template_names(self):
         if self.request.user.is_superuser or self.request.user.role == "directeur":
@@ -657,7 +667,7 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user.role in ['commercial', 'directeur']
     
-    
+    time.sleep(3)
     def form_valid(self, form):
         offre = form.save(commit=False)
         
@@ -681,13 +691,13 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                     'duree_mois': offre.duree_mois,
                     'apport': offre.apport_demande,
                     'date_expiration': offre.date_expiration,
-                    'lien_offre': self.request.build_absolute_uri(reverse("commercial_app:offre-detail", offre.pk)),
+                    'lien_offre': self.request.build_absolute_uri(offre.get_absolute_url()),
                 }
                 html_message = render_to_string('emails/offres/offre_envoyee_client.html', context_email)
                 plain_message = strip_tags(html_message)
                 
                 send_mail(
-                    subject="📄 Une offre de financement vous attend - KOZ Services",
+                    subject="📄 Une offre de financement Mis à jour - KOZ Services",
                     message=plain_message,
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[offre.client.email],
@@ -705,11 +715,74 @@ class OffreUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                                                     })
         response['HX-Trigger'] = "closeUpdateOffreModal"
         return response
-       
+    time.sleep(3)
     def form_invalid(self, form):
-       time.sleep(3)
        return render(self.request, "partials/offre/_offre_simple_form_error.html", {"update_offre_form":form})
-         
+   
+class OffreSimpleUpdate(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Offre
+    form_class = OffreSimpleForm
+    
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur'] 
+   
+    
+    def get_template_names(self):
+        if self.request.user.is_superuser or self.request.user.role == "directeur":
+            return ["directeur_templates/directeur_offre_detail.html"]
+        return ["commercial_templates/commercial_offre_detail.html"]
+        
+    def test_func(self):
+        return self.request.user.role in ['commercial', 'directeur']
+        
+    time.sleep(3)
+    def form_valid(self, form):
+        offre = form.save(commit=False)
+            
+        # Vérifier si l'offre était en brouillon et va être envoyée
+        was_brouillon = offre.statut == 'brouillon'
+            
+        if was_brouillon:
+            offre.statut = 'envoyee'
+            
+            offre.save()
+            
+            # ✉️ Envoyer un email au client si l'offre vient d'être envoyée
+            try:
+                context_email = {
+                        'client': offre.client,
+                        'offre_id': offre.id,
+                        'vehicule': str(offre.vehicule_propose) if offre.vehicule_propose else "Véhicule sélectionné",
+                        'montant_propose': offre.montant_propose,
+                        'date_expiration': offre.date_expiration,
+                        'lien_offre': self.request.build_absolute_uri(offre.get_absolute_url()),
+                    }
+                html_message = render_to_string('emails/offres/offre_simple_MAJ_client.html', context_email)
+                plain_message = strip_tags(html_message)
+                    
+                send_mail(
+                        subject="📄  Offre  Mis à jour - KOZ Services",
+                        message=plain_message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[offre.client.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+                messages.success(self.request, "Offre mise à jour et envoyée au client.")
+            except Exception as e:
+                    logger.error(f"Offre mise à jour mais l'email n'a pas pu être envoyé.: {e}")
+            response = render(self.request, "partials/offre/_offres_result.html",{
+                                                            "success": True,
+                                                            "title": "✅ Offre mis à jour ",
+                                                            "message": f"Offre a été modifié pour {offre.client.nom_complet}. Un email a été envoyé.",
+                                                            "reload_on_close":True
+                                                        })
+            response['HX-Trigger'] = "closeUpdateSimpleOffreModal"
+            return response
+    time.sleep(3)
+    def form_invalid(self, form):
+        return render(self.request, "partials/offre/_offre_simple_form_error.html", {"update_offre_simple_form":form})
+             
 class OffreDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Offre
     

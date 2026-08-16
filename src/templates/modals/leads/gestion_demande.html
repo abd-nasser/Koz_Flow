@@ -22,7 +22,7 @@
             <button hx-post="{% url 'leads_app:attente-document' demande.pk %}"
                 hx-target="#dmd-gest-message-zone"
                 hx-indicator="#gest-dmd-indic"
-                class="flex items-center gap-4 p-4 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group"
+                class="flex items-center gap-4 p-4 rounded-xl w-full bg-blue-50 border border-blue-200 hover:bg-blue-100 transition group"
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 type='button'>
                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
@@ -48,7 +48,7 @@
             <button hx-post="{% url 'leads_app:refuser-demande' demande.pk %}" 
                 hx-target="#dmd-gest-message-zone"
                 hx-indicator="#gest-dmd-indic"
-                class="flex items-center gap-4 p-4 rounded-xl bg-red-50 border border-red-200 hover:bg-red-100 transition group"
+                class="flex items-center gap-4 p-4 rounded-xl w-full bg-red-50 border border-red-200 hover:bg-red-100 transition group"
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 type='button'>
                 <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition">

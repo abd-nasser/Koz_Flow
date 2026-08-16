@@ -72,11 +72,15 @@ class TextuelTemoignageCreateView(CreateView):
     template_name = 'home_templates/temoignage_textuel_form.html'
     form_class = TemoignageTextuelForm
     def form_valid(self, form):
-        messages.success(self.request, "✅ Merci pour votre témoignage ! Il sera visible après approbation.")
-        return super().form_valid(form)
+        time.sleep(1.3)
+        response = render(self.request, "partials/site/_site_result.html",{"success": True,
+                                                                                "titre" : "👍🏽 Enregistré ",
+                                                                                "message" : "✅ Merci pour votre témoignage ! Il sera visible après approbation.",
+                                                                                "reload_on_close" : False
+                                                                                })
+        response['HX-Trigger']= "closeHomeModal"
+        return response
     
-    def get_success_url(self):
-        return reverse_lazy('home_app:home-page')
     
     # Redirige vers la page d'accueil après la soumission du formulaire
 

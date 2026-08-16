@@ -169,6 +169,9 @@ class Documents(models.Model):
     def __str__(self):
         return f"Dossier {self.client.nom_complet} - {self.statut_dossier}"
     
+    def get_absolute_url(self):
+        return reverse('leads_app:document-detail', kwargs={'pk': self.pk})
+    
     def verifier_completude(self):
         """Vérifie si les documents OBLIGATOIRES sont présents"""
         requis = [

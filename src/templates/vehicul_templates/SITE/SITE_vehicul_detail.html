@@ -218,7 +218,7 @@
                     <i class="fas fa-bolt text-blue-600"></i> Actions
                 </h3>
                 <div class="space-y-3 sm:space-y-4">
-                    {% if user.is_authenticated and not user.is_superuser and user.role != "directeur" %}
+                    {% if user.is_authenticated  and user.role == "client" %}
                         <!-- Contacter -->
                         <a href="{% url 'vehicul_app:contacter-vehicule' vehicul.pk %}" 
                             class="btn btn-outline w-full text-center py-3 rounded-xl border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white transition">

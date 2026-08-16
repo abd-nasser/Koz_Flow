@@ -17,12 +17,24 @@ update_offre_Modal
         </div>
 
         <!-- Corps du modal avec formulaire -->
-        <div id="offre-message-zone" class="mb-4"></div>
+        <div id="upd-offre-message-zone" class="px-6 pt-4 empty:hidden"></div>
+
+         <!-- Indicator HTMX de chargement (corrigé hors de la boucle) -->
+        <div id="upd-offre-indicator" class="htmx-indicator absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-all">
+            <div class="p-6 text-center flex flex-col items-center">
+                <div class="w-14 h-14 mb-3 relative flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin"></div>
+                    <i class="fas fa-file-signature text-blue-600 text-lg"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-900">Génération de l'offre en cours...</p>
+                <p class="text-xs text-slate-500 mt-1">Calcul des paramètres financiers...</p>
+            </div>
+        </div>
         <form 
         hx-post="{% url 'commercial_app:update-offre' offre.pk %}"
         enctype="multipart/form-data"  
-        hx-target="#offre-message-zone"
-        hx-indicator="#offre-indicator"
+        hx-target="#upd-offre-message-zone"
+        hx-indicator="#upd-offre-indicator"
         class="p-6">
             {% csrf_token %}
             
@@ -48,13 +60,6 @@ update_offre_Modal
                         {% if field.help_text %}
                             <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
                         {% endif %}
-
-                        <div id="offre-indicator" class="htmx-indicator fixed inset-0 flex items-center justify-center z-50">
-                            <div class="bg-white p-6 items-center rounded-xl justify-center text-center shadow-2xl">
-                                <img src="{% static 'images/Loading_animation.svg' %}" class="object-cover w-35 h-35 mb-3">
-                                <p class="text-white font-medium">Envoi en cours...</p>
-                            </div>
-                        </div>
                         
                         {% if field.errors %}
                             <div class="mt-1 text-red-500 text-xs">

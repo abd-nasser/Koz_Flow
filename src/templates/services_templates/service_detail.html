@@ -201,9 +201,21 @@
                 
                 <!-- CTA -->
                 <div class="flex flex-wrap gap-4 mt-8 animate-fade-in-up" style="animation-delay: 0.5s">
-                    <a href="#prix" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold transition shadow-lg shadow-blue-600/30 flex items-center gap-2">
-                        <i class="fas fa-shopping-cart"></i> Réserver
-                    </a>
+                    
+                    
+                        
+                     {% if user.is_authenticated and user.role == 'client' %}
+                <a href="{% url 'services_app:contacter-service' service.pk %}" 
+                class="btn btn-primary w-full text-center py-3 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-calendar-check"></i> Réserver ce service
+                </a>
+            {% else %}
+                <button onclick="document.getElementById('contact_modal').showModal()" 
+                        class="btn-glow block text-center mt-8 py-3.5 rounded-xl font-semibold transition hover:scale-105">
+                    <i class="fas fa-envelope"></i> Demander un devis
+                </button>
+                
+            {% endif %}
                     <a href="#avis" class="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-8 py-3.5 rounded-xl font-semibold transition border border-white/20 flex items-center gap-2">
                         <i class="fas fa-star"></i> Voir les avis
                     </a>
@@ -294,7 +306,7 @@
 
             <!-- ===== BOUTON ===== -->
         
-             {% if user.is_authenticated %}
+             {% if user.is_authenticated and user.role == 'client' %}
                 <a href="{% url 'services_app:contacter-service' service.pk %}" 
                 class="btn btn-primary w-full text-center py-3 rounded-xl flex items-center justify-center gap-2">
                     <i class="fas fa-calendar-check"></i> Réserver ce service

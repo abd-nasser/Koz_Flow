@@ -1,3 +1,4 @@
+{% load humanize %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -60,27 +61,24 @@
         .info-box .value {
             color: #0f172a;
         }
-        .message-box {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 16px 20px;
-            margin: 15px 0;
-            border: 1px solid #e2e8f0;
-        }
-        .message-box p {
-            margin: 0;
-            font-size: 15px;
-            line-height: 1.7;
-            color: #1e293b;
-        }
-        .badge {
+        .btn {
             display: inline-block;
-            background: #fbbf24;
-            color: #78350f;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 12px 28px;
+            background: #1e3a8a;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 15px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #1e40af;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 25px 0 15px 0;
         }
         .footer {
             text-align: center;
@@ -94,24 +92,19 @@
             color: #1e3a8a;
             text-decoration: none;
         }
-        .btn-reply {
+        .badge {
             display: inline-block;
-            padding: 10px 24px;
-            background: #1e3a8a;
-            color: white !important;
-            text-decoration: none;
-            border-radius: 8px;
+            background: #fbbf24;
+            color: #78350f;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
-            font-size: 14px;
-            text-align: center;
-            transition: background 0.3s;
         }
-        .btn-reply:hover {
-            background: #1e40af;
-        }
-        .btn-container {
-            text-align: center;
-            margin: 20px 0 10px 0;
+        .highlight {
+            background: #fef9c3;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -119,51 +112,51 @@
     <div class="container">
         <!-- HEADER -->
         <div class="header">
-            <h2>📩 Nouveau message client</h2>
-            <p>KOZ Services - Formulaire de contact</p>
+            <h2>🚗 Mise à jour de votre offre</h2>
+            <p>KOZ Services - Votre partenaire automobile</p>
         </div>
 
         <!-- CONTENT -->
         <div class="content">
-            <p>Bonjour,</p>
+            <p>Bonjour <strong>{{ client.nom_complet }}</strong>,</p>
 
-            <p>Un nouveau message a été envoyé via le formulaire de contact du site.</p>
+            <p>Nous avons mis à jour votre offre </p>
 
-            <!-- Informations du contact -->
+            <!-- Informations de l'offre -->
             <div class="info-box">
-                <p><span class="label">👤 Nom :</span> <span class="value">{{ nom }}</span></p>
-                <p><span class="label">📧 Email :</span> <span class="value"><a href="mailto:{{ email }}">{{ email }}</a></span></p>
-                <p><span class="label">📞 Téléphone :</span> <span class="value">{{ telephone|default:"Non renseigné" }}</span></p>
-                <p><span class="label">📝 Sujet :</span> <span class="value"><strong>{{ sujet }}</strong></span></p>
+                <p><span class="label">🚘 Véhicule :</span> <span class="value">{{ vehicule }}</span></p>
+                <p><span class="label">💰 Montant proposé :</span> <span class="value"><strong>{{ montant_propose|intcomma }} FCFA</strong></span></p>
+                <p><span class="label">📅 Date d'expiration :</span> <span class="value">{{ date_expiration|date:"d/m/Y" }}</span></p>
+                <p><span class="label">🆓 Référence :</span> <span class="value">#{{ offre_id }}</span></p>
             </div>
 
-            <!-- Message -->
-            <div class="message-box">
-                <p style="font-weight: 600; color: #1e293b; margin-bottom: 8px;">💬 Message :</p>
-                <p>{{ message|linebreaks }}</p>
-            </div>
-
+            <!-- Message d'expiration -->
+            {% if date_expiration %}
             <p style="font-size: 14px; color: #6b7280;">
-                <span class="badge">⚡ Réponse recommandée</span>
-                Nous vous recommandons de répondre à ce client dans les plus brefs délais.
+                <span class="badge">⏳ Important</span>
+                Cette offre est valable jusqu'au <strong>{{ date_expiration|date:"d/m/Y" }}</strong>.
+                Nous vous invitons à la consulter avant cette date.
             </p>
+            {% endif %}
 
-            <!-- Bouton de réponse -->
+            <!-- Bouton -->
             <div class="btn-container">
-                <a href="mailto:{{ email }}?subject=Re: {{ sujet }}" class="btn-reply">📧 Répondre au client</a>
+                <a href="{{ lien_offre }}" class="btn">📄 Voir mon offre</a>
             </div>
 
             <p style="font-size: 14px; color: #4b5563; margin-top: 10px;">
-                Vous pouvez également contacter ce client directement par téléphone au <strong>{{ telephone|default:"numéro non renseigné" }}</strong>.
+                Si vous avez des questions, n'hésitez pas à contacter votre conseiller KOZ Services.
+            </p>
+
+            <p style="margin-top: 20px;">
+                Merci de votre confiance,<br>
+                <strong style="color: #1e3a8a;">L'équipe KOZ Services</strong>
             </p>
         </div>
 
         <!-- FOOTER -->
         <div class="footer">
-            <p>
-                KOZ Services - Concessionnaire automobile<br>
-                Ouagadougou, Burkina Faso<br>
-            </p>
+
             <p style="margin-top: 5px;">
                 &copy; {% now "Y" %} KOZ Services - Tous droits réservés.
             </p>

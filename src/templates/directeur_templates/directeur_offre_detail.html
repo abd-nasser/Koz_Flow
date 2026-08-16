@@ -353,8 +353,14 @@
                     <div class="space-y-3">
                         
                         <!-- Bouton Modifier (Si brouillon) -->
-                        {% if offre.statut == "brouillon" %}
+                        {% if offre.statut == "brouillon" and offre.type_offre == 'offre_financement' %}
                         <button onclick="document.getElementById('update_offre_Modal').showModal()" 
+                                class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs tracking-wide transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2.5">
+                            <i class="fas fa-edit"></i>
+                            <span>Modifier l'offre</span>
+                        </button>
+                        {% elif offre.statut == "brouillon" and offre.type_offre == 'simple' %}
+                        <button onclick="document.getElementById('update_simpleoffreModal').showModal()" 
                                 class="w-full py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs tracking-wide transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2.5">
                             <i class="fas fa-edit"></i>
                             <span>Modifier l'offre</span>
@@ -406,6 +412,7 @@
     <!-- Modales -->
     {% include 'modals/leads/confirm_offre_delete.html' %}
     {% include 'modals/leads/update_offre.html' %}
+    {% include 'modals/leads/update_offre_simple.html' %}
 
 </body>
 </html>
