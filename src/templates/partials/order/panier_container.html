@@ -54,7 +54,7 @@
                     </span>
                     <button class="text-red-400 hover:text-red-600 transition"
                             hx-delete="{% url 'order_app:retirer-panier' article.id %}"
-                            hx-target="#panier-container"
+                            hx-target="#bd"
                             hx-swap="outerHTML"
                             hx-confirm="Supprimer cet article du panier ?"
                             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>

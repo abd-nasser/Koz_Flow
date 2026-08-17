@@ -16,7 +16,7 @@
         <!-- Corps du modal avec formulaire -->
         <form enctype="multipart/form-data" method="post" action="{% url 'products_app:products-create' %}" class="p-6 scrollable-form">
             {% csrf_token %}
-            <div class="scrollable-form">
+            <div>
             <!-- AFFICHAGE DES ERREURS GLOBALES -->
             {% if create_product_form.non_field_errors %}
             <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">

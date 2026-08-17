@@ -704,6 +704,7 @@ def vehicul_image_partials(request, vehicul_id):
         'vehicul': vehicule,
     })
 
+
 def toggle_favori(request, vehicul_id):
     if request.user.is_anonymous or request.user.role != 'client':
         response = render(request, "partials/vehiculs/_favori_result.html", {
@@ -721,38 +722,37 @@ def toggle_favori(request, vehicul_id):
     else:
         vehicul.favoris_de.add(request.user)
         ajoute = True
-        
-        def notifier_ajout_favori(client, vehicul):
-                Message.objects.create(
-                    client=client,
-                    commercial=None,  # message système, pas encore pris en charge par un commercial précis
-                    contenu=(
-                        f"Vous avez ajouté {vehicul.marque.nom} {vehicul.modele} à vos favoris. "
-                        f"N'hésitez pas à échanger avec un conseiller sur les options de financement disponibles."
-                    ),
-                    est_client=False,
-                    lu=False,
-                    origine_automatique=True,
-                )
+    
+        Message.objects.create(
+            client=request.user,
+            commercial=None,  # message système, pas encore pris en charge par un commercial précis
+            contenu=(
+                    f"Vous avez ajouté {vehicul.marque.nom} {vehicul.modele} à vos favoris. "
+                    f"N'hésitez pas à échanger avec un conseiller sur les options de financement disponibles."
+            ),
+            est_client=False,
+            lu=False,
+            origine_automatique=True,
+            )
 
-                if client.email:
-                    try:
-                        lien_chat = request.build_absolute_uri(reverse('chat_app:chat-view'))
-                        html_message = render_to_string('emails/chat/notif_favori.html', {
-                            'client': client,
-                            'vehicule': f"{vehicul.marque.nom} {vehicul.modele}",
-                            'lien_chat': lien_chat,
-                        })
-                        send_mail(
-                            subject=f"💬 Nouveau message concernant {vehicul.marque.nom} {vehicul.modele}",
-                            message=strip_tags(html_message),
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[client.email],
-                            html_message=html_message,
-                            fail_silently=False,
-                        )
-                    except Exception as e:
-                        logger.error(f"Erreur email notif favori pour {client.email}: {e}")
+        if request.user.email:
+            try:
+                lien_chat = request.build_absolute_uri(reverse('chat_app:chat-view'))
+                html_message = render_to_string('emails/vehicul/vehicul_notif_favori.html', {
+                        'client': request.user,
+                        'vehicule': f"{vehicul.marque.nom} {vehicul.modele}",
+                        'lien_chat': lien_chat,
+                })
+                send_mail(
+                        subject=f"💬 Nouveau message concernant {vehicul.marque.nom} {vehicul.modele}",
+                        message=strip_tags(html_message),
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[request.user.email],
+                        html_message=html_message,
+                        fail_silently=False,
+                    )
+            except Exception as e:
+                logger.error(f"Erreur email notif favori pour {request.user.email}: {e}")
         
         
     return render(request, "partials/vehiculs/_favori_button.html", {"vehicul": vehicul})

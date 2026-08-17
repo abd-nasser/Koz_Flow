@@ -880,9 +880,9 @@
                         
                         <!-- Overlay au survol -->
                         <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center gap-2">
-                            <button class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
+                            <a href="{% url 'order_app:ajouter-article' produit.pk %}" class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
                                 <i class="fas fa-shopping-cart text-sm"></i>
-                            </button>
+                            </a>
                             <button class="btn btn-sm btn-circle bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition shadow-lg">
                                 <i class="fas fa-heart text-sm"></i>
                             </button>
@@ -946,7 +946,7 @@
                         </div>
 
                         <!-- BOUTON AJOUTER -->
-                        <a href="{% url 'products_app:products-detail' slug=produit.slug %}" class="w-full mt-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <a href="{% url 'products_app:detail-produit-slug' slug=produit.slug %}" class="w-full mt-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fas fa-eye text-xs"></i> 
                             voir l'article
                         </a>

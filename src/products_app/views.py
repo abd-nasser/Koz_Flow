@@ -4,12 +4,20 @@ from django.http import Http404
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import CategorieProducts, MarqueProduit, UniteProduit, Products, ProductsImage
 from .forms import CategorieProductsForm, MarqueProduitForm, UniteProduitForm, ProductsForm, ProductImageForm
+from chat_app.models import Message
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.conf import settings
 
+import logging
+
+logger = logging.getLogger(__name__)
 # ============================================================
 # CRUD Catégories
 # ============================================================
@@ -221,7 +229,56 @@ class ProductsImageListView(LoginRequiredMixin, ListView):
             context["product_image_form"] = ProductImageForm()
         return context
 
-
+def toggle_product_favoris(request, product_id):
+    if request.user.is_anonymous or request.user.role != 'client':
+        response = render(request, "partials/products/_products_favori_result.html", {
+                    "success": False,
+                    "title": "❌ Action non autorisée",
+                    "message": "Seuls les clients ou abonnée peuvent ajouter des favoris.",
+                })
+        return response
+    
+    product = get_object_or_404(Products, id=product_id)
+    
+    if product.favoris_de.filter(id=request.user.id).exists():
+        product.favoris_de.remove(request.user)
+        ajoute = False
+    else:
+        product.favoris_de.add(request.user)
+        ajoute = True
+        
+        Message.objects.create(
+            client=request.user,
+            commercial=None,
+            contenu=(
+                f"Vous avez ajouté {product.marque.nom} {product.nom} à vos favoris. "
+                f"N'hésitez pas à échanger avec un conseiller sur les different produits"
+                            ),
+            est_client=False,
+            lu=False,
+            origine_automatique=True  
+            ),
+        if request.user.email:
+            try:
+                lien_chat = request.build_absolute_uri(reverse('chat_app:chat-view'))
+                html_message = render_to_string('emails/products/products_notif_favori.html', {
+                        'client': request.user,
+                        'produit': f"{product.marque.nom} {product.nom}",
+                        'lien_chat': lien_chat,
+                    })
+                send_mail(
+                            subject=f"💬 Nouveau message concernant {product.marque.nom} {product.nom}",
+                            message=strip_tags(html_message),
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[request.user.email],
+                            html_message=html_message,
+                            fail_silently=False,
+                        )
+            except Exception as e:
+                logger.error(f"Erreur email notif favori pour {request.user.email}: {e}")
+    return render(request, "partials/products/_product_favori_button.html", {"produit": product})
+            
+        
 # ============================================================================================
 # ✅ AJOUT : Ajouter une Image(FBV)
 # ============================================================================================
@@ -254,8 +311,7 @@ def ajouter_image(request, pk):
     #✅ Redirection vers la page d'images
     return redirect("products_app:product-images-list", product.pk)
         
-        
-        
+                
 #======================================================================================================
 #✅ SUPPRESSION : Supprimer une Image 
 #======================================================================================================
@@ -336,10 +392,13 @@ class MarqueProduitCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateVie
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.role == 'directeur'
 
+    def get_success_url(self):
+        return reverse_lazy("directeur_app:directeur-view")
+    
     model = MarqueProduit
     form_class = MarqueProduitForm
     template_name = 'products_templates/marque_produit_form.html'
-    success_url = reverse_lazy('products_app:marque-produit-list')
+
 
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -468,7 +527,6 @@ class ApiProductsdetail(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     lookup_field = 'pk'
     
-
 class ApiProductsdetail(generics.RetrieveAPIView):
     """
     API publique pour récuprer les details d'un produits

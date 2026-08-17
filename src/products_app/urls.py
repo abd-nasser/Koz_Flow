@@ -5,7 +5,7 @@ from .views import (
     UniteProduitListView, UniteProduitCreateView, UniteProduitUpdateView, UniteProduitDeleteView,
     ProductsListView, ProductsCreateView, ProductsDetailView, ProductsUpdateView, ProductsDeleteView,
     ApiProductListView, ApiProductsdetail, ProductsImageListView, ProductImageDeleteView,
-    filter_products_by_category, ajouter_image,
+    filter_products_by_category, ajouter_image, toggle_product_favoris
 )
 # products_app/urls.py
 
@@ -43,7 +43,7 @@ urlpatterns = [
     
     # Filtre
     path('categorie/<int:category_id>/', filter_products_by_category, name='products-by-category'),
-    
+    path('ajouter/favoris/<int:product_id>/',toggle_product_favoris, name="products-favoris"),
     # ajout_images
     path('ajouter/image/<int:pk>/', ajouter_image, name='ajouter-image'),
     # API

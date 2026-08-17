@@ -171,7 +171,12 @@ class Products(models.Model):
     est_disponible = models.BooleanField(default=True, verbose_name="Disponible à la vente")
     est_nouveau = models.BooleanField(default=False, verbose_name="Nouveau produit")
     ordre = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
-    
+    favoris_de = models.ManyToManyField(
+        'auth_app.kozUser',
+        related_name='produits_favoris',
+        blank=True,
+        limit_choices_to={'role': 'client'},
+    )
     # ===== DATES =====
     date_ajout = models.DateTimeField(auto_now_add=True, verbose_name="Date d'ajout")
     date_modification = models.DateTimeField(auto_now=True, verbose_name="Dernière modification")

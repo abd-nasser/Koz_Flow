@@ -90,7 +90,7 @@
                 <a href="{% url 'home_app:home-page' %}" class="font-bold text-2xl text-blue-600">
                     KOZ Services
                 </a>
-                <a href="#" class="text-gray-500 hover:text-blue-600 transition text-sm flex items-center gap-1 ml-4">
+                <a href="{% url 'products_app:products-list' %}" class="text-gray-500 hover:text-blue-600 transition text-sm flex items-center gap-1 ml-4">
                     <i class="fas fa-arrow-left text-xs"></i> Retour
                 </a>
             </div>
@@ -114,6 +114,9 @@
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }} shadow-xl rounded-xl animate-slide-in-right">
                 <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">
+                <i class="fas fa-xmark"></i>
+            </button>
             </div>
             {% endfor %}
         </div>
@@ -129,7 +132,7 @@
         <nav class="text-sm text-gray-500 mb-6 animate-fade-in-up">
             <a href="{% url 'home_app:home-page' %}" class="hover:text-blue-600 transition">Accueil</a>
             <span class="mx-2">/</span>
-            <a href="#" class="hover:text-blue-600 transition">Produits</a>
+            <a href="{% url 'products_app:products-list' %}" class="hover:text-blue-600 transition">Produits</a>
             <span class="mx-2">/</span>
             <span class="text-gray-700 font-medium">{{ produit.nom }}</span>
         </nav>
@@ -272,8 +275,25 @@
                         <i class="fas fa-shopping-cart"></i>
                         {% if produit.est_en_stock %}Ajouter au panier{% else %}Indisponible{% endif %}
                     </a>
-                    <button class="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition flex items-center gap-2">
-                        <i class="fas fa-heart"></i>
+                    <button 
+                    id="fav-btn-{{ produit.pk }}"
+                    hx-post="{% url 'products_app:products-favoris' produit.pk %}"
+                    hx-target="#fav-btn-{{ produit.pk }}"
+                    hx-swap="outerHTML transition:true"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                    class="px-5 py-3 rounded-xl 
+                    {% if request.user in produit.favoris_de.all %}
+                     bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-100
+                     {% else %}
+                     bg-gray-100 hover:bg-gray-200 text-gray-700 transition flex items-center gap-2
+                     {% endif %}">
+                    <i class=" 
+                        {% if request.user in produit.favoris_de.all %}
+                        fas text-rose-600 fa-heart 
+                        {% else %} 
+                        bg-gray-100 hover:bg-gray-200 text-gray-700 transition flex items-center gap-2 
+                        {% endif %} ">
+                    </i>
                     </button>
                     <button class="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition flex items-center gap-2">
                         <i class="fas fa-share-alt"></i>
