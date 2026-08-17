@@ -32,6 +32,10 @@ from django.core.mail import send_mail
 from django.conf import settings
 from chat_app.models import Message
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 
 
@@ -609,7 +613,6 @@ class SITE_VehiculDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         vehicule = self.object
-
         # === TOUT TON CONTEXTE EXISTANT ===
         images = vehicule.images.all().order_by('ordre', 'date_ajout')
         context['images'] = images
@@ -701,4 +704,57 @@ def vehicul_image_partials(request, vehicul_id):
         'vehicul': vehicule,
     })
 
+def toggle_favori(request, vehicul_id):
+    if request.user.is_anonymous or request.user.role != 'client':
+        response = render(request, "partials/vehiculs/_favori_result.html", {
+            "success": False,
+            "title": "❌ Action non autorisée",
+            "message": "Seuls les clients ou abonnée peuvent ajouter des favoris.",
+        })
+        return response
+    
+    vehicul = get_object_or_404(Vehicul, id=vehicul_id)
+    
+    if vehicul.favoris_de.filter(id=request.user.id).exists():
+        vehicul.favoris_de.remove(request.user)
+        ajoute = False
+    else:
+        vehicul.favoris_de.add(request.user)
+        ajoute = True
+        
+        def notifier_ajout_favori(client, vehicul):
+                Message.objects.create(
+                    client=client,
+                    commercial=None,  # message système, pas encore pris en charge par un commercial précis
+                    contenu=(
+                        f"Vous avez ajouté {vehicul.marque.nom} {vehicul.modele} à vos favoris. "
+                        f"N'hésitez pas à échanger avec un conseiller sur les options de financement disponibles."
+                    ),
+                    est_client=False,
+                    lu=False,
+                    origine_automatique=True,
+                )
 
+                if client.email:
+                    try:
+                        lien_chat = request.build_absolute_uri(reverse('chat_app:chat-view'))
+                        html_message = render_to_string('emails/chat/notif_favori.html', {
+                            'client': client,
+                            'vehicule': f"{vehicul.marque.nom} {vehicul.modele}",
+                            'lien_chat': lien_chat,
+                        })
+                        send_mail(
+                            subject=f"💬 Nouveau message concernant {vehicul.marque.nom} {vehicul.modele}",
+                            message=strip_tags(html_message),
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            recipient_list=[client.email],
+                            html_message=html_message,
+                            fail_silently=False,
+                        )
+                    except Exception as e:
+                        logger.error(f"Erreur email notif favori pour {client.email}: {e}")
+        
+        
+    return render(request, "partials/vehiculs/_favori_button.html", {"vehicul": vehicul})
+        
+        

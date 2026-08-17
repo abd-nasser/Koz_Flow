@@ -47,4 +47,5 @@ urlpatterns = [
     path('site/marque/<int:pk>/', views.SITE_MarqueDetailView.as_view(), name='site-marque-detail'),
     path('vehicul/images/<int:vehicul_id>/', views.vehicul_image_partials, name="vehicul-image-partial"),
     path('vehicul/contacter/<int:vehicul_id>/', views.contacter_vehicule, name="contacter-vehicule"),
+    path('vehicul/favoris/<int:vehicul_id>/', views.toggle_favori, name="ajout-favoris")
     ]

@@ -27,6 +27,8 @@ class Message(models.Model):
     lu = models.BooleanField(default=False)  # ⚠️ Changé à False par défaut
     date_envoi = models.DateTimeField(auto_now_add=True)
     
+    origine_automatique = models.BooleanField(default=False)
+    
     class Meta:
         ordering = ['date_envoi']
     

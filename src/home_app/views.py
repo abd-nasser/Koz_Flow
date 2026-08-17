@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.urls import reverse, reverse_lazy
 from auth_app.models import kozUser
 from home_app.forms import ActualiteForm, AvisReseauForm, TemoignageTextuelForm, VideoTemoignageForm
@@ -24,7 +24,7 @@ def home_page_view(request):
     """
     
     #Récuperer tout les vehicules en vedettes
-    vehicules_vedette = Vehicul.objects.filter(est_vedette = True)
+    vehicules_vedette = Vehicul.objects.filter(est_vedette = True).annotate(nb_favoris=Count('favoris_de')).order_by('-nb_favoris')
     
     
     
@@ -47,6 +47,7 @@ def home_page_view(request):
         "videos": VideoTemoignage.objects.filter(est_actif = True).order_by('-date_ajout')[:5],
         "temoignage_textuel_form": TemoignageTextuelForm(),
         "actualites": Actualite.objects.filter(est_vedette = True).order_by('-date_publication'),
+        "likes": Vehicul.objects.annotate(nb_favoris=Count('favoris_de')).order_by('-nb_favoris')
     }
     return render(request, "home_templates/home_page.html", ctx)
 
@@ -55,7 +56,7 @@ def vehicules_partial(request):
     """
     Vue HTMX pour charger les véhicules paginés
     """
-    vehicules_vedette = Vehicul.objects.filter(est_vedette=True).order_by('date_ajout')
+    vehicules_vedette = Vehicul.objects.filter(est_vedette=True).annotate(nb_favoris=Count('favoris_de')).order_by('-nb_favoris')
     paginator = Paginator(vehicules_vedette, 1)
     page_number = request.GET.get('page', 1)
     vehicules_page = paginator.get_page(page_number)

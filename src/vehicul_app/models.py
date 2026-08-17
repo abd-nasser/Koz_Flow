@@ -90,6 +90,12 @@ class Vehicul(models.Model):
     date_ajout = models.DateTimeField(auto_now_add=True)
     actualite = models.BooleanField(default=False)
     est_vedette = models.BooleanField(default=False)
+    favoris_de = models.ManyToManyField(
+    'auth_app.kozUser',
+    related_name='vehicules_favoris',
+    blank=True,
+    limit_choices_to={'role': 'client'},
+)
     
     slug = models.SlugField(
         max_length=200,

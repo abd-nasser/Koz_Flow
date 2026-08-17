@@ -494,6 +494,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 ease: "power3.out",
             
             });
+    
+    gsap.from(".img-contain", {
+        scrollTrigger: {
+            trigger: ".img-contain",
+            start: "top 55%",
+            end: "top 40%",
+            toggleActions: "play none none reverse",
+            
+        },
+        opacity: 0,
+        x: 200,
+        duration: 1.5,
+        ease: "power3.out",
+    });
 
 });
 
