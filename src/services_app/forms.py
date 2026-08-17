@@ -100,7 +100,7 @@ class ServiceAvisForm(forms.ModelForm):
         fields = ['note', 'commentaire']
         widgets = {
             'note': forms.Select(attrs={
-                'class': 'select select-bordered w-full'
+                'class': 'select select-warning w-full'
             }),
             'commentaire': forms.Textarea(attrs={
                 'class': 'textarea textarea-bordered w-full',

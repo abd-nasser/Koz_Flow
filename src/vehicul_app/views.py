@@ -451,9 +451,6 @@ class APIVehiculDetailView(generics.RetrieveAPIView):
 # ✅ SITE PUBLIC : Vues pour l'affichage public des véhicules
 # ============================================================
 
-
-
-
 @login_required
 def contacter_vehicule(request, vehicul_id):
     vehicule = get_object_or_404(Vehicul, id=vehicul_id)
@@ -703,4 +700,5 @@ def vehicul_image_partials(request, vehicul_id):
         'direction': direction,
         'vehicul': vehicule,
     })
+
 
